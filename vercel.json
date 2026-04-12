@@ -1,15 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/notion/:path*", "destination": "https://api.notion.com/:path*" }
-  ],
-  "headers": [
-    {
-      "source": "/api/notion/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Authorization, Notion-Version, Content-Type" }
-      ]
-    }
+    { "source": "/api/notion/:path*", "destination": "/api/notion" }
   ]
 }
