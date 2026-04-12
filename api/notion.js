@@ -1,7 +1,29 @@
+import { buffer } from 'micro';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req, res) {
-  // Extraer el path de Notion desde la query
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Notion-Version, Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   const notionPath = req.url.replace('/api/notion', '').split('?')[0];
   
+  let body = undefined;
+  if (req.method === 'POST') {
+    const buf = await buffer(req);
+    body = buf.toString();
+  }
+
   const response = await fetch(`https://api.notion.com/v1${notionPath}`, {
     method: req.method,
     headers: {
@@ -9,19 +31,9 @@ export default async function handler(req, res) {
       'Notion-Version': req.headers['notion-version'] || '2022-06-28',
       'Content-Type': 'application/json',
     },
-    body: req.method === 'POST' ? JSON.stringify(req.body) : undefined,
+    body,
   });
 
   const data = await response.json();
-  
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Notion-Version, Content-Type');
-  
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-  
   res.status(response.status).json(data);
 }
