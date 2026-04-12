@@ -1,11 +1,3 @@
-import { buffer } from 'micro';
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -18,17 +10,13 @@ export default async function handler(req, res) {
 
   const notionPath = req.url.replace('/api/notion', '').split('?')[0];
   
-  let body = undefined;
-  if (req.method === 'POST') {
-    const buf = await buffer(req);
-    body = buf.toString();
-  }
+  const body = req.method === 'POST' ? JSON.stringify(req.body) : undefined;
 
   const response = await fetch(`https://api.notion.com/v1${notionPath}`, {
     method: req.method,
     headers: {
       'Authorization': req.headers.authorization || '',
-      'Notion-Version': req.headers['notion-version'] || '2022-06-28',
+      'Notion-Version': '2022-06-28',
       'Content-Type': 'application/json',
     },
     body,
