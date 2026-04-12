@@ -8,11 +8,11 @@ export default async function handler(req, res) {
   const response = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
     method: 'POST',
     headers: {
-      'Authorization': req.headers.authorization,
+      'Authorization': 'Bearer ntn_w906520198397Z9fr4EdBkfvlWSik21KhCgr83hG2gw51n',
       'Notion-Version': '2022-06-28',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(req.body),
+    body: JSON.stringify(req.body || {}),
   });
   const data = await response.json();
   res.status(response.status).json(data);
