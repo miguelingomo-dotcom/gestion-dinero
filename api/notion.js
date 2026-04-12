@@ -14,9 +14,14 @@ export default async function handler(req, res) {
     return;
   }
 
-  const fullPath = req.url.replace('/api/notion', '');
+  // El rewrite de Vercel manda todo a /api/notion
+  // El path real viene en req.query o en req.url
+  const url = new URL(req.url, 'https://placeholder.com');
+  const notionPath = url.pathname.replace('/api/notion', '');
+  
+  const notionUrl = `https://api.notion.com/v1${notionPath}`;
 
-  const response = await fetch(`https://api.notion.com/v1${fullPath}`, {
+  const response = await fetch(notionUrl, {
     method: req.method,
     headers: {
       'Authorization': req.headers.authorization || '',
