@@ -14,18 +14,16 @@ export default async function handler(req, res) {
     return;
   }
 
-  const notionPath = req.url.replace('/api/notion', '').split('?')[0];
+  const fullPath = req.url.replace('/api/notion', '');
 
-  const body = req.method === 'POST' ? JSON.stringify(req.body) : undefined;
-
-  const response = await fetch(`https://api.notion.com/v1${notionPath}`, {
+  const response = await fetch(`https://api.notion.com/v1${fullPath}`, {
     method: req.method,
     headers: {
       'Authorization': req.headers.authorization || '',
       'Notion-Version': '2022-06-28',
       'Content-Type': 'application/json',
     },
-    body,
+    body: req.method === 'POST' ? JSON.stringify(req.body) : undefined,
   });
 
   const data = await response.json();
