@@ -1685,13 +1685,30 @@ async function nFetch(path,method='GET',body=null){
 
 /* ── INICIO ── */
 function loadInicio(){return Promise.all([loadPatrimonio(),loadResumen()]);}
+/* Valor estimado de MyInvestor: último 'Valor Cartera' + aportaciones posteriores a él.
+   Devuelve {valor:null} si no hay ningún registro de inversión. */
+async function fetchValorCartera(){
+  const ult=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{equals:'Valor Cartera'}},sorts:[{property:'InvFecha',direction:'descending'},{timestamp:'created_time',direction:'descending'}],page_size:1});
+  const base=ult.results?.[0];
+  const baseFecha=base?.properties?.InvFecha?.date?.start||null;
+  const filtroAp={property:'InvTipo',select:{equals:'Aportación'}};
+  const aps=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:baseFecha?{and:[filtroAp,{property:'InvFecha',date:{on_or_after:baseFecha}}]}:filtroAp,page_size:100});
+  const posteriores=(aps.results||[]).filter(a=>{
+    if(!base)return true;
+    const f=a.properties?.InvFecha?.date?.start||'';
+    return f>baseFecha||(f===baseFecha&&a.created_time>base.created_time);
+  });
+  if(!base&&!posteriores.length)return{valor:null,fecha:null};
+  const extra=posteriores.reduce((s,a)=>s+(a.properties?.InvImporte?.number||0),0);
+  return{valor:(base?.properties?.InvImporte?.number||0)+extra,fecha:baseFecha};
+}
 async function loadPatrimonio(){
   try{
-    const [cuentasData,invData]=await Promise.all([
+    const [cuentasData,inv]=await Promise.all([
       nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'Cuenta o Meta',select:{equals:'Cuenta'}}}),
-      nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{equals:'Valor Cartera'}},sorts:[{property:'InvFecha',direction:'descending'}],page_size:1})
+      fetchValorCartera()
     ]);
-    // Excluimos el balance "en bruto" de la cuenta MyInvestor y usamos el último valor real de cartera registrado en Inversión
+    // Excluimos el balance "en bruto" de la cuenta MyInvestor y usamos el valor de cartera (último registrado + aportaciones posteriores)
     const breakdown=[];
     const totalCuentas=(cuentasData.results||[]).reduce((s,p)=>{
       const pid=p.id.replace(/-/g,'');
@@ -1702,7 +1719,7 @@ async function loadPatrimonio(){
       if(bal>0)breakdown.push({name,val:bal});
       return s+bal;
     },0);
-    const valorCartera=invData.results?.[0]?.properties?.InvImporte?.number||0;
+    const valorCartera=inv.valor||0;
     if(valorCartera>0)breakdown.push({name:'MyInvestor',val:valorCartera});
     const total=totalCuentas+valorCartera;
     breakdown.sort((a,b)=>b.val-a.val);
@@ -2559,15 +2576,15 @@ async function loadAccounts(){
   document.getElementById('accountCards').innerHTML=skeletonCards(4);
   Object.keys(accountMovsLoaded).forEach(k=>delete accountMovsLoaded[k]);
   try{
-    const [data,invData]=await Promise.all([
+    const [data,inv]=await Promise.all([
       nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{and:[
         {property:'Cuenta o Meta',select:{equals:'Cuenta'}},
         {property:'Estado',select:{equals:'🟢 Activo'}}
       ]}}),
-      nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{equals:'Valor Cartera'}},sorts:[{property:'InvFecha',direction:'descending'}],page_size:1})
+      fetchValorCartera()
     ]);
-    // La cuenta MyInvestor muestra el último valor de cartera registrado en Inversión
-    const valorCartera=invData.results?.[0]?.properties?.InvImporte?.number;
+    // La cuenta MyInvestor muestra el valor de cartera (último registrado + aportaciones posteriores)
+    const valorCartera=inv.valor;
     const order=['Revolut Personal','Ibercaja','Sabadell','MyInvestor','MyInvestor Remunerada','Openbank Corriente','Openbank Ahorro','Pluxee','Revolut Compartida','Efectivo'];
     const pages=(data.results||[]).sort((a,b)=>{
       const na=a.properties?.Nombre?.title?.[0]?.plain_text||'';
@@ -2945,7 +2962,14 @@ async function submitTransfer(){
       'Transferir Desde':{relation:[{id:transferFromId}]},
       'Transferir a':{relation:[{id:toId}]},
     }});
-    if(res.id){showSuccessBurst();showToast(t('toast_transferencia_reg'),'success');loadAccounts();}
+    if(res.id){
+      // Una transferencia a MyInvestor cuenta como aportación a la cartera
+      if(toId===MYINVESTOR_ACC_ID){
+        const ap=await crearAportacion('Aportación - '+fromName.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim(),amt,today);
+        if(!ap.id){showToast('Error: '+(ap.message||t('toast_intentalo')),'error');loadAccounts();return;}
+      }
+      showSuccessBurst();showToast(t('toast_transferencia_reg'),'success');loadAccounts();
+    }
     else showToast('Error: '+(res.message||t('toast_intentalo')),'error');
   }catch(e){showToast(t('toast_error_transferir'),'error');}
 }
@@ -2962,12 +2986,15 @@ let invPendingTipo='Aportación',invCache={},editingInvId=null;
 async function loadInversion(){
   document.getElementById('invHistList').innerHTML=skeletonRowsInner(3);
   try{
-    const data=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{is_not_empty:true}},sorts:[{property:'InvFecha',direction:'descending'}]});
+    const [data,inv]=await Promise.all([
+      nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{is_not_empty:true}},sorts:[{property:'InvFecha',direction:'descending'}]}),
+      fetchValorCartera()
+    ]);
     const rows=data.results||[];
     const aportaciones=rows.filter(r=>r.properties?.InvTipo?.select?.name==='Aportación');
     const valores=rows.filter(r=>r.properties?.InvTipo?.select?.name==='Valor Cartera');
     const totalAportado=aportaciones.reduce((s,r)=>s+(r.properties?.InvImporte?.number||0),0);
-    const ultimoValor=valores[0]?.properties?.InvImporte?.number||0;
+    const ultimoValor=inv.valor||0;
     const ultimaFecha=valores[0]?.properties?.InvFecha?.date?.start;
     const rendimiento=ultimoValor-totalAportado;
     const pct=totalAportado>0?(rendimiento/totalAportado*100):0;
@@ -3042,15 +3069,27 @@ async function deleteInv(pageId,btn){
     else showToast(t('toast_error_eliminar'),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
 }
+function crearAportacion(nombre,amt,date){
+  return nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
+    Nombre:{title:[{text:{content:nombre}}]},
+    InvTipo:{select:{name:'Aportación'}},
+    InvImporte:{number:amt},
+    InvFecha:{date:{start:date}},
+  }});
+}
 async function quickAportacionMensual(){
   const today=new Date().toISOString().split('T')[0];
   try{
-    const res=await nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
-      Nombre:{title:[{text:{content:'Aportación mensual - '+today}}]},
-      InvTipo:{select:{name:'Aportación'}},
-      InvImporte:{number:INV_APORTACION_MENSUAL},
-      InvFecha:{date:{start:today}},
+    // Primero la transferencia Ibercaja → MyInvestor, para que el dinero salga de Ibercaja
+    const tr=await nFetch('/pages','POST',{parent:{database_id:TRANSFER_DB},properties:{
+      Nombre:{title:[{text:{content:'Ibercaja → MyInvestor'}}]},
+      Monto:{number:INV_APORTACION_MENSUAL},
+      'Fecha':{date:{start:today}},
+      'Transferir Desde':{relation:[{id:IBERCAJA_ID}]},
+      'Transferir a':{relation:[{id:MYINVESTOR_ACC_ID}]},
     }});
+    if(!tr.id){showToast('Error: '+(tr.message||t('toast_intentalo')),'error');return;}
+    const res=await crearAportacion('Aportación mensual - '+today,INV_APORTACION_MENSUAL,today);
     if(res.id){showSuccessBurst();showToast(t('toast_aportacion_de')+' '+INV_APORTACION_MENSUAL+'€ '+t('toast_registrada'),'success');loadInversion();}
     else showToast('Error: '+(res.message||t('toast_intentalo')),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
