@@ -1045,15 +1045,6 @@ body.kashy-locked .app,body.kashy-locked .nav{filter:blur(22px);}
         <div class="hero-mini"><div class="hero-mini-lbl">%</div><div class="hero-mini-val" id="invPct">0,0%</div></div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-title" data-i18n="obj_anual">Objetivo anual de aportación</div>
-      <div class="res-row">
-        <div class="res-item"><div class="res-lbl" data-i18n="aportado">Aportado</div><div class="res-val i" id="invObjAportado">—</div></div>
-        <div class="res-item"><div class="res-lbl" data-i18n="objetivo">Objetivo</div><div class="res-val" id="invObjTotal">—</div></div>
-        <div class="res-item"><div class="res-lbl" data-i18n="restante">Restante</div><div class="res-val" id="invObjRestante">—</div></div>
-      </div>
-      <div class="res-bar"><div class="res-bar-fill" id="invObjBar" style="width:0%"></div></div>
-    </div>
     <div class="reg-wrap" style="margin-bottom:10px;">
       <div class="sus-card" style="margin:0 0 14px;">
         <div class="sus-icon">🔁</div>
@@ -1204,7 +1195,7 @@ const I18N={
     gastos_fijos:'Pagos recurrentes',ingresos_rapidos:'Ingresos rápidos',
     transf_recurrentes:'Transferencias recurrentes',metas_ahorro:'Metas de ahorro',
     lista_deseos:'Lista de deseos',historial:'Historial',cuentas_inactivas:'Ver cuentas inactivas',
-    obj_anual:'Objetivo anual de aportación',aportado:'Aportado',objetivo:'Objetivo',restante:'Restante',
+    aportado:'Aportado',objetivo:'Objetivo',restante:'Restante',
     ver_inactivas:'Ver cuentas inactivas',ocultar_inactivas:'Ocultar cuentas inactivas',
     empty_movs:'Sin movimientos aún',empty_movs_sub:'Registra tu primer gasto o ingreso desde el botón ➕',
     empty_cuentas:'Sin cuentas activas',empty_goals:'Sin metas aún',empty_wishes:'Sin deseos aún',
@@ -1225,7 +1216,7 @@ const I18N={
     toast_transferencia_reg:'✓ Transferencia registrada',toast_error_transferir:'Error al transferir',
     toast_intentalo:'Inténtalo',toast_registrada:'registrada',toast_aportacion_de:'✓ Aportación de',
     toast_importe_valido:'Introduce un importe válido',toast_registrada_ok:'✓ Registrado',
-    confirm_del_mov:'¿Eliminar este movimiento?',confirm_del_meta:'¿Eliminar esta meta?',
+    confirm_del_mov:'¿Eliminar este movimiento?',confirm_del_inv:'¿Eliminar este registro de inversión?',confirm_del_meta:'¿Eliminar esta meta?',
     confirm_del_deseo:'¿Eliminar este deseo?',confirm_marcar_comprado:'¿Marcar "{n}" como comprado?',
     confirm_desactivar:'¿Desactivar "{n}"? Se ocultará de Cuentas y de los selectores, pero su historial de movimientos se conserva.',
     empty_movs_title:'Sin movimientos aún',empty_error_cargar:'Error al cargar',empty_error_sub:'Desliza hacia abajo para reintentar',
@@ -1260,7 +1251,7 @@ const I18N={
     nuevo_deseo:'Nuevo Deseo',ejemplo_airpods:'Ej: AirPods Pro',
     valor_actual_cartera:'Valor Actual de la Cartera',sin_datos_aun:'Sin datos aún',
     rendimiento_lbl:'Rendimiento',aportacion_mensual:'Aportación mensual',
-    nueva_aportacion:'Nueva Aportación',actualizar_valor_cartera:'Actualizar Valor de Cartera',
+    nueva_aportacion:'Nueva Aportación',actualizar_valor_cartera:'Actualizar Valor de Cartera',editar_aportacion:'Editar Aportación',editar_valor_cartera:'Editar Valor de Cartera',toast_inv_actualizado:'✓ Registro actualizado',
     dia_lbl:'Día',ingreso_rapido:'Ingreso rápido',cobros_hoy:'⚠️ Cobros hoy',
     ahorrando_bien:'Estás ahorrando bien 💪',cuidado_gastos:'Cuidado con los gastos ⚠️',
     tasa_excelente:'De cada 100€ que ingresas, ahorras {t}€ — excelente 🎯',
@@ -1300,7 +1291,7 @@ const I18N={
     gastos_fijos:'Recurring payments',ingresos_rapidos:'Quick income',
     transf_recurrentes:'Recurring transfers',metas_ahorro:'Savings goals',
     lista_deseos:'Wish list',historial:'History',cuentas_inactivas:'Show inactive accounts',
-    obj_anual:'Annual contribution goal',aportado:'Contributed',objetivo:'Target',restante:'Remaining',
+    aportado:'Contributed',objetivo:'Target',restante:'Remaining',
     ver_inactivas:'Show inactive accounts',ocultar_inactivas:'Hide inactive accounts',
     empty_movs:'No transactions yet',empty_movs_sub:'Log your first expense or income with the ➕ button',
     empty_cuentas:'No active accounts',empty_goals:'No goals yet',empty_wishes:'No wishes yet',
@@ -1321,7 +1312,7 @@ const I18N={
     toast_transferencia_reg:'✓ Transfer logged',toast_error_transferir:'Error transferring',
     toast_intentalo:'Try again',toast_registrada:'logged',toast_aportacion_de:'✓ Contribution of',
     toast_importe_valido:'Enter a valid amount',toast_registrada_ok:'✓ Logged',
-    confirm_del_mov:'Delete this transaction?',confirm_del_meta:'Delete this goal?',
+    confirm_del_mov:'Delete this transaction?',confirm_del_inv:'Delete this investment entry?',confirm_del_meta:'Delete this goal?',
     confirm_del_deseo:'Delete this wish?',confirm_marcar_comprado:'Mark "{n}" as bought?',
     confirm_desactivar:'Deactivate "{n}"? It will be hidden from Accounts and all selectors, but its transaction history stays intact.',
     empty_movs_title:'No transactions yet',empty_error_cargar:'Error loading',empty_error_sub:'Pull down to retry',
@@ -1356,7 +1347,7 @@ const I18N={
     nuevo_deseo:'New Wish',ejemplo_airpods:'e.g. AirPods Pro',
     valor_actual_cartera:'Current Portfolio Value',sin_datos_aun:'No data yet',
     rendimiento_lbl:'Return',aportacion_mensual:'Monthly contribution',
-    nueva_aportacion:'New Contribution',actualizar_valor_cartera:'Update Portfolio Value',
+    nueva_aportacion:'New Contribution',actualizar_valor_cartera:'Update Portfolio Value',editar_aportacion:'Edit Contribution',editar_valor_cartera:'Edit Portfolio Value',toast_inv_actualizado:'✓ Entry updated',
     dia_lbl:'Day',ingreso_rapido:'Quick income',cobros_hoy:'⚠️ Due today',
     ahorrando_bien:'You\'re saving well 💪',cuidado_gastos:'Watch your spending ⚠️',
     tasa_excelente:'For every €100 you earn, you save €{t} — excellent 🎯',
@@ -1414,7 +1405,6 @@ const CUENTAS_DB='25e21c54013f817e959ee75351072a94';
 const TRANSFER_DB='25e21c54013f813faceae0152856368e';
 const BUDGET_DB='64e0778f56e24f2696ff87013b656019';
 const MYINVESTOR_ACC_ID='3b821c54013f817088e9fe2e7a0a3707';
-const INV_OBJETIVO_ANUAL=5700; // 4.500€ aportación inicial estimada + 100€/mes x 12 — ajusta si cambia el plan
 const INV_APORTACION_MENSUAL=120; // Transferencia automática mensual desde Ibercaja
 const TRANSF_MENSUAL_MONTO=250; // Transferencia automática mensual Ibercaja → Revolut Personal
 const IBERCAJA_ID='31621c54013f811ebd49f65e2776d28e';
@@ -2569,10 +2559,15 @@ async function loadAccounts(){
   document.getElementById('accountCards').innerHTML=skeletonCards(4);
   Object.keys(accountMovsLoaded).forEach(k=>delete accountMovsLoaded[k]);
   try{
-    const data=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{and:[
-      {property:'Cuenta o Meta',select:{equals:'Cuenta'}},
-      {property:'Estado',select:{equals:'🟢 Activo'}}
-    ]}});
+    const [data,invData]=await Promise.all([
+      nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{and:[
+        {property:'Cuenta o Meta',select:{equals:'Cuenta'}},
+        {property:'Estado',select:{equals:'🟢 Activo'}}
+      ]}}),
+      nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{equals:'Valor Cartera'}},sorts:[{property:'InvFecha',direction:'descending'}],page_size:1})
+    ]);
+    // La cuenta MyInvestor muestra el último valor de cartera registrado en Inversión
+    const valorCartera=invData.results?.[0]?.properties?.InvImporte?.number;
     const order=['Revolut Personal','Ibercaja','Sabadell','MyInvestor','MyInvestor Remunerada','Openbank Corriente','Openbank Ahorro','Pluxee','Revolut Compartida','Efectivo'];
     const pages=(data.results||[]).sort((a,b)=>{
       const na=a.properties?.Nombre?.title?.[0]?.plain_text||'';
@@ -2583,8 +2578,8 @@ async function loadAccounts(){
     document.getElementById('accountCards').innerHTML=pages.map(p=>{
       const fullName=p.properties?.Nombre?.title?.[0]?.plain_text||'—';
       const name=fullName.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
-      const bal=p.properties?.['Balance']?.formula?.number||0;
       const pageId=p.id.replace(/-/g,'');
+      const bal=(pageId===MYINVESTOR_ACC_ID&&typeof valorCartera==='number')?valorCartera:(p.properties?.['Balance']?.formula?.number||0);
       const color=bankColor(name);
       return`<div class="account-card" style="border-left:3px solid ${color};">
         <div class="account-card-head" onclick="toggleAccountMovs('${pageId}',this)">
@@ -2963,7 +2958,7 @@ function showToast(msg,type=''){
 }
 
 /* ── INVERSIÓN (MyInvestor) ── */
-let invPendingTipo='Aportación';
+let invPendingTipo='Aportación',invCache={},editingInvId=null;
 async function loadInversion(){
   document.getElementById('invHistList').innerHTML=skeletonRowsInner(3);
   try{
@@ -3002,29 +2997,25 @@ async function loadInversion(){
       else banner.classList.remove('show');
     });
 
-    /* Objetivo anual de aportación */
-    const objPct=Math.min(100,(totalAportado/INV_OBJETIVO_ANUAL)*100);
-    const restante=Math.max(0,INV_OBJETIVO_ANUAL-totalAportado);
-    document.getElementById('invObjAportado').textContent=fmt(totalAportado)+' €';
-    document.getElementById('invObjTotal').textContent=fmt(INV_OBJETIVO_ANUAL)+' €';
-    document.getElementById('invObjRestante').textContent=fmt(restante)+' €';
-    document.getElementById('invObjBar').style.width=objPct+'%';
-
+    invCache={};
     document.getElementById('invHistList').innerHTML=rows.map(r=>{
+      invCache[r.id]=r;
       const tipo=r.properties?.InvTipo?.select?.name||'';
       const importe=r.properties?.InvImporte?.number||0;
       const fecha=r.properties?.InvFecha?.date?.start;
       const fechaStr=fecha?new Date(fecha+'T00:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short',year:'numeric'}):'';
       const isAporte=tipo==='Aportación';
-      return`<div class="mov-item">
+      return`<div class="mov-item" data-swipe-edit="openEditInv" data-swipe-del="deleteInv">
         <div class="mov-icon">${isAporte?'➕':'📊'}</div>
         <div class="mov-info"><div class="mov-name">${tipo}</div><div class="mov-date">${fechaStr}</div></div>
         <div class="mov-amount ${isAporte?'ingreso':''}">${isAporte?'+':''}${fmt(importe)} €</div>
+        <button class="del-btn" onclick="deleteInv('${r.id}',this)">🗑️</button>
       </div>`;
     }).join('')||emptyState('📈',t('empty_inv_title'),t('empty_inv_sub'));
   }catch(e){document.getElementById('invHistList').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
 }
 function openInvModal(tipo){
+  editingInvId=null;
   invPendingTipo=tipo;
   document.getElementById('invModalTitle').textContent=tipo==='Aportación'?t('nueva_aportacion'):t('actualizar_valor_cartera');
   document.getElementById('invAmt').value='';
@@ -3032,6 +3023,25 @@ function openInvModal(tipo){
   document.getElementById('invOverlay').classList.add('show');
 }
 function closeInvModal(){document.getElementById('invOverlay').classList.remove('show');}
+function openEditInv(pageId){
+  const r=invCache[pageId];
+  if(!r)return;
+  editingInvId=pageId;
+  invPendingTipo=r.properties?.InvTipo?.select?.name||'Aportación';
+  document.getElementById('invModalTitle').textContent=invPendingTipo==='Aportación'?t('editar_aportacion'):t('editar_valor_cartera');
+  document.getElementById('invAmt').value=r.properties?.InvImporte?.number||'';
+  document.getElementById('invDate').value=r.properties?.InvFecha?.date?.start||'';
+  document.getElementById('invOverlay').classList.add('show');
+}
+async function deleteInv(pageId,btn){
+  if(!confirm(t('confirm_del_inv')))return;
+  try{
+    const res=await fetch('/api/delete?pageId='+pageId,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
+    const data=await res.json();
+    if(data.archived||data.in_trash){showToast(t('toast_eliminado'),'success');loadInversion();}
+    else showToast(t('toast_error_eliminar'),'error');
+  }catch(e){showToast(t('toast_conexion'),'error');}
+}
 async function quickAportacionMensual(){
   const today=new Date().toISOString().split('T')[0];
   try{
@@ -3051,6 +3061,23 @@ async function saveInv(){
   if(!amt||amt<=0){showToast(t('toast_importe_valido'),'error');return;}
   if(!date){showToast(t('toast_introduce_fecha'),'error');return;}
   closeInvModal();
+  if(editingInvId){
+    try{
+      const res=await fetch('/api/page?pageId='+editingInvId,{
+        method:'PATCH',
+        headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+        body:JSON.stringify({properties:{
+          Nombre:{title:[{text:{content:invPendingTipo+' - '+date}}]},
+          InvImporte:{number:amt},
+          InvFecha:{date:{start:date}},
+        }})
+      });
+      const data=await res.json();
+      if(data.id){editingInvId=null;showToast(t('toast_inv_actualizado'),'success');loadInversion();}
+      else showToast(t('toast_error_guardar'),'error');
+    }catch(e){showToast(t('toast_conexion'),'error');}
+    return;
+  }
   try{
     const res=await nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
       Nombre:{title:[{text:{content:invPendingTipo+' - '+date}}]},
@@ -3303,15 +3330,17 @@ async function saveInv(){
   }
   function prepararSwipe(fila){
     if(fila.parentNode&&fila.parentNode.classList.contains('swipe'))return;
+    var fnEdit=fila.dataset.swipeEdit||'openEditMovement';
+    var fnDel=fila.dataset.swipeDel||'deleteMovement';
     var del=fila.querySelector('.del-btn');
-    var fuente=del||fila.querySelector('[onclick*="openEditMovement"]');
+    var fuente=del||fila.querySelector('[onclick*="'+fnEdit+'"]');
     if(!fuente)return;
     var id=((fuente.getAttribute('onclick')||'').match(/'([^']+)'/)||[])[1];
     if(!id)return;
     var objetivo=del||fila;
 
     /* Pulsar la fila ya no abre la edición */
-    fila.querySelectorAll('[onclick*="openEditMovement"]').forEach(function(el){
+    fila.querySelectorAll('[onclick*="'+fnEdit+'"]').forEach(function(el){
       el.removeAttribute('onclick');el.style.cursor='default';
     });
 
@@ -3324,14 +3353,14 @@ async function saveInv(){
     acciones.innerHTML='<button class="swipe-act swipe-edit">'+ICO_EDIT+'Editar</button>'+
                        '<button class="swipe-act swipe-del">'+ICO_DEL+'Eliminar</button>';
     sw.appendChild(acciones);
-    acciones.querySelector('.swipe-edit').onclick=function(){sw.scrollTo({left:0,behavior:'smooth'});openEditMovement(id);};
-    acciones.querySelector('.swipe-del').onclick=function(){deleteMovement(id,objetivo);};
+    acciones.querySelector('.swipe-edit').onclick=function(){sw.scrollTo({left:0,behavior:'smooth'});window[fnEdit](id);};
+    acciones.querySelector('.swipe-del').onclick=function(){window[fnDel](id,objetivo);};
     sw.addEventListener('scroll',function(){ if(sw.scrollLeft>4)cerrarOtros(sw); },{passive:true});
   }
   function prepararTodos(){
-    document.querySelectorAll('#recentMovs .mov-item').forEach(prepararSwipe);
+    document.querySelectorAll('#recentMovs .mov-item, #invHistList .mov-item').forEach(prepararSwipe);
   }
-  ['recentMovs'].forEach(function(id){
+  ['recentMovs','invHistList'].forEach(function(id){
     var c=document.getElementById(id);
     if(c)new MutationObserver(prepararTodos).observe(c,{childList:true,subtree:true});
   });
