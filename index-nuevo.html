@@ -2,9 +2,9 @@
 <html lang="es" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Ka$hy</title>
 <script>
   // Aplica el tema guardado ANTES de pintar, para evitar parpadeo al abrir la app
@@ -16,7 +16,7 @@
   })();
 </script>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Ka$hy">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#12131c" media="(prefers-color-scheme: dark)">
@@ -570,7 +570,7 @@ body{background:var(--page);}
 /* Barra inferior de cristal */
 .nav{background:linear-gradient(180deg,color-mix(in srgb,var(--page) 35%,transparent),color-mix(in srgb,var(--page) 94%,transparent));
   backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
-  border-top:1px solid var(--border);box-shadow:none;padding:8px 10px 26px;}
+  border-top:1px solid var(--border);box-shadow:none;padding:8px 10px max(26px,calc(8px + env(safe-area-inset-bottom,0px)));}
 .nav-btn{color:var(--muted2);font-size:10px;}
 .nav-btn svg{width:23px;height:23px;}
 .nav-add{width:52px;height:52px;border-radius:18px;background:var(--accent-bg);
@@ -731,6 +731,22 @@ html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0!imp
   transform:rotate(45deg);margin-top:-4px;}
 body.kashy-locked{overflow:hidden;}
 body.kashy-locked .app,body.kashy-locked .nav{filter:blur(22px);}
+
+/* ── Ajustes de PWA en iPhone (mobile-native) ── */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+html,body{overscroll-behavior:none;}
+.modal{overscroll-behavior:contain;}
+.quick-accounts{scroll-snap-type:x mandatory;scroll-padding-inline:20px;overscroll-behavior-x:contain;}
+.qa-card{scroll-snap-align:start;}
+/* Controles: sin selección de texto ni menú al mantener pulsado (los inputs no se tocan) */
+button,.chip,.cat-item,.account-card,.goal-card,.wish-card,.qa-card,.sus-card,.swipe-act{
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation;}
+/* iOS amplía la página al enfocar un campo de menos de 16px; solo en pantallas táctiles para no cambiar el escritorio */
+@media (pointer:coarse){
+  .field input,.field select,.modal-select{font-size:16px;}
+  input[id^="budgetInput_"]{font-size:16px!important;}
+}
 </style>
 </head>
 <body>
@@ -2375,7 +2391,7 @@ function openBudgetManager(){
     return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
       <span style="font-size:18px;width:26px;">${c.emoji}</span>
       <span style="font-size:13px;font-weight:600;flex:1;">${dispName(c)}</span>
-      <input type="text" placeholder="0" value="${existing?existing.limite:''}" id="budgetInput_${c.id}" style="width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--text);font-size:13px;text-align:right;" oninput="sanitizeAmt(this)" onchange="saveBudgetInput('${c.id}','${dispName(c)}',this.value)">
+      <input type="text" placeholder="0" value="${existing?existing.limite:''}" inputmode="decimal" id="budgetInput_${c.id}" style="width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--text);font-size:13px;text-align:right;" oninput="sanitizeAmt(this)" onchange="saveBudgetInput('${c.id}','${dispName(c)}',this.value)">
     </div>`;
   }).join('');
   document.getElementById('budgetOverlay').classList.add('show');
