@@ -779,6 +779,22 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
   .toast,.toast.show{transform:translateX(-50%);}
   .pat-item-fill,.res-bar-fill,.rate-fill{transition:none;}
 }
+
+/* ── Curva del patrimonio ── */
+.pat-chart-wrap{margin:14px 0 2px;color:var(--green);}
+.pat-chart-wrap.down{color:var(--red);}
+.pat-chart-wrap.vacio{display:none;}
+.pat-chart{display:block;width:100%;height:64px;overflow:visible;touch-action:pan-y;cursor:crosshair;}
+.pat-chart-area{transition:opacity .4s var(--ease-out);}
+.pat-chart-cursor{stroke-width:1;stroke-dasharray:3 3;opacity:0;transition:opacity .12s var(--ease-out);}
+.pat-chart-dot{opacity:0;transition:opacity .12s var(--ease-out);}
+.pat-chart-wrap.scrub .pat-chart-cursor{opacity:.5;}
+.pat-chart-wrap.scrub .pat-chart-dot{opacity:1;}
+.pat-periods{display:flex;gap:6px;margin-top:10px;}
+.pat-period{flex:1;border:none;background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--muted);font-family:inherit;font-size:12px;font-weight:700;
+  padding:6px 0;border-radius:100px;cursor:pointer;transition:background .15s var(--ease-out),color .15s var(--ease-out),transform .15s var(--ease-out);}
+.pat-period.active{background:var(--accent);color:#fff;}
+.pat-period:active{transform:scale(.96);}
 </style>
 </head>
 <body>
@@ -807,6 +823,23 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       <div class="hero-label"><span data-i18n="patrimonio_total">Patrimonio total</span> <span class="hero-hint" data-i18n="patrimonio_hint">⌄</span></div>
       <div class="hero-amount" id="totalAmount" data-raw-val="0">0,00 €</div>
       <div class="hero-badges"><div id="patVariation"></div><div class="hero-sub" id="totalSub" data-i18n="patrimonio_sub">Cuentas + inversión</div></div>
+      <div class="pat-chart-wrap" id="patChartWrap" onclick="event.stopPropagation()">
+        <svg class="pat-chart" id="patChart" aria-hidden="true">
+          <defs><linearGradient id="patChartFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="currentColor" stop-opacity=".22"/>
+            <stop offset="100%" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
+          <path class="pat-chart-area" fill="url(#patChartFill)"/>
+          <path class="pat-chart-line" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          <line class="pat-chart-cursor" y1="0" stroke="currentColor"/>
+          <circle class="pat-chart-dot" r="4" fill="currentColor"/>
+        </svg>
+        <div class="pat-periods">
+          <button class="pat-period" data-p="1M" onclick="setPatPeriodo('1M')">1M</button>
+          <button class="pat-period" data-p="3M" onclick="setPatPeriodo('3M')">3M</button>
+          <button class="pat-period" data-p="6M" onclick="setPatPeriodo('6M')">6M</button>
+          <button class="pat-period" data-p="Todo" onclick="setPatPeriodo('Todo')" data-i18n="pat_todo_btn">Todo</button>
+        </div>
+      </div>
       <div class="hero-row">
         <div class="hero-mini"><div class="hero-mini-lbl">Gastado</div><div class="hero-mini-val g" id="resGasto">—</div></div>
         <div class="hero-mini"><div class="hero-mini-lbl">Ingresado</div><div class="hero-mini-val i" id="resIngreso">—</div></div>
@@ -815,13 +848,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       <div class="res-bar" style="display:none"><div class="res-bar-fill" id="resBar" style="transform:scaleX(0)"></div></div>
       <div class="pat-breakdown"><div class="pat-breakdown-clip"><div class="pat-breakdown-inner" id="patBreakdown"></div></div></div>
       <span id="mesActual" style="display:none"></span>
-      <svg class="hero-spark" viewBox="0 0 400 180" preserveAspectRatio="none" aria-hidden="true">
-        <defs><linearGradient id="kSpark" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--accent)" stop-opacity=".38"/>
-          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
-        <path d="M0,150 C60,140 90,120 140,124 C190,128 210,96 260,88 C310,80 350,52 400,44 L400,180 L0,180 Z" fill="url(#kSpark)"/>
-        <path d="M0,150 C60,140 90,120 140,124 C190,128 210,96 260,88 C310,80 350,52 400,44" fill="none" stroke="var(--accent)" stroke-width="2" opacity=".75"/>
-      </svg>
     </div>
     <div class="quick-accounts-head">
       <span>Tus cuentas</span>
@@ -1253,6 +1279,7 @@ const I18N={
     h_inversion_title:'Inversión',h_inversion_sub:'MyInvestor',
     patrimonio_total:'Patrimonio total',patrimonio_hint:'toca para ver el desglose ⌄',
     patrimonio_sub:'Cuentas + inversión (MyInvestor)',
+    pat_1m:'en 1 mes',pat_3m:'en 3 meses',pat_6m:'en 6 meses',pat_todo:'desde el inicio',pat_todo_btn:'Todo',
     tipo_gasto:'💸 Gasto',tipo_ingreso:'💰 Ingreso',
     lbl_nombre:'Nombre',lbl_fecha:'Fecha',lbl_cuenta:'Cuenta',lbl_categoria:'Categoría',
     lbl_cantidad:'Cantidad',lbl_emoji:'Emoji',lbl_objetivo:'Objetivo (€)',lbl_precio:'Precio (€)',
@@ -1349,6 +1376,7 @@ const I18N={
     h_inversion_title:'Invest',h_inversion_sub:'MyInvestor',
     patrimonio_total:'Total net worth',patrimonio_hint:'tap for the breakdown ⌄',
     patrimonio_sub:'Accounts + investments (MyInvestor)',
+    pat_1m:'in 1 month',pat_3m:'in 3 months',pat_6m:'in 6 months',pat_todo:'since the start',pat_todo_btn:'All',
     tipo_gasto:'💸 Expense',tipo_ingreso:'💰 Income',
     lbl_nombre:'Name',lbl_fecha:'Date',lbl_cuenta:'Account',lbl_categoria:'Category',
     lbl_cantidad:'Amount',lbl_emoji:'Emoji',lbl_objetivo:'Target (€)',lbl_precio:'Price (€)',
@@ -1829,7 +1857,7 @@ async function loadPatrimonio(){
     patrimonioBreakdown={items:breakdown,total};
     if(patHeroCardOpen)renderPatBreakdown();
     animateCounter(document.getElementById('totalAmount'),total,{suffix:' €'});
-    loadPatVariation(total);
+    loadPatHistory(total);
   }catch(e){document.getElementById('totalAmount').textContent='Error';}
 }
 let patrimonioBreakdown={items:[],total:0};
@@ -1880,6 +1908,142 @@ async function loadPatVariation(total){
     document.getElementById('patVariation').innerHTML=`<span class="${cls}">${arrow} ${Math.abs(pct).toFixed(1)}% este mes</span>`;
   }catch(e){document.getElementById('patVariation').innerHTML='';}
 }
+/* ── CURVA DEL PATRIMONIO (historial reconstruido en /api/history) ── */
+const PAT_PERIODOS={'1M':30,'3M':91,'6M':182,'Todo':0};
+let patHist=null,patTotalHoy=0,patSerie=[],patPts=[],patDibujada=false,patAnim=0;
+let patPeriodo=(()=>{try{return localStorage.getItem('kashy-pat-periodo')||'3M';}catch(e){return '3M';}})();
+if(!(patPeriodo in PAT_PERIODOS))patPeriodo='3M';
+function hoyLocal(){const n=new Date();return n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());}
+// Valor de la cartera en un día concreto, con la misma lógica que fetchValorCartera
+function valorCarteraDia(inv,day){
+  const hasta=inv.filter(r=>r.fecha.slice(0,10)<=day);
+  const reciente=(a,b)=>(b.fecha+b.creado).localeCompare(a.fecha+a.creado);
+  const posterior=(a,base)=>!base||a.fecha>base.fecha||(a.fecha===base.fecha&&a.creado>base.creado);
+  const aps=hasta.filter(r=>r.tipo==='Aportación');
+  const vals=hasta.filter(r=>r.tipo==='Valor Cartera');
+  const suma=(base)=>aps.filter(a=>posterior(a,base)).reduce((t,a)=>t+a.importe,0);
+  const bases=FONDOS.map(f=>vals.filter(r=>r.fondo===f.key).sort(reciente)[0]||null);
+  if(bases.every(Boolean))return FONDOS.reduce((s,f,i)=>s+bases[i].importe+suma(bases[i])*f.pct,0);
+  const base=vals.filter(r=>!r.fondo).sort(reciente)[0]||null;
+  return (base?base.importe:0)+suma(base);
+}
+function construirSerie(h,total){
+  const serie=[];const d=new Date(h.desde+'T12:00:00Z');
+  for(let i=0;i<h.cuentas.length;i++){const f=d.toISOString().slice(0,10);serie.push({d:f,v:h.cuentas[i]+valorCarteraDia(h.inv,f)});d.setUTCDate(d.getUTCDate()+1);}
+  // Hoy manda el total en vivo; si la copia guardada es de días anteriores, se rellena hasta hoy
+  const hoy=hoyLocal();
+  while(serie.length&&serie[serie.length-1].d<hoy){const u=serie[serie.length-1];const n=new Date(u.d+'T12:00:00Z');n.setUTCDate(n.getUTCDate()+1);serie.push({d:n.toISOString().slice(0,10),v:u.v});}
+  if(serie.length)serie[serie.length-1].v=total;
+  return serie;
+}
+async function loadPatHistory(total){
+  patTotalHoy=total;
+  if(!patHist){try{patHist=JSON.parse(localStorage.getItem('kashy-pat-hist')||'null');}catch(e){}}
+  if(patHist)renderPatChart();
+  try{
+    const q=new URLSearchParams({movs:DB_ID,cuentas:CUENTAS_DB,transfers:TRANSFER_DB,excluir:MYINVESTOR_ACC_ID,hasta:hoyLocal()});
+    const r=await fetch('/api/history?'+q);
+    const h=await r.json();
+    if(!r.ok||!Array.isArray(h.cuentas)||!h.cuentas.length)throw new Error(h.error||'history');
+    patHist=h;
+    try{localStorage.setItem('kashy-pat-hist',JSON.stringify(h));}catch(e){}
+    renderPatChart();
+  }catch(e){
+    if(!patHist){document.getElementById('patChartWrap').classList.add('vacio');loadPatVariation(total);}
+  }
+}
+function setPatPeriodo(p){
+  patPeriodo=p;
+  try{localStorage.setItem('kashy-pat-periodo',p);}catch(e){}
+  renderPatChart();
+}
+function patBadge(){
+  if(patSerie.length<2)return;
+  const first=patSerie[0].v,last=patSerie[patSerie.length-1].v;
+  const pct=first?(last-first)/Math.abs(first)*100:0,up=last>=first;
+  document.getElementById('patVariation').innerHTML=`<span class="var-badge${up?'':' down'}">${up?'▲':'▼'} ${Math.abs(pct).toFixed(1)}% ${t('pat_'+patPeriodo.toLowerCase())}</span>`;
+}
+function patPuntos(vals,w,h){
+  const min=Math.min(...vals),max=Math.max(...vals),pad_=6,n=vals.length;
+  return vals.map((v,i)=>[n>1?i/(n-1)*w:w/2,max-min>0.005?pad_+(1-(v-min)/(max-min))*(h-2*pad_):h/2]);
+}
+function patRemuestrear(pts,n){
+  if(pts.length===n)return pts;
+  return Array.from({length:n},(_,j)=>{const x=j/(n-1)*(pts.length-1),i=Math.floor(x),f=x-i,a=pts[i],b=pts[Math.min(i+1,pts.length-1)];return[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];});
+}
+function patPintar(pts,w,h){
+  const svg=document.getElementById('patChart');
+  const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  svg.querySelector('.pat-chart-line').setAttribute('d',d);
+  svg.querySelector('.pat-chart-area').setAttribute('d',d+` L${w},${h} L0,${h} Z`);
+}
+function renderPatChart(){
+  const wrap=document.getElementById('patChartWrap'),svg=document.getElementById('patChart');
+  const w=svg.clientWidth,h=svg.clientHeight;
+  if(!patHist||!w||!h)return;
+  wrap.classList.remove('vacio');
+  const todo=construirSerie(patHist,patTotalHoy);
+  const n=PAT_PERIODOS[patPeriodo];
+  patSerie=n?todo.slice(-(n+1)):todo;
+  const up=patSerie[patSerie.length-1].v>=patSerie[0].v;
+  wrap.classList.toggle('down',!up);
+  patBadge();
+  document.querySelectorAll('.pat-period').forEach(b=>b.classList.toggle('active',b.dataset.p===patPeriodo));
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  svg.querySelector('.pat-chart-cursor').setAttribute('y2',h);
+  const nuevos=patPuntos(patSerie.map(p=>p.v),w,h);
+  const previos=patPts;patPts=nuevos;
+  const reducido=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const anim=++patAnim;
+  const line=svg.querySelector('.pat-chart-line'),area=svg.querySelector('.pat-chart-area');
+  if(!patDibujada&&!reducido){
+    // Primera vez en la sesión: la línea se dibuja sola
+    patDibujada=true;
+    patPintar(nuevos,w,h);
+    const len=line.getTotalLength();
+    line.style.transition='none';line.style.strokeDasharray=len;line.style.strokeDashoffset=len;area.style.opacity=0;
+    line.getBoundingClientRect();
+    line.style.transition='stroke-dashoffset .6s var(--ease-out)';line.style.strokeDashoffset=0;area.style.opacity=1;
+    setTimeout(()=>{if(anim===patAnim){line.style.transition='';line.style.strokeDasharray='';line.style.strokeDashoffset='';}},650);
+    return;
+  }
+  patDibujada=true;
+  if(!previos.length||reducido){patPintar(nuevos,w,h);return;}
+  // Cambio de periodo o de datos: la curva se transforma en 250 ms
+  const N=Math.max(previos.length,nuevos.length),a=patRemuestrear(previos,N),b=patRemuestrear(nuevos,N),t0=performance.now();
+  (function paso(ahora){
+    if(anim!==patAnim)return;
+    const k=Math.min(1,(ahora-t0)/250),e=1-Math.pow(1-k,3);
+    if(k<1){patPintar(a.map((p,i)=>[p[0]+(b[i][0]-p[0])*e,p[1]+(b[i][1]-p[1])*e]),w,h);requestAnimationFrame(paso);}
+    else patPintar(nuevos,w,h);
+  })(t0);
+}
+// Arrastrar el dedo por la curva muestra el valor y la fecha de ese día
+(function(){
+  const svg=document.getElementById('patChart'),wrap=document.getElementById('patChartWrap');
+  if(!svg)return;
+  let activo=false;
+  function mostrar(x){
+    if(!patSerie.length||!patPts.length)return;
+    const r=svg.getBoundingClientRect();
+    const i=Math.round(Math.max(0,Math.min(1,(x-r.left)/r.width))*(patSerie.length-1));
+    const [px,py]=patPts[i];
+    const cur=svg.querySelector('.pat-chart-cursor');cur.setAttribute('x1',px);cur.setAttribute('x2',px);
+    const dot=svg.querySelector('.pat-chart-dot');dot.setAttribute('cx',px);dot.setAttribute('cy',py);
+    const el=document.getElementById('totalAmount');el.textContent=fmt(patSerie[i].v)+' €';autoFitAmount(el);
+    const fecha=new Date(patSerie[i].d+'T12:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short',year:'numeric'});
+    document.getElementById('patVariation').innerHTML=`<span class="var-badge">${fecha}</span>`;
+  }
+  function fin(){
+    if(!activo)return;activo=false;wrap.classList.remove('scrub');
+    const el=document.getElementById('totalAmount');el.textContent=fmt(patTotalHoy)+' €';autoFitAmount(el);
+    patBadge();
+  }
+  svg.addEventListener('pointerdown',e=>{activo=true;try{svg.setPointerCapture(e.pointerId);}catch(_){}wrap.classList.add('scrub');mostrar(e.clientX);});
+  svg.addEventListener('pointermove',e=>{if(activo)mostrar(e.clientX);});
+  svg.addEventListener('pointerup',fin);svg.addEventListener('pointercancel',fin);
+  let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{patPts=[];renderPatChart();},150);});
+})();
 async function loadResumen(){
   try{
     const now=new Date();

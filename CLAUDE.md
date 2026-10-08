@@ -19,6 +19,7 @@ There are no build or test commands. The `/api/*` routes need a Vercel runtime, 
   - `POST /api/query?dbId=…` → `databases/{dbId}/query`
   - `POST /api/page` → create a page; `PATCH /api/page?pageId=…` → update page properties
   - `DELETE /api/delete?pageId=…` → archive the page (`archived: true`)
+  - `GET /api/history?movs=&cuentas=&transfers=&excluir=&hasta=` → daily net-worth history of the accounts (excluding MyInvestor) rebuilt from Balance Inicial + dated movements/transfers, plus the raw investment rows. It calls `/api/query` on its own deployment (paginating), so it holds no token. The app adds the portfolio value per day (`valorCarteraDia`, same logic as `fetchValorCartera`) to draw the patrimonio curve, and caches the response in localStorage (`kashy-pat-hist`).
 
 ## Architecture of the HTML app
 
