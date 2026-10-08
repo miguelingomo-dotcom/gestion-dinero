@@ -1413,7 +1413,6 @@ const DB_ID='25e21c54013f817481d6cd37b0daa2b5';
 const CUENTAS_DB='25e21c54013f817e959ee75351072a94';
 const TRANSFER_DB='25e21c54013f813faceae0152856368e';
 const BUDGET_DB='64e0778f56e24f2696ff87013b656019';
-const INVEST_DB='3f4cf40612d946eda085349a2caddb2e';
 const MYINVESTOR_ACC_ID='3b821c54013f817088e9fe2e7a0a3707';
 const INV_OBJETIVO_ANUAL=5700; // 4.500€ aportación inicial estimada + 100€/mes x 12 — ajusta si cambia el plan
 const INV_APORTACION_MENSUAL=120; // Transferencia automática mensual desde Ibercaja
@@ -1700,7 +1699,7 @@ async function loadPatrimonio(){
   try{
     const [cuentasData,invData]=await Promise.all([
       nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'Cuenta o Meta',select:{equals:'Cuenta'}}}),
-      nFetch('/databases/'+INVEST_DB+'/query','POST',{filter:{property:'Tipo',select:{equals:'Valor Cartera'}},sorts:[{property:'Fecha',direction:'descending'}],page_size:1})
+      nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{equals:'Valor Cartera'}},sorts:[{property:'InvFecha',direction:'descending'}],page_size:1})
     ]);
     // Excluimos el balance "en bruto" de la cuenta MyInvestor y usamos el último valor real de cartera registrado en Inversión
     const breakdown=[];
@@ -1713,7 +1712,7 @@ async function loadPatrimonio(){
       if(bal>0)breakdown.push({name,val:bal});
       return s+bal;
     },0);
-    const valorCartera=invData.results?.[0]?.properties?.Importe?.number||0;
+    const valorCartera=invData.results?.[0]?.properties?.InvImporte?.number||0;
     if(valorCartera>0)breakdown.push({name:'MyInvestor',val:valorCartera});
     const total=totalCuentas+valorCartera;
     breakdown.sort((a,b)=>b.val-a.val);
@@ -2968,13 +2967,13 @@ let invPendingTipo='Aportación';
 async function loadInversion(){
   document.getElementById('invHistList').innerHTML=skeletonRowsInner(3);
   try{
-    const data=await nFetch('/databases/'+INVEST_DB+'/query','POST',{sorts:[{property:'Fecha',direction:'descending'}]});
+    const data=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{is_not_empty:true}},sorts:[{property:'InvFecha',direction:'descending'}]});
     const rows=data.results||[];
-    const aportaciones=rows.filter(r=>r.properties?.Tipo?.select?.name==='Aportación');
-    const valores=rows.filter(r=>r.properties?.Tipo?.select?.name==='Valor Cartera');
-    const totalAportado=aportaciones.reduce((s,r)=>s+(r.properties?.Importe?.number||0),0);
-    const ultimoValor=valores[0]?.properties?.Importe?.number||0;
-    const ultimaFecha=valores[0]?.properties?.Fecha?.date?.start;
+    const aportaciones=rows.filter(r=>r.properties?.InvTipo?.select?.name==='Aportación');
+    const valores=rows.filter(r=>r.properties?.InvTipo?.select?.name==='Valor Cartera');
+    const totalAportado=aportaciones.reduce((s,r)=>s+(r.properties?.InvImporte?.number||0),0);
+    const ultimoValor=valores[0]?.properties?.InvImporte?.number||0;
+    const ultimaFecha=valores[0]?.properties?.InvFecha?.date?.start;
     const rendimiento=ultimoValor-totalAportado;
     const pct=totalAportado>0?(rendimiento/totalAportado*100):0;
 
@@ -3012,9 +3011,9 @@ async function loadInversion(){
     document.getElementById('invObjBar').style.width=objPct+'%';
 
     document.getElementById('invHistList').innerHTML=rows.map(r=>{
-      const tipo=r.properties?.Tipo?.select?.name||'';
-      const importe=r.properties?.Importe?.number||0;
-      const fecha=r.properties?.Fecha?.date?.start;
+      const tipo=r.properties?.InvTipo?.select?.name||'';
+      const importe=r.properties?.InvImporte?.number||0;
+      const fecha=r.properties?.InvFecha?.date?.start;
       const fechaStr=fecha?new Date(fecha+'T00:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short',year:'numeric'}):'';
       const isAporte=tipo==='Aportación';
       return`<div class="mov-item">
@@ -3036,11 +3035,11 @@ function closeInvModal(){document.getElementById('invOverlay').classList.remove(
 async function quickAportacionMensual(){
   const today=new Date().toISOString().split('T')[0];
   try{
-    const res=await nFetch('/pages','POST',{parent:{database_id:INVEST_DB},properties:{
+    const res=await nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
       Nombre:{title:[{text:{content:'Aportación mensual - '+today}}]},
-      Tipo:{select:{name:'Aportación'}},
-      Importe:{number:INV_APORTACION_MENSUAL},
-      Fecha:{date:{start:today}},
+      InvTipo:{select:{name:'Aportación'}},
+      InvImporte:{number:INV_APORTACION_MENSUAL},
+      InvFecha:{date:{start:today}},
     }});
     if(res.id){showSuccessBurst();showToast(t('toast_aportacion_de')+' '+INV_APORTACION_MENSUAL+'€ '+t('toast_registrada'),'success');loadInversion();}
     else showToast('Error: '+(res.message||t('toast_intentalo')),'error');
@@ -3053,11 +3052,11 @@ async function saveInv(){
   if(!date){showToast(t('toast_introduce_fecha'),'error');return;}
   closeInvModal();
   try{
-    const res=await nFetch('/pages','POST',{parent:{database_id:INVEST_DB},properties:{
+    const res=await nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
       Nombre:{title:[{text:{content:invPendingTipo+' - '+date}}]},
-      Tipo:{select:{name:invPendingTipo}},
-      Importe:{number:amt},
-      Fecha:{date:{start:date}},
+      InvTipo:{select:{name:invPendingTipo}},
+      InvImporte:{number:amt},
+      InvFecha:{date:{start:date}},
     }});
     if(res.id){showSuccessBurst();showToast(t('toast_registrada_ok'),'success');loadInversion();}
     else showToast('Error: '+(res.message||t('toast_intentalo')),'error');
