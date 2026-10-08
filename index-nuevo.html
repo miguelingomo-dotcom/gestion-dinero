@@ -655,8 +655,23 @@ body.kashy-privado .hero-amount,body.kashy-privado .hero-mini-val,body.kashy-pri
 body.kashy-privado .qa-bal,body.kashy-privado .mov-amount,body.kashy-privado .amn-amt,
 body.kashy-privado .res-val,body.kashy-privado .goal-saved,body.kashy-privado .chart-val,
 body.kashy-privado .sus-amount,body.kashy-privado .top-amount,body.kashy-privado .pat-item-val,
-body.kashy-privado .wish-price,body.kashy-privado #patVariation{
+body.kashy-privado .wish-price,body.kashy-privado #patVariation,
+body.kashy-privado .fondo-val,body.kashy-privado .fondo-rend{
   filter:blur(9px);user-select:none;pointer-events:none;transition:filter .25s ease;}
+/* Fondos de la cartera (Inversión) */
+.fondo-row{padding:12px 0;border-top:1px solid var(--border);}
+.fondo-row:first-child{border-top:none;padding-top:0;}
+.fondo-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+.fondo-name{font-size:15px;font-weight:700;letter-spacing:-.2px;}
+.fondo-peso{font-size:12px;font-weight:600;color:var(--muted);margin-left:6px;}
+.fondo-val{font-size:15px;font-weight:700;flex-shrink:0;}
+.fondo-sub{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:3px;}
+.fondo-isin{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
+.fondo-rend{font-size:12px;font-weight:600;flex-shrink:0;}
+.fondo-rend.i{color:var(--green);}.fondo-rend.g{color:var(--red);}
+.fondo-bar{height:4px;border-radius:2px;background:var(--surface2);margin-top:8px;overflow:hidden;}
+.fondo-bar > div{height:100%;border-radius:2px;}
+.fondo-hint{font-size:12px;color:var(--muted);margin-top:12px;}
 .splash-screen{background:radial-gradient(90% 70% at 50% 32%,#2a2470,#0e0f18 72%)!important;gap:16px;}
 [data-theme="light"] .splash-screen{background:radial-gradient(90% 70% at 50% 32%,#ded8ff,#f5f4f0 72%)!important;}
 .splash-word{font-size:56px;font-weight:600;letter-spacing:-2px;color:#ECECF2;
@@ -1045,6 +1060,10 @@ body.kashy-locked .app,body.kashy-locked .nav{filter:blur(22px);}
         <div class="hero-mini"><div class="hero-mini-lbl">%</div><div class="hero-mini-val" id="invPct">0,0%</div></div>
       </div>
     </div>
+    <div class="card">
+      <div class="card-title" data-i18n="fondos_lbl">Fondos</div>
+      <div id="invFondos"></div>
+    </div>
     <div class="reg-wrap" style="margin-bottom:10px;">
       <div class="sus-card" style="margin:0 0 14px;">
         <div class="sus-icon">🔁</div>
@@ -1066,8 +1085,11 @@ body.kashy-locked .app,body.kashy-locked .nav{filter:blur(22px);}
 <div class="modal-overlay" id="invOverlay">
   <div class="modal">
     <div class="modal-title" id="invModalTitle" data-i18n="nueva_aportacion">Nueva Aportación</div>
-    <div class="modal-field-lbl" data-i18n="lbl_importe">Importe</div>
-    <input type="text" id="invAmt" class="modal-input" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">
+    <div id="invAmtWrap">
+      <div class="modal-field-lbl" data-i18n="lbl_importe">Importe</div>
+      <input type="text" id="invAmt" class="modal-input" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">
+    </div>
+    <div id="invFondosInputs" style="display:none;"></div>
     <div class="modal-field-lbl" data-i18n="lbl_fecha">Fecha</div>
     <input type="date" id="invDate" class="modal-input">
     <div class="modal-btns" style="margin-top:6px;">
@@ -1251,7 +1273,7 @@ const I18N={
     nuevo_deseo:'Nuevo Deseo',ejemplo_airpods:'Ej: AirPods Pro',
     valor_actual_cartera:'Valor Actual de la Cartera',sin_datos_aun:'Sin datos aún',
     rendimiento_lbl:'Rendimiento',aportacion_mensual:'Aportación mensual',
-    nueva_aportacion:'Nueva Aportación',actualizar_valor_cartera:'Actualizar Valor de Cartera',editar_aportacion:'Editar Aportación',editar_valor_cartera:'Editar Valor de Cartera',toast_inv_actualizado:'✓ Registro actualizado',
+    nueva_aportacion:'Nueva Aportación',actualizar_valor_cartera:'Actualizar Valor de Cartera',fondos_lbl:'Fondos',fondos_hint:'Pulsa «Actualizar Valor» e introduce el valor de cada fondo para ver cómo va cada uno.',isin_copiado:'ISIN copiado',editar_aportacion:'Editar Aportación',editar_valor_cartera:'Editar Valor de Cartera',toast_inv_actualizado:'✓ Registro actualizado',
     dia_lbl:'Día',ingreso_rapido:'Ingreso rápido',cobros_hoy:'⚠️ Cobros hoy',
     ahorrando_bien:'Estás ahorrando bien 💪',cuidado_gastos:'Cuidado con los gastos ⚠️',
     tasa_excelente:'De cada 100€ que ingresas, ahorras {t}€ — excelente 🎯',
@@ -1347,7 +1369,7 @@ const I18N={
     nuevo_deseo:'New Wish',ejemplo_airpods:'e.g. AirPods Pro',
     valor_actual_cartera:'Current Portfolio Value',sin_datos_aun:'No data yet',
     rendimiento_lbl:'Return',aportacion_mensual:'Monthly contribution',
-    nueva_aportacion:'New Contribution',actualizar_valor_cartera:'Update Portfolio Value',editar_aportacion:'Edit Contribution',editar_valor_cartera:'Edit Portfolio Value',toast_inv_actualizado:'✓ Entry updated',
+    nueva_aportacion:'New Contribution',actualizar_valor_cartera:'Update Portfolio Value',fondos_lbl:'Funds',fondos_hint:'Tap “Update Value” and enter each fund’s value to see how each one is doing.',isin_copiado:'ISIN copied',editar_aportacion:'Edit Contribution',editar_valor_cartera:'Edit Portfolio Value',toast_inv_actualizado:'✓ Entry updated',
     dia_lbl:'Day',ingreso_rapido:'Quick income',cobros_hoy:'⚠️ Due today',
     ahorrando_bien:'You\'re saving well 💪',cuidado_gastos:'Watch your spending ⚠️',
     tasa_excelente:'For every €100 you earn, you save €{t} — excellent 🎯',
@@ -1405,6 +1427,12 @@ const CUENTAS_DB='25e21c54013f817e959ee75351072a94';
 const TRANSFER_DB='25e21c54013f813faceae0152856368e';
 const BUDGET_DB='64e0778f56e24f2696ff87013b656019';
 const MYINVESTOR_ACC_ID='3b821c54013f817088e9fe2e7a0a3707';
+// Fondos de la cartera MyInvestor. key = opción del select InvFondo en Notion; pct = reparto de cada aportación
+const FONDOS=[
+  {key:'S&P 500',nombre:'iShares US Equity Index (clase S)',isin:'IE000N4ZYX28',pct:.55,color:'var(--accent)'},
+  {key:'MSCI World',nombre:'iShares Developed World Index (clase S)',isin:'IE000ZYRH0Q7',pct:.25,color:'var(--blue)'},
+  {key:'Emergentes',nombre:'Fidelity MSCI Emerging Markets Index P-ACC-EUR',isin:'IE00BYX5M476',pct:.20,color:'var(--orange)'},
+];
 const INV_APORTACION_MENSUAL=120; // Transferencia automática mensual desde Ibercaja
 const TRANSF_MENSUAL_MONTO=250; // Transferencia automática mensual Ibercaja → Revolut Personal
 const IBERCAJA_ID='31621c54013f811ebd49f65e2776d28e';
@@ -1685,22 +1713,38 @@ async function nFetch(path,method='GET',body=null){
 
 /* ── INICIO ── */
 function loadInicio(){return Promise.all([loadPatrimonio(),loadResumen()]);}
-/* Valor estimado de MyInvestor: último 'Valor Cartera' + aportaciones posteriores a él.
-   Devuelve {valor:null} si no hay ningún registro de inversión. */
+/* Valor estimado de MyInvestor. Si los tres fondos tienen valor registrado (InvFondo), el total es la suma de
+   cada fondo: su último valor + su parte (pct) de las aportaciones posteriores. Si no, se usa el último
+   'Valor Cartera' total + aportaciones posteriores. Devuelve {valor:null} si no hay registros. */
 async function fetchValorCartera(){
-  const ult=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{equals:'Valor Cartera'}},sorts:[{property:'InvFecha',direction:'descending'},{timestamp:'created_time',direction:'descending'}],page_size:1});
-  const base=ult.results?.[0];
-  const baseFecha=base?.properties?.InvFecha?.date?.start||null;
+  const q=body=>nFetch('/databases/'+CUENTAS_DB+'/query','POST',body);
+  const orden=[{property:'InvFecha',direction:'descending'},{timestamp:'created_time',direction:'descending'}];
+  const filtroVal={property:'InvTipo',select:{equals:'Valor Cartera'}};
   const filtroAp={property:'InvTipo',select:{equals:'Aportación'}};
-  const aps=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:baseFecha?{and:[filtroAp,{property:'InvFecha',date:{on_or_after:baseFecha}}]}:filtroAp,page_size:100});
-  const posteriores=(aps.results||[]).filter(a=>{
-    if(!base)return true;
-    const f=a.properties?.InvFecha?.date?.start||'';
-    return f>baseFecha||(f===baseFecha&&a.created_time>base.created_time);
-  });
-  if(!base&&!posteriores.length)return{valor:null,fecha:null};
-  const extra=posteriores.reduce((s,a)=>s+(a.properties?.InvImporte?.number||0),0);
-  return{valor:(base?.properties?.InvImporte?.number||0)+extra,fecha:baseFecha};
+  const imp=r=>r?.properties?.InvImporte?.number||0;
+  const fechaDe=r=>r?.properties?.InvFecha?.date?.start||'';
+  const posterior=(a,base)=>!base||fechaDe(a)>fechaDe(base)||(fechaDe(a)===fechaDe(base)&&a.created_time>base.created_time);
+  const aportDesde=fecha=>q({filter:fecha?{and:[filtroAp,{property:'InvFecha',date:{on_or_after:fecha}}]}:filtroAp,page_size:100});
+
+  const porFondo=await Promise.all(FONDOS.map(f=>q({filter:{and:[filtroVal,{property:'InvFondo',select:{equals:f.key}}]},sorts:orden,page_size:1})));
+  const bases=porFondo.map(r=>r.results?.[0]||null);
+  if(bases.every(Boolean)){
+    const minFecha=bases.map(fechaDe).sort()[0];
+    const aps=(await aportDesde(minFecha)).results||[];
+    const fondos=FONDOS.map((f,i)=>{
+      const extra=aps.filter(a=>posterior(a,bases[i])).reduce((s,a)=>s+imp(a),0)*f.pct;
+      return{...f,valor:imp(bases[i])+extra,fecha:fechaDe(bases[i])};
+    });
+    return{valor:fondos.reduce((s,f)=>s+f.valor,0),fecha:fondos.map(f=>f.fecha).sort().pop(),fondos};
+  }
+
+  // Sin valores por fondo: último total (sin InvFondo) + aportaciones posteriores
+  let ult=await q({filter:{and:[filtroVal,{property:'InvFondo',select:{is_empty:true}}]},sorts:orden,page_size:1});
+  if(!ult.results)ult=await q({filter:filtroVal,sorts:orden,page_size:1}); // la columna InvFondo aún no existe
+  const base=ult.results?.[0]||null;
+  const posteriores=((await aportDesde(base?fechaDe(base):null)).results||[]).filter(a=>posterior(a,base));
+  if(!base&&!posteriores.length)return{valor:null,fecha:null,fondos:null};
+  return{valor:imp(base)+posteriores.reduce((s,a)=>s+imp(a),0),fecha:fechaDe(base)||null,fondos:null};
 }
 async function loadPatrimonio(){
   try{
@@ -2982,7 +3026,28 @@ function showToast(msg,type=''){
 }
 
 /* ── INVERSIÓN (MyInvestor) ── */
-let invPendingTipo='Aportación',invCache={},editingInvId=null;
+let invPendingTipo='Aportación',invCache={},editingInvId=null,editingInvFondo='';
+function renderFondos(fondos,totalAportado){
+  const total=fondos?fondos.reduce((s,f)=>s+f.valor,0):0;
+  document.getElementById('invFondos').innerHTML=FONDOS.map((f,i)=>{
+    const d=fondos?.[i];
+    const peso=d&&total>0?d.valor/total*100:f.pct*100;
+    let rend='';
+    if(d){
+      const aportado=totalAportado*f.pct;
+      const r=d.valor-aportado,pct=aportado>0?r/aportado*100:0;
+      rend=`<span class="fondo-rend ${r>=0?'i':'g'}">${r>=0?'+':''}${fmt(r)} € (${pct>=0?'+':''}${pct.toFixed(1)}%)</span>`;
+    }
+    return`<div class="fondo-row">
+      <div class="fondo-head"><div class="fondo-name">${f.key}<span class="fondo-peso">${peso.toFixed(0)}%</span></div><div class="fondo-val">${d?fmt(d.valor)+' €':'—'}</div></div>
+      <div class="fondo-sub"><span class="fondo-isin" onclick="copiarIsin('${f.isin}')">${f.nombre} · ${f.isin}</span>${rend}</div>
+      <div class="fondo-bar"><div style="width:${Math.min(100,peso)}%;background:${f.color};"></div></div>
+    </div>`;
+  }).join('')+(fondos?'':`<div class="fondo-hint">${t('fondos_hint')}</div>`);
+}
+function copiarIsin(isin){
+  try{navigator.clipboard.writeText(isin).then(()=>showToast(t('isin_copiado')+': '+isin,'success'));}catch(e){}
+}
 async function loadInversion(){
   document.getElementById('invHistList').innerHTML=skeletonRowsInner(3);
   try{
@@ -3000,6 +3065,7 @@ async function loadInversion(){
     const pct=totalAportado>0?(rendimiento/totalAportado*100):0;
 
     animateCounter(document.getElementById('invValorActual'),ultimoValor,{suffix:' €'});
+    renderFondos(inv.fondos,totalAportado);
     document.getElementById('invUltimaFecha').textContent=ultimaFecha?(t('actualizado_lbl')+': '+new Date(ultimaFecha+'T00:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short',year:'numeric'})):t('sin_datos_registra');
     document.getElementById('invAportado').textContent=fmt(totalAportado)+' €';
     document.getElementById('invRendimiento').textContent=(rendimiento>=0?'+':'')+fmt(rendimiento)+' €';
@@ -3028,13 +3094,14 @@ async function loadInversion(){
     document.getElementById('invHistList').innerHTML=rows.map(r=>{
       invCache[r.id]=r;
       const tipo=r.properties?.InvTipo?.select?.name||'';
+      const fondo=r.properties?.InvFondo?.select?.name||'';
       const importe=r.properties?.InvImporte?.number||0;
       const fecha=r.properties?.InvFecha?.date?.start;
       const fechaStr=fecha?new Date(fecha+'T00:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short',year:'numeric'}):'';
       const isAporte=tipo==='Aportación';
       return`<div class="mov-item" data-swipe-edit="openEditInv" data-swipe-del="deleteInv">
         <div class="mov-icon">${isAporte?'➕':'📊'}</div>
-        <div class="mov-info"><div class="mov-name">${tipo}</div><div class="mov-date">${fechaStr}</div></div>
+        <div class="mov-info"><div class="mov-name">${tipo}${fondo?' · '+fondo:''}</div><div class="mov-date">${fechaStr}</div></div>
         <div class="mov-amount ${isAporte?'ingreso':''}">${isAporte?'+':''}${fmt(importe)} €</div>
         <button class="del-btn" onclick="deleteInv('${r.id}',this)">🗑️</button>
       </div>`;
@@ -3042,10 +3109,17 @@ async function loadInversion(){
   }catch(e){document.getElementById('invHistList').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
 }
 function openInvModal(tipo){
-  editingInvId=null;
+  editingInvId=null;editingInvFondo='';
   invPendingTipo=tipo;
   document.getElementById('invModalTitle').textContent=tipo==='Aportación'?t('nueva_aportacion'):t('actualizar_valor_cartera');
   document.getElementById('invAmt').value='';
+  // Al actualizar el valor se pide uno por fondo
+  const porFondo=tipo==='Valor Cartera';
+  document.getElementById('invAmtWrap').style.display=porFondo?'none':'';
+  const cont=document.getElementById('invFondosInputs');
+  cont.style.display=porFondo?'':'none';
+  cont.innerHTML=porFondo?FONDOS.map((f,i)=>`<div class="modal-field-lbl">${f.key}</div>
+    <input type="text" id="invAmtF${i}" class="modal-input" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">`).join(''):'';
   document.getElementById('invDate').value=new Date().toISOString().split('T')[0];
   document.getElementById('invOverlay').classList.add('show');
 }
@@ -3055,6 +3129,9 @@ function openEditInv(pageId){
   if(!r)return;
   editingInvId=pageId;
   invPendingTipo=r.properties?.InvTipo?.select?.name||'Aportación';
+  editingInvFondo=r.properties?.InvFondo?.select?.name||'';
+  document.getElementById('invAmtWrap').style.display='';
+  document.getElementById('invFondosInputs').style.display='none';
   document.getElementById('invModalTitle').textContent=invPendingTipo==='Aportación'?t('editar_aportacion'):t('editar_valor_cartera');
   document.getElementById('invAmt').value=r.properties?.InvImporte?.number||'';
   document.getElementById('invDate').value=r.properties?.InvFecha?.date?.start||'';
@@ -3094,7 +3171,28 @@ async function quickAportacionMensual(){
     else showToast('Error: '+(res.message||t('toast_intentalo')),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
 }
+async function saveInvFondos(){
+  const amts=FONDOS.map((f,i)=>parseAmt(document.getElementById('invAmtF'+i).value));
+  const date=document.getElementById('invDate').value;
+  if(amts.some(a=>!a||a<=0)){showToast(t('toast_importe_valido'),'error');return;}
+  if(!date){showToast(t('toast_introduce_fecha'),'error');return;}
+  closeInvModal();
+  try{
+    const res=await Promise.all(FONDOS.map((f,i)=>nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
+      Nombre:{title:[{text:{content:'Valor Cartera - '+f.key+' - '+date}}]},
+      InvTipo:{select:{name:'Valor Cartera'}},
+      InvFondo:{select:{name:f.key}},
+      InvImporte:{number:amts[i]},
+      InvFecha:{date:{start:date}},
+    }})));
+    const fallo=res.find(r=>!r.id);
+    if(fallo)showToast('Error: '+(fallo.message||t('toast_intentalo')),'error');
+    else{showSuccessBurst();showToast(t('toast_registrada_ok'),'success');}
+    loadInversion();
+  }catch(e){showToast(t('toast_conexion'),'error');}
+}
 async function saveInv(){
+  if(!editingInvId&&invPendingTipo==='Valor Cartera')return saveInvFondos();
   const amt=parseAmt(document.getElementById('invAmt').value);
   const date=document.getElementById('invDate').value;
   if(!amt||amt<=0){showToast(t('toast_importe_valido'),'error');return;}
@@ -3106,7 +3204,7 @@ async function saveInv(){
         method:'PATCH',
         headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
         body:JSON.stringify({properties:{
-          Nombre:{title:[{text:{content:invPendingTipo+' - '+date}}]},
+          Nombre:{title:[{text:{content:invPendingTipo+(editingInvFondo?' - '+editingInvFondo:'')+' - '+date}}]},
           InvImporte:{number:amt},
           InvFecha:{date:{start:date}},
         }})
