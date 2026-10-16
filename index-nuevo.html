@@ -705,10 +705,10 @@ html,body,.app,.section,.chips-wrap,.account-movs-wrap,.modal,.sheet,.overlay{sc
 html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;}
 .section > .header + *{margin-top:0;}
 .quick-accounts-head{margin-top:8px!important;}
-#accountChips .chip,#editAccChips .chip,#movFilterChips .chip[data-bank]{
+#accountChips .chip,#editAccChips .chip,#transferToChips .chip,#movFilterChips .chip[data-bank]{
   border:none!important;border-left:none!important;color:#fff!important;font-weight:600;
   box-shadow:0 6px 16px rgba(0,0,0,.28);opacity:.55;transition:opacity var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease);}
-#accountChips .chip.selected,#editAccChips .chip.selected,#movFilterChips .chip[data-bank].selected{
+#accountChips .chip.selected,#editAccChips .chip.selected,#transferToChips .chip.selected,#movFilterChips .chip[data-bank].selected{
   opacity:1;box-shadow:0 8px 20px rgba(0,0,0,.36),inset 0 0 0 2px rgba(255,255,255,.85);}
 .account-name{display:flex;align-items:center;gap:8px;font-size:13px!important;font-weight:600!important;
   color:rgba(255,255,255,.94)!important;margin-bottom:6px!important;}
@@ -1230,7 +1230,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="modal-field-lbl" data-i18n="lbl_desde">Desde</div>
     <div style="font-size:15px;font-weight:700;padding:12px 14px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);" id="transferFrom">—</div>
     <div class="modal-field-lbl" data-i18n="lbl_hacia">Hacia</div>
-    <select id="transferTo" class="modal-select"></select>
+    <div class="chips-wrap" id="transferToChips"></div>
     <div class="modal-field-lbl" data-i18n="lbl_importe">Importe</div>
     <input type="text" id="transferAmt" class="modal-input" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">
     <div class="modal-btns" style="margin-top:20px;">
@@ -1613,7 +1613,7 @@ function guardarPref(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 // Registrar arranca con la última cuenta y categoría usadas
 let currentType='gasto',selectedAccId=leerPref('kashy-ult-cuenta')||CUENTAS[0].id,selectedCatId=leerPref('kashy-ult-cat-gasto')||GASTOS[0].id;
 let isDark=false,catTocada=false,fechaTipo='hoy';
-let transferFromId='',statPeriod=0;
+let transferFromId='',transferToId='',statPeriod=0;
 let selectedHistMonth=0,histMonthData=[],histMonthLabel='';
 let cuentasActivasIds=new Set(CUENTAS.map(c=>c.id));
 
@@ -3307,10 +3307,16 @@ async function reactivateAccount(pageId,name){
 function showTransfer(accountId,accountName){
   transferFromId=accountId;
   document.getElementById('transferFrom').textContent=accountName;
-  document.getElementById('transferTo').innerHTML=CUENTAS.filter(c=>c.id!==accountId&&cuentasActivasIds.has(c.id)).map(c=>`<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
+  // Destino con chips de cuenta (como en Registrar) en lugar de un <select>
+  const destinos=CUENTAS.filter(c=>c.id!==accountId&&cuentasActivasIds.has(c.id));
+  transferToId=destinos[0]?destinos[0].id:'';
+  document.getElementById('transferToChips').innerHTML=destinos.map(c=>`<div class="chip${c.id===transferToId?' selected':''}" onclick="selDestino('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
   document.getElementById('transferAmt').value='';
   document.getElementById('transferOverlay').classList.add('show');
+  // Foco directo en el importe, dentro del toque para que iOS abra el teclado
+  document.getElementById('transferAmt').focus({preventScroll:true});
 }
+function selDestino(id,el){transferToId=id;el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',c===el));}
 function closeTransfer(){document.getElementById('transferOverlay').classList.remove('show');}
 async function quickTransferMensual(){
   const today=hoyLocal();
@@ -3328,10 +3334,11 @@ async function quickTransferMensual(){
 }
 async function submitTransfer(){
   const amt=parseAmt(document.getElementById('transferAmt').value);
-  const toId=document.getElementById('transferTo').value;
+  const toId=transferToId;
   const toName=CUENTAS.find(c=>c.id===toId)?.name||'';
   const fromName=document.getElementById('transferFrom').textContent;
   if(!amt||amt<=0){showToast(t('toast_importe_valido'),'error');return;}
+  if(!toId){showToast('Elige la cuenta de destino','error');return;}
   closeTransfer();
   const today=hoyLocal();
   try{
@@ -3895,7 +3902,7 @@ async function saveInv(){
 
   /* Chips de cuenta con el color de su banco */
   function pintarChips(){
-    ['accountChips','editAccChips','movFilterChips'].forEach(function(id){
+    ['accountChips','editAccChips','transferToChips','movFilterChips'].forEach(function(id){
       var cont=document.getElementById(id);
       if(!cont)return;
       cont.querySelectorAll('.chip').forEach(function(chip){
@@ -3906,7 +3913,7 @@ async function saveInv(){
       });
     });
   }
-  ['accountChips','editAccChips','movFilterChips'].forEach(function(id){
+  ['accountChips','editAccChips','transferToChips','movFilterChips'].forEach(function(id){
     var cont=document.getElementById(id);
     if(cont)new MutationObserver(pintarChips).observe(cont,{childList:true,subtree:true});
   });
