@@ -592,9 +592,11 @@ body{background:var(--page);}
 
 /* Hojas modales */
 .modal{background:var(--sheet);border-radius:30px 30px 0 0;border-top:1px solid var(--border);
-  padding:10px 20px 34px;box-shadow:0 -20px 60px rgba(0,0,0,.55);}
-.modal::before{content:'';display:block;width:38px;height:5px;border-radius:100px;
-  background:var(--surface3);margin:0 auto 16px;}
+  padding:10px 20px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -20px 60px rgba(0,0,0,.55);}
+/* Asa para arrastrar la hoja hacia abajo (elemento real: un ::before no recibe toques) */
+.modal-grab{height:31px;margin:-10px -20px 0;padding-top:10px;display:flex;justify-content:center;touch-action:none;cursor:grab;}
+.modal-grab::before{content:'';width:38px;height:5px;border-radius:100px;background:var(--surface3);}
+.modal-title{touch-action:none;}
 .modal-overlay{background:rgba(6,6,12,.55);}
 
 /* Avisos y detalles */
@@ -3460,6 +3462,46 @@ function renderInvResumen(){
   document.getElementById('invResumen').innerHTML=`<span>${t('inv_total')} <b>${fmt(total)} €</b></span>${dif}`;
 }
 function closeInvModal(){document.getElementById('invOverlay').classList.remove('show');}
+/* ── HOJAS MODALES: cerrar tocando fuera o arrastrando el asa hacia abajo ── */
+(function(){
+  const CIERRES={goalOverlay:'closeGoalModal',goalAddOverlay:'closeGoalAdd',wishOverlay:'closeWishModal',invOverlay:'closeInvModal',
+    modalOverlay:'closeConfirm',transferOverlay:'closeTransfer',editOverlay:'closeEdit',budgetOverlay:'closeBudgetManager'};
+  function cerrar(ov){const fn=window[CIERRES[ov.id]];if(typeof fn==='function')fn();else ov.classList.remove('show');}
+  document.querySelectorAll('.modal-overlay').forEach(ov=>{
+    const modal=ov.querySelector('.modal');
+    if(!modal)return;
+    const asa=document.createElement('div');
+    asa.className='modal-grab';asa.setAttribute('aria-hidden','true');
+    modal.insertBefore(asa,modal.firstChild);
+    ov.addEventListener('click',e=>{if(e.target===ov)cerrar(ov);});
+    let id=null,y0=0,t0=0,dy=0;
+    modal.addEventListener('pointerdown',e=>{
+      if(id!==null)return; // un segundo dedo no toma el control
+      if(e.target!==asa&&!e.target.closest('.modal-title'))return;
+      id=e.pointerId;y0=e.clientY;t0=performance.now();dy=0;
+      try{modal.setPointerCapture(id);}catch(_){}
+      modal.style.transition='none';ov.style.transition='none';
+    });
+    modal.addEventListener('pointermove',e=>{
+      if(e.pointerId!==id)return;
+      const d=e.clientY-y0;
+      dy=d>0?d:Math.max(-12,d*.15); // hacia arriba, resistencia en vez de tope seco
+      modal.style.transform='translateY('+dy+'px)';
+      if(dy>0)ov.style.opacity=String(Math.max(.35,1-dy/modal.offsetHeight));
+    });
+    function soltar(e){
+      if(e.pointerId!==id)return;
+      id=null;
+      const v=dy/Math.max(1,performance.now()-t0); // px/ms
+      // Al quitar los estilos en línea, la transición del CSS lleva la hoja desde donde está
+      modal.style.transition='';ov.style.transition='';
+      modal.style.transform='';ov.style.opacity='';
+      if(dy>modal.offsetHeight*.3||(dy>10&&v>.11))cerrar(ov);
+    }
+    modal.addEventListener('pointerup',soltar);
+    modal.addEventListener('pointercancel',soltar);
+  });
+})();
 function openEditInv(pageId){
   const r=invCache[pageId];
   if(!r)return;
