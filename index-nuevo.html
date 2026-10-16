@@ -431,11 +431,12 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 @keyframes burstCheck{0%{stroke-dasharray:24;stroke-dashoffset:24;}100%{stroke-dasharray:24;stroke-dashoffset:0;}}
 @keyframes burstFadeOut{0%{opacity:1;}100%{opacity:0;}}
 .success-burst{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:500;pointer-events:none;opacity:0;}
-.success-burst.show{opacity:1;animation:burstFadeOut .2s var(--ease-out) .3s forwards;}
+/* ~1,25 s: entra (0–0,32 s), dibuja el check (0,12–0,42 s), se mantiene hasta 0,95 s y se funde (0,3 s) */
+.success-burst.show{opacity:1;animation:burstFadeOut .3s var(--ease-out) .95s forwards;}
 .success-burst-circle{width:74px;height:74px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(34,197,94,.4);}
-.success-burst.show .success-burst-circle{animation:burstCircle .3s var(--ease-out) both;}
+.success-burst.show .success-burst-circle{animation:burstCircle .32s var(--ease-out) both;}
 .success-burst-circle svg{width:34px;height:34px;stroke-dasharray:24;stroke-dashoffset:24;}
-.success-burst.show .success-burst-circle svg{animation:burstCheck .22s var(--ease-out) .08s forwards;}
+.success-burst.show .success-burst-circle svg{animation:burstCheck .3s var(--ease-out) .12s forwards;}
 </style>
 
 <style id="kashy-skin-ios">
@@ -679,6 +680,11 @@ body.kashy-privado .fondo-val,body.kashy-privado .fondo-rend{
 .fondo-bar{height:4px;border-radius:2px;background:var(--surface2);margin-top:8px;overflow:hidden;}
 .fondo-bar > div{height:100%;border-radius:2px;}
 .fondo-hint{font-size:12px;color:var(--muted);margin-top:12px;}
+/* Modal «Actualizar Valor»: total en vivo y fecha plegada */
+.inv-resumen{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:12px 2px 0;font-size:13px;color:var(--muted);}
+.inv-resumen b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;}
+.inv-resumen .i{color:var(--green);font-weight:600;}.inv-resumen .g{color:var(--red);font-weight:600;}
+.inv-date-link{display:block;margin:10px auto 0;padding:8px 12px;background:none;border:0;color:var(--accent);font:inherit;font-size:13px;font-weight:600;cursor:pointer;}
 .splash-screen{background:radial-gradient(90% 70% at 50% 32%,#2a2470,#0e0f18 72%)!important;gap:16px;}
 [data-theme="light"] .splash-screen{background:radial-gradient(90% 70% at 50% 32%,#ded8ff,#f5f4f0 72%)!important;}
 .splash-word{font-size:56px;font-weight:600;letter-spacing:-2px;color:#ECECF2;
@@ -818,7 +824,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       </div>
     </div>
     <div class="alert-banner compact" id="alertBanner"><div class="alert-title" data-i18n="cobros_hoy">⚠️ Cobros hoy</div><div id="alertItems" class="compact-body"></div></div>
-    <div class="alert-banner compact" id="invReminderBannerInicio"><div class="alert-title">📈 MyInvestor</div><div id="invReminderTextInicio" class="compact-body"></div></div>
+    <div class="alert-banner compact" id="invReminderBannerInicio" onclick="openInvModal('Valor Cartera')" style="cursor:pointer;"><div class="alert-title">📈 MyInvestor</div><div id="invReminderTextInicio" class="compact-body"></div></div>
     <div class="hero-card" id="patHeroCard" onclick="togglePatBreakdown()">
       <div class="hero-label"><span data-i18n="patrimonio_total">Patrimonio total</span> <span class="hero-hint" data-i18n="patrimonio_hint">⌄</span></div>
       <div class="hero-amount" id="totalAmount" data-raw-val="0">0,00 €</div>
@@ -1123,7 +1129,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
         <button class="icon-btn" onclick="loadInversion()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
       </div>
     </div>
-    <div class="alert-banner" id="invReminderBannerInv"><div class="alert-title">📈 MyInvestor</div><div id="invReminderTextInv"></div></div>
+    <div class="alert-banner" id="invReminderBannerInv" onclick="openInvModal('Valor Cartera')" style="cursor:pointer;"><div class="alert-title">📈 MyInvestor</div><div id="invReminderTextInv"></div></div>
     <div class="hero-card">
       <div class="hero-label" data-i18n="valor_actual_cartera">Valor Actual de la Cartera</div>
       <div class="hero-amount" id="invValorActual">0,00 €</div>
@@ -1164,8 +1170,12 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       <input type="text" id="invAmt" class="modal-input" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">
     </div>
     <div id="invFondosInputs" style="display:none;"></div>
-    <div class="modal-field-lbl" data-i18n="lbl_fecha">Fecha</div>
-    <input type="date" id="invDate" class="modal-input">
+    <div id="invResumen" class="inv-resumen" style="display:none;"></div>
+    <button type="button" id="invDateLink" class="inv-date-link" style="display:none;" onclick="mostrarFechaInv()"></button>
+    <div id="invDateWrap">
+      <div class="modal-field-lbl" data-i18n="lbl_fecha">Fecha</div>
+      <input type="date" id="invDate" class="modal-input">
+    </div>
     <div class="modal-btns" style="margin-top:6px;">
       <button class="modal-cancel" onclick="closeInvModal()" data-i18n="btn_cancelar">Cancelar</button>
       <button class="modal-confirm" onclick="saveInv()" data-i18n="btn_guardar">Guardar</button>
@@ -1348,7 +1358,7 @@ const I18N={
     nuevo_deseo:'Nuevo Deseo',ejemplo_airpods:'Ej: AirPods Pro',
     valor_actual_cartera:'Valor Actual de la Cartera',sin_datos_aun:'Sin datos aún',
     rendimiento_lbl:'Rendimiento',aportacion_mensual:'Aportación mensual',
-    nueva_aportacion:'Nueva Aportación',actualizar_valor_cartera:'Actualizar Valor de Cartera',fondos_lbl:'Fondos',fondos_hint:'Pulsa «Actualizar Valor» e introduce el valor de cada fondo para ver cómo va cada uno.',isin_copiado:'ISIN copiado',editar_aportacion:'Editar Aportación',editar_valor_cartera:'Editar Valor de Cartera',toast_inv_actualizado:'✓ Registro actualizado',
+    nueva_aportacion:'Nueva Aportación',actualizar_valor_cartera:'Actualizar Valor de Cartera',fondos_lbl:'Fondos',fondos_hint:'Pulsa «Actualizar Valor» e introduce el valor de cada fondo para ver cómo va cada uno.',isin_copiado:'ISIN copiado',editar_aportacion:'Editar Aportación',editar_valor_cartera:'Editar Valor de Cartera',toast_inv_actualizado:'✓ Registro actualizado',cambiar_fecha:'Hoy · Cambiar fecha',inv_total:'Total',inv_vs_ultimo:'vs. último total',inv_sin_cambios:'Sin cambios, no se ha guardado nada',
     dia_lbl:'Día',ingreso_rapido:'Ingreso rápido',cobros_hoy:'⚠️ Cobros hoy',
     ahorrando_bien:'Estás ahorrando bien 💪',cuidado_gastos:'Cuidado con los gastos ⚠️',
     tasa_excelente:'De cada 100€ que ingresas, ahorras {t}€ — excelente 🎯',
@@ -1445,7 +1455,7 @@ const I18N={
     nuevo_deseo:'New Wish',ejemplo_airpods:'e.g. AirPods Pro',
     valor_actual_cartera:'Current Portfolio Value',sin_datos_aun:'No data yet',
     rendimiento_lbl:'Return',aportacion_mensual:'Monthly contribution',
-    nueva_aportacion:'New Contribution',actualizar_valor_cartera:'Update Portfolio Value',fondos_lbl:'Funds',fondos_hint:'Tap “Update Value” and enter each fund’s value to see how each one is doing.',isin_copiado:'ISIN copied',editar_aportacion:'Edit Contribution',editar_valor_cartera:'Edit Portfolio Value',toast_inv_actualizado:'✓ Entry updated',
+    nueva_aportacion:'New Contribution',actualizar_valor_cartera:'Update Portfolio Value',fondos_lbl:'Funds',fondos_hint:'Tap “Update Value” and enter each fund’s value to see how each one is doing.',isin_copiado:'ISIN copied',editar_aportacion:'Edit Contribution',editar_valor_cartera:'Edit Portfolio Value',toast_inv_actualizado:'✓ Entry updated',cambiar_fecha:'Today · Change date',inv_total:'Total',inv_vs_ultimo:'vs. last total',inv_sin_cambios:'No changes, nothing saved',
     dia_lbl:'Day',ingreso_rapido:'Quick income',cobros_hoy:'⚠️ Due today',
     ahorrando_bien:'You\'re saving well 💪',cuidado_gastos:'Watch your spending ⚠️',
     tasa_excelente:'For every €100 you earn, you save €{t} — excellent 🎯',
@@ -1554,6 +1564,8 @@ const INGRESOS=[
   {name:'Nómina Pluxee',nameEn:'Pluxee Salary',emoji:'🍽️',id:'3b921c54013f81e08b15c94ad454ce3f'},
   {name:'Bizum',nameEn:'Bizum',emoji:'📲',id:'3b921c54013f815e8cd2c4702745df38'},
   {name:'Transf. Mamá',nameEn:'Mom Transfer',emoji:'👩‍👧',id:'31621c54013f817f9194cb102e04b7dd'},
+  {name:'Remuneración',nameEn:'Remuneration',emoji:'💶',id:'3fb21c54013f81159fe7cd92dcabe8e7'},
+  {name:'Wins',nameEn:'Wins',emoji:'🏆',id:'3fb21c54013f81fab3eecd4bee25ef8c'},
   {name:'Otros Ingresos',nameEn:'Other Income',emoji:'💸',id:'31621c54013f810f800cd4fd01aef4da'},
 ];
 function dispName(item){return (LANG==='en'&&item.nameEn)?item.nameEn:item.name;}
@@ -1719,7 +1731,7 @@ function showSuccessBurst(){
   el.classList.remove('show');
   void el.offsetWidth; // reinicia la animación si se dispara varias veces seguidas
   el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),1100);
+  setTimeout(()=>el.classList.remove('show'),1300);
 }
 /* ── PULL TO REFRESH ── */
 (function(){
@@ -3275,6 +3287,7 @@ function showToast(msg,type=''){
 
 /* ── INVERSIÓN (MyInvestor) ── */
 let invPendingTipo='Aportación',invCache={},editingInvId=null,editingInvFondo='';
+let invUltimo=null; // último resultado de fetchValorCartera, para precargar «Actualizar Valor»
 function renderFondos(fondos,totalAportado){
   const total=fondos?fondos.reduce((s,f)=>s+f.valor,0):0;
   document.getElementById('invFondos').innerHTML=FONDOS.map((f,i)=>{
@@ -3303,6 +3316,7 @@ async function loadInversion(){
       nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{is_not_empty:true}},sorts:[{property:'InvFecha',direction:'descending'}]}),
       fetchValorCartera()
     ]);
+    invUltimo=inv;
     const rows=data.results||[];
     const aportaciones=rows.filter(r=>r.properties?.InvTipo?.select?.name==='Aportación');
     const valores=rows.filter(r=>r.properties?.InvTipo?.select?.name==='Valor Cartera');
@@ -3361,15 +3375,66 @@ function openInvModal(tipo){
   invPendingTipo=tipo;
   document.getElementById('invModalTitle').textContent=tipo==='Aportación'?t('nueva_aportacion'):t('actualizar_valor_cartera');
   document.getElementById('invAmt').value='';
-  // Al actualizar el valor se pide uno por fondo
+  // Al actualizar el valor se pide uno por fondo, precargado con su valor actual
   const porFondo=tipo==='Valor Cartera';
   document.getElementById('invAmtWrap').style.display=porFondo?'none':'';
   const cont=document.getElementById('invFondosInputs');
   cont.style.display=porFondo?'':'none';
-  cont.innerHTML=porFondo?FONDOS.map((f,i)=>`<div class="modal-field-lbl">${f.key}</div>
-    <input type="text" id="invAmtF${i}" class="modal-input" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">`).join(''):'';
+  const fondos=invUltimo?.fondos;
+  cont.innerHTML=porFondo?FONDOS.map((f,i)=>{
+    const v=fondos?.[i]?.valor;
+    const pre=v!=null?v.toFixed(2).replace('.',','):'';
+    return`<div class="modal-field-lbl">${f.key}</div>
+    <input type="text" id="invAmtF${i}" class="modal-input" placeholder="0.00" inputmode="decimal" enterkeyhint="${i<FONDOS.length-1?'next':'done'}" value="${pre}" data-prev="${pre}" oninput="sanitizeAmt(this);renderInvResumen()" onfocus="selTodoInv(this)" onkeydown="teclaFondoInv(event,${i})">`;
+  }).join(''):'';
+  document.getElementById('invResumen').style.display=porFondo?'':'none';
+  const link=document.getElementById('invDateLink');
+  link.style.display=porFondo?'':'none';
+  link.textContent=t('cambiar_fecha');
+  document.getElementById('invDateWrap').style.display=porFondo?'none':'';
   document.getElementById('invDate').value=new Date().toISOString().split('T')[0];
   document.getElementById('invOverlay').classList.add('show');
+  if(porFondo){
+    renderInvResumen();
+    // Foco síncrono dentro del toque: iOS solo abre el teclado si el focus ocurre en el gesto del usuario
+    document.getElementById('invAmtF0').focus({preventScroll:true});
+  }
+}
+function mostrarFechaInv(){
+  document.getElementById('invDateLink').style.display='none';
+  document.getElementById('invDateWrap').style.display='';
+}
+// En iOS el texto se deselecciona tras el toque; se selecciona en el siguiente tick
+function selTodoInv(el){setTimeout(()=>el.setSelectionRange(0,el.value.length),0);}
+function teclaFondoInv(e,i){
+  if(e.key!=='Enter')return;
+  e.preventDefault();
+  const sig=document.getElementById('invAmtF'+(i+1));
+  if(sig)sig.focus();
+  else{e.target.blur();saveInv();}
+}
+// Lee los campos por fondo; «cambiado» = tiene texto y difiere (al céntimo) del valor precargado
+function leerFondosInv(){
+  return FONDOS.map((f,i)=>{
+    const el=document.getElementById('invAmtF'+i);
+    const txt=el.value.trim();
+    const prev=el.dataset.prev?parseAmt(el.dataset.prev):null;
+    const amt=txt?parseAmt(txt):null;
+    const cambiado=txt!==''&&(prev==null||Math.round(amt*100)!==Math.round(prev*100));
+    return{amt,prev,cambiado};
+  });
+}
+function renderInvResumen(){
+  const fs=leerFondosInv();
+  const vals=fs.map(f=>f.amt>0?f.amt:f.prev);
+  const total=vals.reduce((s,v)=>s+(v||0),0);
+  const ult=invUltimo?.valor;
+  let dif='';
+  if(ult!=null&&vals.every(v=>v!=null)){
+    const d=total-ult;
+    dif=`<span class="${d>=0?'i':'g'}">${d>=0?'+':''}${fmt(d)} € ${t('inv_vs_ultimo')}</span>`;
+  }
+  document.getElementById('invResumen').innerHTML=`<span>${t('inv_total')} <b>${fmt(total)} €</b></span>${dif}`;
 }
 function closeInvModal(){document.getElementById('invOverlay').classList.remove('show');}
 function openEditInv(pageId){
@@ -3380,6 +3445,9 @@ function openEditInv(pageId){
   editingInvFondo=r.properties?.InvFondo?.select?.name||'';
   document.getElementById('invAmtWrap').style.display='';
   document.getElementById('invFondosInputs').style.display='none';
+  document.getElementById('invResumen').style.display='none';
+  document.getElementById('invDateLink').style.display='none';
+  document.getElementById('invDateWrap').style.display='';
   document.getElementById('invModalTitle').textContent=invPendingTipo==='Aportación'?t('editar_aportacion'):t('editar_valor_cartera');
   document.getElementById('invAmt').value=r.properties?.InvImporte?.number||'';
   document.getElementById('invDate').value=r.properties?.InvFecha?.date?.start||'';
@@ -3420,17 +3488,19 @@ async function quickAportacionMensual(){
   }catch(e){showToast(t('toast_conexion'),'error');}
 }
 async function saveInvFondos(){
-  const amts=FONDOS.map((f,i)=>parseAmt(document.getElementById('invAmtF'+i).value));
+  // Solo se guardan los fondos cuyo valor ha cambiado
+  const cambios=leerFondosInv().map((f,i)=>({...f,fondo:FONDOS[i]})).filter(f=>f.cambiado);
   const date=document.getElementById('invDate').value;
-  if(amts.some(a=>!a||a<=0)){showToast(t('toast_importe_valido'),'error');return;}
+  if(cambios.some(c=>!c.amt||c.amt<=0)){showToast(t('toast_importe_valido'),'error');return;}
+  if(!cambios.length){closeInvModal();showToast(t('inv_sin_cambios'));return;}
   if(!date){showToast(t('toast_introduce_fecha'),'error');return;}
   closeInvModal();
   try{
-    const res=await Promise.all(FONDOS.map((f,i)=>nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
-      Nombre:{title:[{text:{content:'Valor Cartera - '+f.key+' - '+date}}]},
+    const res=await Promise.all(cambios.map(c=>nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
+      Nombre:{title:[{text:{content:'Valor Cartera - '+c.fondo.key+' - '+date}}]},
       InvTipo:{select:{name:'Valor Cartera'}},
-      InvFondo:{select:{name:f.key}},
-      InvImporte:{number:amts[i]},
+      InvFondo:{select:{name:c.fondo.key}},
+      InvImporte:{number:c.amt},
       InvFecha:{date:{start:date}},
     }})));
     const fallo=res.find(r=>!r.id);
