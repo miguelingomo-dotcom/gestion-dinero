@@ -881,6 +881,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
         <button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
+    <div class="chips-wrap" id="movTipoChips" style="margin:0 20px 10px;"></div>
     <div class="chips-wrap" id="movFilterChips" style="margin:0 20px 10px;"></div>
     <div class="chips-wrap" id="movCatChips" style="margin:0 20px 14px;"></div>
     <div class="mov-list" id="recentMovs" style="margin:0 20px;"><div class="loading" data-i18n="cargando">Cargando...</div></div>
@@ -2155,6 +2156,19 @@ function renderMovFilterChips(){
   }).join('');
 }
 let movsFilterCatId=null;
+/* Filtro por tipo: independiente de cuenta y categoría; se aplica en la consulta a Notion, no sobre lo ya cargado */
+let movsFilterTipo=null;
+function renderMovTipoChips(){
+  const cont=document.getElementById('movTipoChips');
+  if(!cont)return;
+  const tipos=[{id:null,txt:'Todos'},{id:'gasto',txt:'💸 Gastos'},{id:'ingreso',txt:'💰 Ingresos'}];
+  cont.innerHTML=tipos.map(x=>'<div class="chip'+(movsFilterTipo===x.id?' selected':'')+'" onclick="selMovTipo('+(x.id?"'"+x.id+"'":'null')+',this)">'+x.txt+'</div>').join('');
+}
+function selMovTipo(tipo,el){
+  movsFilterTipo=tipo;
+  el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',c===el));
+  loadMovs();
+}
 function renderMovCatChips(){
   const cont=document.getElementById('movCatChips');
   if(!cont)return;
@@ -2177,6 +2191,7 @@ function selMovFilter(accId,el){
   loadMovs();
 }
 async function loadMovs(silencioso){
+  renderMovTipoChips();
   renderMovFilterChips();
   renderMovCatChips();
   // Tras editar se recarga sin esqueleto: la lista se sustituye de golpe en vez de parpadear
@@ -2184,6 +2199,8 @@ async function loadMovs(silencioso){
   try{
     const query={sorts:[{timestamp:'created_time',direction:'descending'}],page_size:30};
     const conds=[];
+    if(movsFilterTipo==='gasto')conds.push({property:'Gasto',number:{greater_than:0}});
+    if(movsFilterTipo==='ingreso')conds.push({property:'Ingreso',number:{greater_than:0}});
     if(movsFilterAccId)conds.push({property:'Cuenta',relation:{contains:movsFilterAccId}});
     if(movsFilterCatId)conds.push({or:[
       {property:'Fuente de Gasto',relation:{contains:movsFilterCatId}},
