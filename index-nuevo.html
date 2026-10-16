@@ -1069,7 +1069,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="reg-wrap" style="margin-bottom:10px;">
       <div class="sus-card" style="margin:0;">
         <div class="sus-icon">🔁</div>
-        <div class="sus-info"><div class="sus-name" data-i18n="ibercaja_revolut">Ibercaja → Revolut Personal</div><div class="sus-meta"><span data-i18n="transferencia_automatica">Transferencia automática</span> · <span id="transfMensualLbl"></span>€</div></div>
+        <div class="sus-info"><div class="sus-name" data-i18n="ibercaja_revolut">Ibercaja → Revolut Personal</div><div class="sus-meta"><span data-i18n="transferencia_automatica">Transferencia automática</span> · importe a elegir</div></div>
         <div class="sus-right"><button class="sus-btn" onclick="quickTransferMensual()" data-i18n="btn_registrar">Registrar</button></div>
       </div>
     </div>
@@ -1543,7 +1543,6 @@ const FONDOS=[
   {key:'Emergentes',nombre:'Fidelity MSCI Emerging Markets Index P-ACC-EUR',isin:'IE00BYX5M476',pct:.20,color:'var(--orange)'},
 ];
 const INV_APORTACION_MENSUAL=120; // Transferencia automática mensual desde Ibercaja
-const TRANSF_MENSUAL_MONTO=250; // Transferencia automática mensual Ibercaja → Revolut Personal
 const IBERCAJA_ID='31621c54013f811ebd49f65e2776d28e';
 const REVOLUT_PERSONAL_ID='31621c54013f817f9f00fc6acc160c26';
 const BAR_COLORS=['#7b6ef6','#22c55e','#f97316','#3b82f6','#eab308','#ec4899','#06b6d4'];
@@ -1627,7 +1626,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderChips();renderCats('gasto');renderSusc();renderIngresosRapidos();
   renderMonthChips();
   document.getElementById('invAportMensualLbl').textContent=INV_APORTACION_MENSUAL;
-  document.getElementById('transfMensualLbl').textContent=TRANSF_MENSUAL_MONTO;
   // Sin tiempo mínimo: el splash se va en cuanto Inicio tiene datos que pintar (tope de 1,2 s si la red va lenta)
   Promise.race([loadInicio().catch(()=>{}),new Promise(r=>setTimeout(r,1200))])
     .then(()=>{document.getElementById('splashScreen').classList.add('hide');});
@@ -3385,12 +3383,12 @@ async function reactivateAccount(pageId,name){
 
 /* ── METAS DE AHORRO ── */
 /* ── TRANSFERENCIA ── */
-function showTransfer(accountId,accountName){
+function showTransfer(accountId,accountName,destinoId){
   transferFromId=accountId;
   document.getElementById('transferFrom').textContent=accountName;
   // Destino con chips de cuenta (como en Registrar) en lugar de un <select>
   const destinos=CUENTAS.filter(c=>c.id!==accountId&&cuentasActivasIds.has(c.id));
-  transferToId=destinos[0]?destinos[0].id:'';
+  transferToId=(destinos.find(c=>c.id===destinoId)||destinos[0]||{}).id||'';
   document.getElementById('transferToChips').innerHTML=destinos.map(c=>`<div class="chip${c.id===transferToId?' selected':''}" onclick="selDestino('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
   document.getElementById('transferAmt').value='';
   document.getElementById('transferOverlay').classList.add('show');
@@ -3399,19 +3397,9 @@ function showTransfer(accountId,accountName){
 }
 function selDestino(id,el){transferToId=id;el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',c===el));}
 function closeTransfer(){document.getElementById('transferOverlay').classList.remove('show');}
-async function quickTransferMensual(){
-  const today=hoyLocal();
-  try{
-    const res=await nFetch('/pages','POST',{parent:{database_id:TRANSFER_DB},properties:{
-      Nombre:{title:[{text:{content:'Ibercaja → Revolut Personal'}}]},
-      Monto:{number:TRANSF_MENSUAL_MONTO},
-      'Fecha':{date:{start:today}},
-      'Transferir Desde':{relation:[{id:IBERCAJA_ID}]},
-      'Transferir a':{relation:[{id:REVOLUT_PERSONAL_ID}]},
-    }});
-    if(res.id){showSuccessBurst();showToast('✓ '+t('lbl_importe')+' '+TRANSF_MENSUAL_MONTO+'€ '+t('toast_registrada'),'success');loadAccounts();}
-    else showToast('Error: '+(res.message||t('toast_intentalo')),'error');
-  }catch(e){showToast(t('toast_error_transferir'),'error');}
+/* Transferencia Ibercaja → Revolut Personal: sin importe fijo; abre la hoja con origen y destino ya puestos */
+function quickTransferMensual(){
+  showTransfer(IBERCAJA_ID,'Ibercaja',REVOLUT_PERSONAL_ID);
 }
 async function submitTransfer(){
   const amt=parseAmt(document.getElementById('transferAmt').value);
