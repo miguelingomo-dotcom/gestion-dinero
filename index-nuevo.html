@@ -260,7 +260,10 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .account-card.expanded .account-movs-wrap{grid-template-rows:1fr;opacity:1;margin-top:12px;}
 .account-movs-clip{min-height:0;overflow:hidden;}
 .account-movs-inner{max-height:480px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:2px;}
-.acc-mov-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-radius:10px;transition:background var(--dur-fast) var(--ease);}
+.acc-mov-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-radius:10px;transition:background var(--dur-fast) var(--ease),transform .18s var(--ease-out);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+/* Pulsación larga: pulso breve al dispararse, a modo de vibración visual */
+.acc-mov-row.lp-disparo{transform:scale(.96);transition:transform .1s var(--ease-out);}
 .acc-mov-row:active{background:var(--surface2);}
 .acc-mov-row .amn-emoji{width:32px;height:32px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
 .acc-mov-row .amn-body{flex:1;min-width:0;}
@@ -3085,7 +3088,7 @@ async function toggleAccountMovs(pageId,headerEl){
         const catRelId=isG?(p.properties?.['Fuente de Gasto']?.relation?.[0]?.id||'').replace(/-/g,''):(p.properties?.['Fuente de Ingreso']?.relation?.[0]?.id||'').replace(/-/g,'');
         const cat=[...GASTOS,...INGRESOS].find(c=>c.id===catRelId);
         const emoji=cat?cat.emoji:getEmoji(name);
-        return`<div class="acc-mov-row" onclick="openEditMovement('${p.id}')" style="cursor:pointer;">
+        return`<div class="acc-mov-row" data-mov="${p.id}" onclick="openEditMovement('${p.id}')" style="cursor:pointer;">
           <div class="amn-emoji">${emoji}</div>
           <div class="amn-body"><div class="amn-name">${name}</div><div class="amn-date">${fechaStr}</div></div>
           <div class="amn-amt ${isG?'g':'i'}">${isG?'-':'+'}${fmt(amt)} €</div>
@@ -3095,6 +3098,35 @@ async function toggleAccountMovs(pageId,headerEl){
     accountMovsLoaded[pageId]=true;
   }catch(e){inner.innerHTML='<div class="acc-movs-empty">Error al cargar</div>';}
 }
+/* ── Pulsación larga (450 ms) en una fila de cuenta: abre la edición, igual que el toque ── */
+(function(){
+  let timer=0,fila=null,x0=0,y0=0,disparada=false;
+  function cancelar(){clearTimeout(timer);timer=0;fila=null;}
+  document.addEventListener('pointerdown',e=>{
+    disparada=false;
+    const f=e.target.closest('.acc-mov-row');
+    if(!f||!e.isPrimary)return;
+    cancelar();fila=f;x0=e.clientX;y0=e.clientY;
+    timer=setTimeout(()=>{
+      const f2=fila;cancelar();
+      if(!f2)return;
+      disparada=true;
+      f2.classList.add('lp-disparo');setTimeout(()=>f2.classList.remove('lp-disparo'),120);
+      openEditMovement(f2.dataset.mov);
+    },450);
+  });
+  // Se cancela si el dedo se mueve, si se suelta antes o si algo hace scroll (la lista o la página)
+  document.addEventListener('pointermove',e=>{if(fila&&Math.hypot(e.clientX-x0,e.clientY-y0)>8)cancelar();},{passive:true});
+  document.addEventListener('pointerup',cancelar);
+  document.addEventListener('pointercancel',cancelar);
+  document.addEventListener('scroll',cancelar,{capture:true,passive:true});
+  // El toque que llega al soltar tras una pulsación larga no vuelve a abrir la edición
+  document.addEventListener('click',e=>{
+    if(disparada&&e.target.closest('.acc-mov-row')){e.stopPropagation();e.preventDefault();}
+    disparada=false;
+  },true);
+  document.addEventListener('contextmenu',e=>{if(e.target.closest('.acc-mov-row'))e.preventDefault();});
+})();
 /* ── METAS DE AHORRO (viven en CUENTAS_DB, Cuenta o Meta='Meta') ── */
 let goalsCache=[],editingGoalId=null;
 async function loadGoals(){
