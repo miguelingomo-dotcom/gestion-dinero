@@ -1671,6 +1671,7 @@ function showSec(name,idx){
     return;
   }
   if(actual)scrollPorSeccion[actual.id]=window.scrollY;
+  if(name!=='cuentas')cuentaPendiente=null;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('sec-'+name).classList.add('active');
@@ -3029,7 +3030,24 @@ async function loadAccounts(){
       el.textContent='0,00 €';el.dataset.rawVal='0';
       animateCounter(el,target,{suffix:' €',duration:600});
     });
+    abrirCuentaPendiente();
   }catch(e){document.getElementById('accountCards').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
+}
+/* Desde Inicio: ir a Cuentas con esa cuenta desplegada y a la vista (no a Movimientos) */
+let cuentaPendiente=null;
+function abrirCuentaDesdeInicio(id){
+  if(!id)return showSec('cuentas',2);
+  cuentaPendiente=id;
+  showSec('cuentas',2); // recarga las tarjetas (todas plegadas) y al terminar llama a abrirCuentaPendiente
+}
+function abrirCuentaPendiente(){
+  const id=cuentaPendiente;cuentaPendiente=null;
+  const wrap=id&&document.getElementById('movs-'+id);
+  if(!wrap)return;
+  const card=wrap.closest('.account-card');
+  toggleAccountMovs(id,card.querySelector('.account-card-head'));
+  const cab=document.querySelector('#sec-cuentas .header');
+  window.scrollTo(0,card.getBoundingClientRect().top+window.scrollY-(cab?cab.offsetHeight:0)-8);
 }
 const accountMovsLoaded={};
 async function toggleAccountMovs(pageId,headerEl){
@@ -3047,7 +3065,8 @@ async function toggleAccountMovs(pageId,headerEl){
   const inner=wrap.querySelector('.account-movs-inner');
   inner.innerHTML=skeletonRowsInner(4);
   try{
-    const data=await nFetch('/databases/'+DB_ID+'/query','POST',{
+    // Todos los movimientos de la cuenta, siguiendo la paginación de Notion (antes se cortaba en 100)
+    const data=await nQueryAll(DB_ID,{
       filter:{property:'Cuenta',relation:{contains:pageId}},
       sorts:[{timestamp:'created_time',direction:'descending'}],
       page_size:100
@@ -3858,7 +3877,7 @@ async function saveInv(){
       var saldo=(b.dataset.bal!==undefined&&typeof fmt==='function')
         ? fmt(parseFloat(b.dataset.bal))+' €' : b.textContent;
       var idCuenta=(typeof CUENTAS==='object'&&(CUENTAS.filter(function(x){return x.name===(encajar(nombre)||nombre);})[0]||{}).id)||'';
-      return '<div class="qa-card" style="background:'+color+'" onclick="window.kashyVerCuenta(\''+idCuenta+'\')">'+
+      return '<div class="qa-card" style="background:'+color+'" onclick="abrirCuentaDesdeInicio(\''+idCuenta+'\')">'+
         '<div class="qa-name"><span class="acc-ico">'+em+'</span> '+nombre+'</div>'+
         '<div class="qa-bal">'+saldo+'</div></div>';
     }).join('');
@@ -3985,18 +4004,6 @@ async function saveInv(){
     if(c)new MutationObserver(prepararTodos).observe(c,{childList:true,subtree:true});
   });
   setInterval(prepararTodos,1000);
-  /* Abrir Movimientos ya filtrado por esa cuenta */
-  window.kashyVerCuenta=function(id){
-    showSec('movimientos',1);
-    if(!id)return;
-    setTimeout(function(){
-      if(typeof movsFilterAccId!=='undefined'){
-        movsFilterAccId=id;
-        if(typeof renderMovFilterChips==='function')renderMovFilterChips();
-        if(typeof loadMovs==='function')loadMovs();
-      }
-    },60);
-  };
   var recargar=window.loadAccounts;
   if(typeof recargar==='function')window.loadAccounts=function(){var r=recargar.apply(this,arguments);setTimeout(cargarConteo,300);return r;};
   /* Las cuentas se cargan al arrancar para que el carrusel tenga datos */
