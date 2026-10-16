@@ -32,8 +32,10 @@
 </script>
 <link rel="apple-touch-icon" href="/icon.png">
 <link rel="icon" href="/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 
 /* ── TOKENS ── */
 :root {
@@ -176,7 +178,7 @@ input,select,button{font-family:'DM Sans',-apple-system,sans-serif;}
 .submit-btn{width:100%;padding:17px;border:none;border-radius:16px;background:var(--accent-bg);color:var(--accent-text);font-size:16px;font-weight:700;cursor:pointer;margin-top:4px;transition:opacity .15s;box-shadow:0 4px 16px rgba(0,0,0,.2);}
 .submit-btn:active{opacity:.8;}
 .submit-btn:disabled{opacity:.4;}
-.submit-btn.ing{background:var(--green);color:#fff;}
+.submit-btn.ing{background:var(--green);color:var(--on-green);}
 
 /* ── SUSCRIPCIONES ── */
 .sus-section{margin-top:24px;}
@@ -186,7 +188,7 @@ input,select,button{font-family:'DM Sans',-apple-system,sans-serif;}
 .sus-card-wrap{margin-bottom:10px;}
 .susc-progress{background:var(--surface);border:1px solid var(--border);border-top:1px dashed var(--border2,var(--border));border-radius:0 0 16px 16px;padding:10px 16px 14px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .susc-progress-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:6px;}
-.susc-progress-sub{font-size:11px;color:var(--muted2);margin-top:6px;}
+.susc-progress-sub{font-size:11px;color:var(--muted);margin-top:6px;}
 .sus-card.hoy{border-color:rgba(234,179,8,.5);}
 .sus-icon{width:44px;height:44px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid var(--border);}
 .sus-info{flex:1;}
@@ -282,7 +284,7 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .wish-badge.gift{background:rgba(236,72,153,.12);color:#ec4899;}
 .wish-bottom-row{display:flex;align-items:center;justify-content:space-between;}
 .wish-price{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.5px;color:var(--text);}
-.wish-buy-btn{background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:11px;font-size:12px;font-weight:700;cursor:pointer;transition:transform var(--dur-fast) var(--ease);}
+.wish-buy-btn{background:var(--green);color:var(--on-green);border:none;padding:8px 14px;border-radius:11px;font-size:12px;font-weight:700;cursor:pointer;transition:transform var(--dur-fast) var(--ease);}
 .wish-buy-btn:active{transform:scale(.94);}
 .wish-bought-tag{font-size:12px;font-weight:700;color:var(--green);}
 .sec-header{padding:24px 20px 14px;}
@@ -311,7 +313,7 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .alert-banner.compact-body{font-size:12px;color:var(--text);opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .alert-banner.show{display:block;}
 .alert-banner.compact.show{display:flex;}
-.alert-title{font-size:13px;font-weight:700;color:var(--yellow);margin-bottom:6px;}
+.alert-title{font-size:13px;font-weight:700;color:var(--warn-text);margin-bottom:6px;}
 .alert-item{font-size:14px;font-weight:500;display:flex;justify-content:space-between;padding:3px 0;}
 .alert-amount{font-weight:700;color:var(--red);}
 
@@ -334,16 +336,16 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .modal-btns{display:flex;gap:10px;}
 .modal-cancel{flex:1;padding:15px;border:1px solid var(--border);border-radius:14px;background:var(--surface2);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;}
 .modal-confirm{flex:2;padding:15px;border:none;border-radius:14px;background:var(--accent-bg);color:var(--accent-text);font-size:15px;font-weight:700;cursor:pointer;}
-.modal-confirm.ing{background:var(--green);color:#fff;}
+.modal-confirm.ing{background:var(--green);color:var(--on-green);}
 .modal-field-lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 6px;}
 .modal-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:15px;font-weight:600;outline:none;-webkit-appearance:none;margin-bottom:2px;}
 .modal-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px;outline:none;text-align:center;margin-bottom:2px;}
 
 /* ── TOAST ── */
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);color:var(--text);padding:12px 24px;border-radius:100px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s ease,transform .3s ease;z-index:400;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.3);}
+.toast{position:fixed;bottom:calc(84px + max(26px, 8px + env(safe-area-inset-bottom,0px)));left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);color:var(--text);padding:12px 24px;border-radius:100px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s ease,transform .3s ease;z-index:400;width:max-content;max-width:calc(100% - 32px);white-space:normal;overflow-wrap:anywhere;text-align:center;line-height:1.35;box-shadow:0 8px 32px rgba(0,0,0,.3);pointer-events:none;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.toast.success{background:var(--green);color:#fff;border-color:var(--green);}
-.toast.error{background:var(--red);color:#fff;border-color:var(--red);}
+.toast.success{background:var(--green);color:var(--on-green);border-color:var(--green);}
+.toast.error{background:var(--red);color:var(--on-red);border-color:var(--red);}
 .loading{text-align:center;color:var(--muted);font-size:14px;padding:32px;}
 
 /* ── ANIMATIONS ── */
@@ -373,7 +375,9 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .chip:active,.icon-btn:active,.submit-btn:active,.sus-btn:active,.acc-action:active,.nav-add:active,
 .modal-cancel:active,.modal-confirm:active,.period-btn:active,.type-btn:active,.export-btn:active{transform:scale(.96);}
 .cat-item:active .cat-circle{transform:scale(.92);}
-.account-card:active,.goal-card:active,.mov-item:active,.sus-card:active{transform:scale(.985);}
+/* Filas y tarjetas: solo cambio de fondo (la escala queda para los botones) */
+.goal-card:active,.sus-card:active{background:var(--surface2);}
+.account-card:active{box-shadow:inset 0 0 0 999px rgba(0,0,0,.08),0 16px 30px rgba(0,0,0,.35);}
 
 /* ── SKELETON ── */
 .skeleton{background:linear-gradient(90deg,var(--skeleton-base) 25%,var(--skeleton-shine) 37%,var(--skeleton-base) 63%);background-size:400px 100%;animation:shimmer 1.4s ease infinite;border-radius:var(--r-md);}
@@ -389,7 +393,7 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .empty-state-sub{font-size:12.5px;color:var(--muted);line-height:1.5;}
 
 /* ── PULL TO REFRESH ── */
-.ptr-indicator{position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(-100%);width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--border);box-shadow:var(--sh-md);display:flex;align-items:center;justify-content:center;z-index:250;transition:transform var(--dur-base) var(--ease),opacity var(--dur-base) var(--ease);opacity:0;}
+.ptr-indicator{position:fixed;top:env(safe-area-inset-top,0px);left:50%;transform:translateX(-50%) translateY(-100%);width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--border);box-shadow:var(--sh-md);display:flex;align-items:center;justify-content:center;z-index:250;transition:transform var(--dur-base) var(--ease),opacity var(--dur-base) var(--ease);opacity:0;}
 .ptr-indicator.pulling,.ptr-indicator.loading{opacity:1;}
 .ptr-indicator svg{width:18px;height:18px;stroke:var(--accent);transition:transform .1s linear;}
 .ptr-indicator.loading svg{animation:spin .7s linear infinite;}
@@ -402,7 +406,7 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
   position:fixed;inset:0;z-index:1000;
   background:var(--bg);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
-  transition:opacity .5s ease,visibility .5s ease;
+  transition:opacity .3s var(--ease-out),visibility .3s var(--ease-out);
 }
 .splash-screen.hide{opacity:0;visibility:hidden;pointer-events:none;}
 .splash-logo{position:relative;filter:drop-shadow(0 4px 24px rgba(107,94,240,.35));}
@@ -435,12 +439,11 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .success-burst.show{opacity:1;animation:burstFadeOut .3s var(--ease-out) .95s forwards;}
 .success-burst-circle{width:74px;height:74px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(34,197,94,.4);}
 .success-burst.show .success-burst-circle{animation:burstCircle .32s var(--ease-out) both;}
-.success-burst-circle svg{width:34px;height:34px;stroke-dasharray:24;stroke-dashoffset:24;}
+.success-burst-circle svg{width:34px;height:34px;stroke:var(--on-green);stroke-dasharray:24;stroke-dashoffset:24;}
 .success-burst.show .success-burst-circle svg{animation:burstCheck .3s var(--ease-out) .12s forwards;}
 </style>
 
 <style id="kashy-skin-ios">
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* ═══ Ka$hy · piel iOS ═══
    Solo estilos. No toca ni el HTML ni el JavaScript de Notion. */
@@ -449,7 +452,9 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
   --bg:#12131c;--surface:rgba(255,255,255,.05);--surface2:rgba(255,255,255,.07);--surface3:rgba(255,255,255,.09);
   --border:rgba(255,255,255,.08);--text:#ECECF2;--muted:#8A8AA0;--muted2:#71718A;
   --accent:#a99bff;--green:#34d399;--red:#f87171;--orange:#fb923c;--blue:#60a5fa;--yellow:#eab308;
-  --accent-bg:linear-gradient(160deg,#a99bff,#6b5ef0);--accent-text:#12131c;
+  --accent-bg:linear-gradient(160deg,#b3a7ff,#8b7ef8);--accent-text:#12131c;
+  /* Texto sobre superficies de color (contraste AA ≥ 4,5:1) */
+  --on-accent:#12131c;--on-green:#052e1c;--on-red:#12131c;--warn-text:var(--yellow);
   --skeleton-base:rgba(255,255,255,.06);--skeleton-shine:rgba(255,255,255,.12);
   --sh-sm:0 2px 10px rgba(0,0,0,.3);--sh-md:0 10px 26px rgba(0,0,0,.4);--sh-lg:0 22px 44px rgba(0,0,0,.45);
   --r-sm:12px;--r-md:16px;--r-lg:20px;--r-xl:26px;
@@ -458,9 +463,10 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 }
 [data-theme="light"]{
   --bg:#f5f4f0;--surface:#ffffff;--surface2:#f2efea;--surface3:#e9e5df;
-  --border:#ddd9d0;--text:#1a1a24;--muted:#7a7a8a;--muted2:#a8a4a0;
-  --accent:#6b5ef0;--green:#16a34a;--red:#dc2626;--orange:#ea580c;--blue:#2563eb;--yellow:#ca8a04;
-  --accent-bg:linear-gradient(160deg,#8b7ef8,#6b5ef0);--accent-text:#ffffff;
+  --border:#ddd9d0;--text:#1a1a24;--muted:#66667a;--muted2:#a8a4a0;
+  --accent:#5d50e6;--green:#137333;--red:#c42121;--orange:#ea580c;--blue:#2563eb;--yellow:#ca8a04;
+  --accent-bg:linear-gradient(160deg,#6e61f0,#5244d6);--accent-text:#ffffff;
+  --on-accent:#ffffff;--on-green:#ffffff;--on-red:#ffffff;--warn-text:#8a5a00;
   --skeleton-base:#eeece7;--skeleton-shine:rgba(255,255,255,.8);
   --sh-sm:0 2px 8px rgba(20,20,30,.06);--sh-md:0 8px 22px rgba(20,20,30,.09);--sh-lg:0 18px 38px rgba(20,20,30,.12);
   --page:#f5f4f0;--sheet:#ffffff;
@@ -534,7 +540,7 @@ body{background:var(--page);}
 .account-card::after{content:'';position:absolute;top:-40px;right:-30px;width:150px;height:150px;
   border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none;}
 .account-card > *{position:relative;z-index:1;}
-.account-card{background:var(--accent);}
+.account-card{background:#6b5ef0;}
 .account-card .account-name{color:rgba(255,255,255,.92);font-size:13px;font-weight:600;}
 .account-card .account-chevron{color:rgba(255,255,255,.85);}
 .account-card .acc-action{background:rgba(0,0,0,.22);border:none;color:#fff;border-radius:13px;}
@@ -542,7 +548,7 @@ body{background:var(--page);}
 .account-card .account-movs-inner{border-top:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);border-radius:14px;padding:6px 10px 10px;}
 .account-card .acc-mov-row .amn-emoji{background:rgba(255,255,255,.16);border:none;}
 .account-card .acc-mov-row .amn-name{color:#fff;}
-.account-card .acc-mov-row .amn-date{color:rgba(255,255,255,.72);}
+.account-card .acc-mov-row .amn-date{color:rgba(255,255,255,.85);}
 .account-card .acc-mov-row .amn-amt.g,.account-card .acc-mov-row .amn-amt.i{color:#fff;}
 .account-card .acc-movs-empty,.account-card .acc-movs-viewall{color:rgba(255,255,255,.85);}
 
@@ -579,7 +585,7 @@ body{background:var(--page);}
 .nav{background:linear-gradient(180deg,color-mix(in srgb,var(--page) 35%,transparent),color-mix(in srgb,var(--page) 94%,transparent));
   backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
   border-top:1px solid var(--border);box-shadow:none;padding:8px 10px max(26px,calc(8px + env(safe-area-inset-bottom,0px)));}
-.nav-btn{color:var(--muted2);font-size:10px;}
+.nav-btn{color:var(--muted);font-size:10px;}
 .nav-btn svg{width:23px;height:23px;}
 .nav-add{width:52px;height:52px;border-radius:18px;background:var(--accent-bg);
   box-shadow:0 12px 26px rgba(107,94,240,.5),inset 0 1px 0 rgba(255,255,255,.3);margin-bottom:12px;}
@@ -594,7 +600,7 @@ body{background:var(--page);}
 /* Avisos y detalles */
 .alert-banner{background:color-mix(in srgb,var(--yellow) 12%,transparent);border:1px solid color-mix(in srgb,var(--yellow) 26%,transparent);border-radius:16px;}
 .insight-card{border-radius:22px;box-shadow:none;}
-.toast{background:var(--sheet);border:1px solid var(--border);border-radius:100px;}
+.toast{background:var(--sheet);border:1px solid var(--border);border-radius:22px;}
 .splash-screen{background:radial-gradient(90% 70% at 50% 32%,#2a2470,var(--page) 72%);}
 [data-theme="light"] .splash-screen{background:radial-gradient(90% 70% at 50% 32%,#e6e1ff,var(--page) 72%);}
 .app{padding-bottom:124px;}
@@ -707,13 +713,14 @@ body.kashy-privado .fondo-val,body.kashy-privado .fondo-rend{
 .swipe::-webkit-scrollbar{display:none;}
 .swipe > .mov-item{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;
   background:linear-gradient(var(--surface),var(--surface)),var(--page);}
+.swipe > .mov-item:active{background:linear-gradient(var(--surface2),var(--surface2)),var(--page);}
 .swipe .del-btn{display:none!important;}
 .swipe-actions{flex:0 0 168px;display:flex;scroll-snap-align:end;}
 .swipe-act{width:84px;border:none;color:#fff;font-size:13px;font-weight:600;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;}
-.swipe-act svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-.swipe-edit{background:var(--accent);}
-.swipe-del{background:#e5484d;}
+.swipe-act svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.swipe-edit{background:var(--accent);color:var(--on-accent);}
+.swipe-del{background:#d1343b;}
 /* Sin barra de desplazamiento visible, como en una app nativa */
 html,body,.app,.section,.chips-wrap,.account-movs-wrap,.modal,.sheet,.overlay{scrollbar-width:none;-ms-overflow-style:none;}
 html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;}
@@ -737,7 +744,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0!imp
 .account-card .account-actions .acc-action:nth-child(3){display:none;}
 .account-card .account-actions .acc-action{flex:1;padding:11px 0;font-size:13.5px;font-weight:600;}
 .account-card .account-balance{font-size:30px;letter-spacing:-1.2px;margin-bottom:4px;}
-.account-card .acc-count{font-size:11.5px;color:rgba(255,255,255,.78);}
+.account-card .acc-count{font-size:11.5px;color:rgba(255,255,255,.85);}
 .account-chevron{font-size:0!important;padding:0 2px 0 10px!important;align-self:center!important;}
 .account-chevron::before{content:'';display:block;width:11px;height:11px;
   border-right:2px solid rgba(255,255,255,.9);border-bottom:2px solid rgba(255,255,255,.9);
@@ -786,6 +793,43 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
   .pat-item-fill,.res-bar-fill,.rate-fill{transition:none;}
 }
 
+/* ── Contraste sobre colores de banco ── */
+/* Chips de cuenta: sin seleccionar, neutros con una marca del color del banco; seleccionado, relleno con su color */
+#accountChips .chip[data-bank]:not(.selected),#editAccChips .chip[data-bank]:not(.selected),#movFilterChips .chip[data-bank]:not(.selected){
+  background:var(--surface2)!important;color:var(--text)!important;opacity:1;box-shadow:inset 4px 0 0 var(--bank,var(--accent));}
+#accountChips .chip.tinta-oscura.selected,#editAccChips .chip.tinta-oscura.selected,#movFilterChips .chip[data-bank].tinta-oscura.selected{color:#12131c!important;}
+/* Tarjetas de banco claras: texto oscuro y velo claro en lugar del oscuro */
+.account-card.tinta-oscura,.qa-card.tinta-oscura{color:#12131c;}
+.account-card.tinta-oscura::before,.qa-card.tinta-oscura::before{background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(0,0,0,.06));}
+.account-card.tinta-oscura .account-name{color:rgba(18,19,28,.92)!important;}
+.account-card.tinta-oscura .account-balance,.qa-card.tinta-oscura .qa-bal{color:#12131c;}
+.qa-card.tinta-oscura .qa-name{color:rgba(18,19,28,.9);}
+.account-card.tinta-oscura .acc-count,.account-card.tinta-oscura .acc-sub{color:rgba(18,19,28,.85);}
+.account-card.tinta-oscura .account-chevron::before{border-color:rgba(18,19,28,.85);}
+.account-card.tinta-oscura .acc-action,.account-card.tinta-oscura .acc-action:first-child{background:rgba(255,255,255,.4);color:#12131c;}
+.account-card.tinta-oscura .account-movs-inner{border-top-color:rgba(18,19,28,.18);background:rgba(255,255,255,.32);}
+.account-card.tinta-oscura .acc-mov-row .amn-emoji{background:rgba(255,255,255,.45);}
+.account-card.tinta-oscura .acc-mov-row .amn-name,.account-card.tinta-oscura .acc-mov-row .amn-amt.g,.account-card.tinta-oscura .acc-mov-row .amn-amt.i{color:#12131c;}
+.account-card.tinta-oscura .acc-mov-row .amn-date,.account-card.tinta-oscura .acc-movs-empty,.account-card.tinta-oscura .acc-movs-viewall{color:rgba(18,19,28,.85);}
+/* «Desactivar» toma el color del texto de la tarjeta (el rojo no se lee sobre los colores de banco) */
+.account-card .account-actions .acc-action:nth-child(4){color:inherit!important;}
+.account-card .account-actions{color:#fff;}
+.account-card.tinta-oscura .account-actions{color:#12131c;}
+[data-theme="light"] .wish-badge.gift{color:#be185d;}
+
+/* ── Zonas táctiles de 44 px sin cambiar el tamaño visual ── */
+.icon-btn,.sus-btn,.pat-period,.period-btn,.type-btn,.acc-action,.wish-buy-btn,.goal-menu,.del-btn,
+.inv-date-link,.quick-accounts-head button,.acc-movs-viewall,#kashyLock .kl-skip{position:relative;}
+.icon-btn::before,.sus-btn::before,.pat-period::before,.period-btn::before,.type-btn::before,.acc-action::before,
+.wish-buy-btn::before,.goal-menu::before,.del-btn::before,.inv-date-link::before,.quick-accounts-head button::before,
+.acc-movs-viewall::before,#kashyLock .kl-skip::before{
+  content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%);}
+
+/* ── Cifras de ancho fijo: no bailan al contar ni al cambiar ── */
+.hero-amount,.hero-mini-val,.account-balance,.qa-bal,.mov-amount,.amn-amt,.res-val,.goal-saved,.goal-target,
+.chart-val,.sus-amount,.top-amount,.pat-item-val,.wish-price,.fondo-val,.fondo-rend,.modal-amount,.amount-in,
+.modal-input,.rate-number,.leg-pct,.alert-amount{font-variant-numeric:tabular-nums;}
+
 /* ── Curva del patrimonio ── */
 .pat-chart-wrap{margin:14px 0 2px;color:var(--green);}
 .pat-chart-wrap.down{color:var(--red);}
@@ -799,7 +843,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
 .pat-periods{display:flex;gap:6px;margin-top:10px;}
 .pat-period{flex:1;border:none;background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--muted);font-family:inherit;font-size:12px;font-weight:700;
   padding:6px 0;border-radius:100px;cursor:pointer;transition:background .15s var(--ease-out),color .15s var(--ease-out),transform .15s var(--ease-out);}
-.pat-period.active{background:var(--accent);color:#fff;}
+.pat-period.active{background:var(--accent);color:var(--on-accent);}
 .pat-period:active{transform:scale(.96);}
 </style>
 </head>
@@ -847,22 +891,22 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
         </div>
       </div>
       <div class="hero-row">
-        <div class="hero-mini"><div class="hero-mini-lbl">Gastado</div><div class="hero-mini-val g" id="resGasto">—</div></div>
-        <div class="hero-mini"><div class="hero-mini-lbl">Ingresado</div><div class="hero-mini-val i" id="resIngreso">—</div></div>
-        <div class="hero-mini"><div class="hero-mini-lbl">Balance</div><div class="hero-mini-val" id="resBalance">—</div></div>
+        <div class="hero-mini"><div class="hero-mini-lbl" data-i18n="stat_gastado">Gastado</div><div class="hero-mini-val g" id="resGasto">—</div></div>
+        <div class="hero-mini"><div class="hero-mini-lbl" data-i18n="stat_ingresado">Ingresado</div><div class="hero-mini-val i" id="resIngreso">—</div></div>
+        <div class="hero-mini"><div class="hero-mini-lbl" data-i18n="balance_lbl">Balance</div><div class="hero-mini-val" id="resBalance">—</div></div>
       </div>
       <div class="res-bar" style="display:none"><div class="res-bar-fill" id="resBar" style="transform:scaleX(0)"></div></div>
       <div class="pat-breakdown"><div class="pat-breakdown-clip"><div class="pat-breakdown-inner" id="patBreakdown"></div></div></div>
       <span id="mesActual" style="display:none"></span>
     </div>
     <div class="quick-accounts-head">
-      <span>Tus cuentas</span>
-      <button type="button" onclick="showSec('cuentas',3)">Ver todas</button>
+      <span data-i18n="tus_cuentas">Tus cuentas</span>
+      <button type="button" onclick="showSec('cuentas',3)" data-i18n="ver_todas">Ver todas</button>
     </div>
     <div class="quick-accounts" id="quickAccounts"></div>
     <div class="card">
       <div class="card-title" data-i18n="gastos_por_categoria">Gastos por categoría</div>
-      <div class="chart-wrap" id="chartWrap"><div class="loading">Cargando...</div></div>
+      <div class="chart-wrap" id="chartWrap"><div class="loading" data-i18n="cargando">Cargando...</div></div>
     </div>
   </div>
 
@@ -877,7 +921,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     </div>
     <div class="chips-wrap" id="movFilterChips" style="margin:0 20px 10px;"></div>
     <div class="chips-wrap" id="movCatChips" style="margin:0 20px 14px;"></div>
-    <div class="mov-list" id="recentMovs" style="margin:0 20px;"><div class="loading">Cargando...</div></div>
+    <div class="mov-list" id="recentMovs" style="margin:0 20px;"><div class="loading" data-i18n="cargando">Cargando...</div></div>
   </div>
 
   <!-- ── REGISTRAR ── -->
@@ -1271,7 +1315,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ── CONFIG ── */
@@ -1375,6 +1419,12 @@ const I18N={
     actualizado_lbl:'Actualizado',sin_datos_registra:'Sin datos aún — registra el primer valor',inv_reminder_none:'Aún no has registrado el valor de tu cartera. Entra a MyInvestor y actualízalo.',
     inv_reminder_days:'Llevas {d} días sin actualizar el valor de la cartera. Si ya se ha hecho la transferencia mensual, regístrala abajo, y actualiza el valor con lo que veas en MyInvestor.',
     ibercaja_revolut:'Ibercaja → Revolut Personal',
+    tus_cuentas:'Tus cuentas',ver_todas:'Ver todas',este_mes:'este mes',mov_mes_uno:'movimiento este mes',mov_mes_varios:'movimientos este mes',
+    btn_editar:'Editar',sin_gastos_mes:'Sin gastos este mes',sin_ingresos:'Sin ingresos',sin_fecha:'Sin fecha',
+    toast_no_abrir_mov:'No se pudo abrir el movimiento',aria_ocultar_saldos:'Ocultar saldos',aria_mostrar_saldos:'Mostrar saldos',
+    lock_titulo:'Ka$hy está bloqueada',lock_sub:'Tus saldos quedan ocultos hasta que te identifiques.',
+    lock_desbloquear:'Desbloquear con Face ID',lock_activando:'Activando Face ID…',lock_identificando:'Identificando…',
+    lock_reintentar:'Reintentar con Face ID',lock_sin_faceid:'Entrar sin Face ID',
   },
   en:{
     nav_inicio:'HOME',nav_movs:'ACTIVITY',nav_cuentas:'ACCOUNTS',nav_inversion:'INVEST',
@@ -1472,6 +1522,12 @@ const I18N={
     actualizado_lbl:'Updated',sin_datos_registra:'No data yet — log the first value',inv_reminder_none:'You haven\'t logged your portfolio value yet. Open MyInvestor and update it.',
     inv_reminder_days:'It\'s been {d} days since you updated the portfolio value. If the monthly transfer already happened, log it below, and update the value with what you see in MyInvestor.',
     ibercaja_revolut:'Ibercaja → Revolut Personal',
+    tus_cuentas:'Your accounts',ver_todas:'See all',este_mes:'this month',mov_mes_uno:'transaction this month',mov_mes_varios:'transactions this month',
+    btn_editar:'Edit',sin_gastos_mes:'No expenses this month',sin_ingresos:'No income',sin_fecha:'No date',
+    toast_no_abrir_mov:'Couldn\'t open the transaction',aria_ocultar_saldos:'Hide balances',aria_mostrar_saldos:'Show balances',
+    lock_titulo:'Ka$hy is locked',lock_sub:'Your balances stay hidden until you verify it\'s you.',
+    lock_desbloquear:'Unlock with Face ID',lock_activando:'Setting up Face ID…',lock_identificando:'Verifying…',
+    lock_reintentar:'Retry with Face ID',lock_sin_faceid:'Continue without Face ID',
   }
 };
 let LANG='es';
@@ -1601,9 +1657,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderMonthChips();
   document.getElementById('invAportMensualLbl').textContent=INV_APORTACION_MENSUAL;
   document.getElementById('transfMensualLbl').textContent=TRANSF_MENSUAL_MONTO;
-  const minSplashTime=new Promise(r=>setTimeout(r,1500));
-  const dataLoaded=loadInicio().catch(()=>{});
-  Promise.race([Promise.all([minSplashTime,dataLoaded]),new Promise(r=>setTimeout(r,4000))])
+  // Sin tiempo mínimo: el splash se va en cuanto Inicio tiene datos que pintar (tope de 1,2 s si la red va lenta)
+  Promise.race([loadInicio().catch(()=>{}),new Promise(r=>setTimeout(r,1200))])
     .then(()=>{document.getElementById('splashScreen').classList.add('hide');});
   loadCuentasActivas();
   loadInversion();
@@ -1633,11 +1688,20 @@ function toggleTheme(){
 }
 
 /* ── NAV ── */
+const scrollPorSeccion={};
 function showSec(name,idx){
+  const actual=document.querySelector('.section.active');
+  // Tocar la pestaña en la que ya estás sube arriba, como en iOS
+  if(actual&&actual.id==='sec-'+name){
+    window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    return;
+  }
+  if(actual)scrollPorSeccion[actual.id]=window.scrollY;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('sec-'+name).classList.add('active');
   if(idx>=0)document.getElementById('nav'+idx).classList.add('active');
+  window.scrollTo(0,scrollPorSeccion['sec-'+name]||0);
   if(name==='inicio')loadInicio();
   if(name==='movimientos')loadMovs();
   if(name==='cuentas'){loadAccounts();loadGoals();loadWishes();}
@@ -1713,15 +1777,16 @@ function animateCounter(el,end,{prefix='',suffix='',decimals=2,duration=700}={})
   if(!el)return;
   const startVal=parseFloat((el.dataset.rawVal||'0').replace(',','.'))||0;
   if(Math.abs(startVal-end)<0.005){el.textContent=prefix+fmt(end)+suffix;el.dataset.rawVal=end;autoFitAmount(el);return;}
+  // El tamaño se ajusta una sola vez con la cifra final; durante la cuenta solo cambia el texto
+  el.textContent=prefix+fmt(end)+suffix;autoFitAmount(el);
   const t0=performance.now();
   function step(t){
     const p=Math.min(1,(t-t0)/duration);
     const eased=1-Math.pow(1-p,3);
     const val=startVal+(end-startVal)*eased;
     el.textContent=prefix+fmt(val)+suffix;
-    autoFitAmount(el);
     if(p<1)requestAnimationFrame(step);
-    else{el.textContent=prefix+fmt(end)+suffix;el.dataset.rawVal=end;autoFitAmount(el);el.classList.add('count-pop');setTimeout(()=>el.classList.remove('count-pop'),300);}
+    else{el.textContent=prefix+fmt(end)+suffix;el.dataset.rawVal=end;el.classList.add('count-pop');setTimeout(()=>el.classList.remove('count-pop'),300);}
   }
   requestAnimationFrame(step);
 }
@@ -1740,6 +1805,7 @@ function showSuccessBurst(){
   const sectionLoaders={inicio:loadInicio,movimientos:loadMovs,cuentas:()=>{loadAccounts();loadGoals();loadWishes();},stats:loadStats,inversion:loadInversion};
   document.addEventListener('touchstart',e=>{
     if(window.scrollY>4)return;
+    if(document.querySelector('.modal-overlay.show')||document.body.classList.contains('kashy-locked'))return;
     startY=e.touches[0].clientY;pulling=true;triggered=false;
   },{passive:true});
   document.addEventListener('touchmove',e=>{
@@ -1917,7 +1983,7 @@ async function loadPatVariation(total){
     const up=change>=0;
     const arrow=up?'▲':'▼';
     const cls=up?'var-badge':'var-badge down';
-    document.getElementById('patVariation').innerHTML=`<span class="${cls}">${arrow} ${Math.abs(pct).toFixed(1)}% este mes</span>`;
+    document.getElementById('patVariation').innerHTML=`<span class="${cls}">${arrow} ${Math.abs(pct).toFixed(1)}% ${t('este_mes')}</span>`;
   }catch(e){document.getElementById('patVariation').innerHTML='';}
 }
 /* ── CURVA DEL PATRIMONIO (historial reconstruido en /api/history) ── */
@@ -2093,7 +2159,7 @@ async function loadResumen(){
         <div class="chart-name">${name}</div>
         <div class="chart-bar-wrap"><div class="chart-bar" style="width:${total/max*100}%;background:${BAR_COLORS[i]}"></div></div>
         <div class="chart-val">${fmt(total)} €</div>
-      </div>`).join(''):'<div class="loading">Sin gastos este mes</div>';
+      </div>`).join(''):'<div class="loading">'+t('sin_gastos_mes')+'</div>';
   }catch(e){document.getElementById('chartWrap').innerHTML='<div class="loading">Error</div>';}
 }
 
@@ -2157,7 +2223,7 @@ async function loadMovs(silencioso){
       const name=p.properties?.Nombre?.title?.[0]?.plain_text||'—';
       const g=p.properties?.Gasto?.number,i=p.properties?.Ingreso?.number;
       const fecha=p.properties?.Fecha?.date?.start||'';
-      let fechaStr='Sin fecha';
+      let fechaStr=t('sin_fecha');
       if(fecha){try{fechaStr=new Date(fecha+'T12:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short'});}catch(e){}}
       const isG=g&&g>0;const amt=isG?g:(i||0);
       const catRelId=isG?(p.properties?.['Fuente de Gasto']?.relation?.[0]?.id||'').replace(/-/g,''):(p.properties?.['Fuente de Ingreso']?.relation?.[0]?.id||'').replace(/-/g,'');
@@ -2364,7 +2430,7 @@ function renderSusc(){
       <div class="sus-card${s.dia===hoy?' hoy':''}${hasProgress?' has-progress':''}">
         <div class="sus-icon" style="background:${bankColor(accName)}22;border-color:${bankColor(accName)}55;">${s.emoji}</div>
         <div class="sus-info"><div class="sus-name">${s.name}${s.dia===hoy?' 🔔':''}</div><div class="sus-meta">${t('dia_lbl')} ${s.dia} · ${accName}</div></div>
-        <div class="sus-right"><div class="sus-amount">-${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regSusc(${i})">Registrar</button></div>
+        <div class="sus-right"><div class="sus-amount">-${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regSusc(${i})">${t('btn_registrar')}</button></div>
       </div>
       ${hasProgress?`<div class="susc-progress" id="suscProgress-${i}"><div class="loading" style="padding:10px 0;font-size:12px;">${t('cargando_progreso')}</div></div>`:''}
     </div>`;
@@ -2414,7 +2480,7 @@ function renderIngresosRapidos(){
     <div class="sus-card">
       <div class="sus-icon" style="background:${bankColor(accName)}22;border-color:${bankColor(accName)}55;">${s.emoji}</div>
       <div class="sus-info"><div class="sus-name">${s.name}</div><div class="sus-meta">${t('ingreso_rapido')} · ${accName}</div></div>
-      <div class="sus-right"><div class="sus-amount ing">+${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regIngresoRapido(${i})">Registrar</button></div>
+      <div class="sus-right"><div class="sus-amount ing">+${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regIngresoRapido(${i})">${t('btn_registrar')}</button></div>
     </div>`;
   }).join('');
 }
@@ -2587,7 +2653,7 @@ function renderIncomeChart(incomeCatMap){
       <div class="chart-name">${name}</div>
       <div class="chart-bar-wrap"><div class="chart-bar" style="width:${total/max*100}%;background:${INCOME_COLORS[i%INCOME_COLORS.length]}"></div></div>
       <div class="chart-val">${fmt(total)} €</div>
-    </div>`).join(''):'<div class="loading">Sin ingresos</div>';
+    </div>`).join(''):'<div class="loading">'+t('sin_ingresos')+'</div>';
 }
 function renderActivity(actCount,expenseCount,maxExpense,totalG){
   const avg=expenseCount>0?totalG/expenseCount:0;
@@ -2754,7 +2820,7 @@ async function loadHistMonth(offset,btn=null){
       renderPieGeneric(sorted,'histPieSvg','histPieLegend');
     }else{
       document.getElementById('histPieSvg').innerHTML='';
-      document.getElementById('histPieLegend').innerHTML='<div class="loading">Sin gastos este mes</div>';
+      document.getElementById('histPieLegend').innerHTML='<div class="loading">'+t('sin_gastos_mes')+'</div>';
     }
   }catch(e){console.error(e);}
 }
@@ -3279,10 +3345,12 @@ async function submitTransfer(){
 }
 
 /* ── TOAST ── */
+let toastTimer=0;
 function showToast(msg,type=''){
   const t=document.getElementById('toast');
+  clearTimeout(toastTimer); // un toast nuevo reinicia el tiempo en vez de cortarse
   t.textContent=msg;t.className='toast '+type+' show';
-  setTimeout(()=>t.className='toast '+type,3000);
+  toastTimer=setTimeout(()=>t.className='toast '+type,3000);
 }
 
 /* ── INVERSIÓN (MyInvestor) ── */
@@ -3549,10 +3617,10 @@ async function saveInv(){
 <div id="kashyLock" class="hide" aria-hidden="true">
   <div class="kl-brand">Ka<span>$</span>hy</div>
   <div class="kl-ring"><div class="kl-face"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M20 16v2a2 2 0 0 1-2 2h-2"/><path d="M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="9.5" cy="10.5" r="1"/><circle cx="14.5" cy="10.5" r="1"/><path d="M9 14.5s1.2 1.2 3 1.2 3-1.2 3-1.2"/></svg></div></div>
-  <div class="kl-title">Ka$hy está bloqueada</div>
-  <div class="kl-sub">Tus saldos quedan ocultos hasta que te identifiques.</div>
-  <button class="kl-btn" id="kashyUnlockBtn" type="button">Desbloquear con Face ID</button>
-  <button class="kl-skip" id="kashySkipBtn" type="button" style="display:none">Entrar sin Face ID</button>
+  <div class="kl-title" data-i18n="lock_titulo">Ka$hy está bloqueada</div>
+  <div class="kl-sub" data-i18n="lock_sub">Tus saldos quedan ocultos hasta que te identifiques.</div>
+  <button class="kl-btn" id="kashyUnlockBtn" type="button" data-i18n="lock_desbloquear">Desbloquear con Face ID</button>
+  <button class="kl-skip" id="kashySkipBtn" type="button" style="display:none" data-i18n="lock_sin_faceid">Entrar sin Face ID</button>
 </div>
 <script>
 /* ── Ka$hy · color por banco + bloqueo biométrico. Añadido, no modifica nada existente. ── */
@@ -3564,8 +3632,9 @@ async function saveInv(){
       if(!el)return;
       var name=(el.dataset.plain||el.textContent).replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
       el.dataset.plain=name;
-      var c=colorDe(name);
-      if(c)card.style.background=c;
+      var c=colorDe(name)||COLOR_FALLBACK;
+      card.style.background=c;
+      card.classList.toggle('tinta-oscura',tintaOscura(c,.3,6));
       var em=emojiDe(name);
       if(!el.querySelector('.acc-ico'))el.innerHTML='<span class="acc-ico">'+(em||'')+'</span>'+name;
       pintarConteo();
@@ -3614,6 +3683,21 @@ async function saveInv(){
     var k=encajar(name);
     return k?BANK_COLORS[k]:null;
   }
+  /* ¿Texto oscuro sobre este color? Compara el contraste WCAG del blanco (con el velo oscuro de la tarjeta) y de la tinta.
+     minimo: contraste que debe dar el blanco para quedarse (6 en tarjetas, para que el texto secundario semitransparente también pase) */
+  var COLOR_FALLBACK='#6b5ef0';
+  function luminancia(rgb){
+    var v=rgb.map(function(x){x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4);});
+    return .2126*v[0]+.7152*v[1]+.0722*v[2];
+  }
+  function contraste(a,b){var x=luminancia(a),y=luminancia(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
+  function tintaOscura(hex,velo,minimo){
+    var m=/^#?([0-9a-f]{6})$/i.exec(hex||'');if(!m)return false;
+    var rgb=[0,2,4].map(function(i){return parseInt(m[1].substr(i,2),16);});
+    var conVelo=rgb.map(function(x){return x*(1-(velo||0));});
+    var blanco=contraste([255,255,255],conVelo);
+    return blanco<(minimo||4.5)&&contraste([18,19,28],rgb)>blanco;
+  }
   var ICONOS={
     plane:'<path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l3.9 4.2-2.6 2.6-1.9-.4a.5.5 0 0 0-.5.8L5 16.5l1.3 2a.5.5 0 0 0 .8-.1l-.4-1.9 2.6-2.6 4.2 3.9a.5.5 0 0 0 .8-.5z"/>',
     bank:'<path d="M3 10h18"/><path d="M5 10v8M10 10v8M14 10v8M19 10v8"/><path d="M2 18h20"/><path d="M12 3 3 8h18z"/>',
@@ -3660,7 +3744,7 @@ async function saveInv(){
     if(!conteoMes)return;
     document.querySelectorAll('[data-acc-sub]').forEach(function(el){
       var n=conteoMes[el.dataset.accSub]||0;
-      el.textContent=n+' '+(n===1?'movimiento este mes':'movimientos este mes');
+      el.textContent=n+' '+(n===1?t('mov_mes_uno'):t('mov_mes_varios'));
     });
   }
   function emojiDe(name){
@@ -3680,12 +3764,12 @@ async function saveInv(){
       var n=card.querySelector('.account-name'),b=card.querySelector('.account-balance');
       if(!n||!b)return '';
       var nombre=(n.dataset.plain||n.textContent).replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
-      var color=colorDe(nombre)||'var(--accent)';
+      var color=colorDe(nombre)||COLOR_FALLBACK;
       var em=emojiDe(nombre);
       var saldo=(b.dataset.bal!==undefined&&typeof fmt==='function')
         ? fmt(parseFloat(b.dataset.bal))+' €' : b.textContent;
       var idCuenta=(typeof CUENTAS==='object'&&(CUENTAS.filter(function(x){return x.name===(encajar(nombre)||nombre);})[0]||{}).id)||'';
-      return '<div class="qa-card" style="background:'+color+'" onclick="window.kashyVerCuenta(\''+idCuenta+'\')">'+
+      return '<div class="qa-card'+(tintaOscura(color,.3,6)?' tinta-oscura':'')+'" style="background:'+color+'" onclick="window.kashyVerCuenta(\''+idCuenta+'\')">'+
         '<div class="qa-name"><span class="acc-ico">'+em+'</span> '+nombre+'</div>'+
         '<div class="qa-bal">'+saldo+'</div></div>';
     }).join('');
@@ -3701,7 +3785,7 @@ async function saveInv(){
         try{
           var p=await nFetch('/pages/'+pageId,'GET');
           if(p&&p.id)movsCache[pageId]=p;
-        }catch(e){ if(typeof showToast==='function')showToast('No se pudo abrir el movimiento','error'); return; }
+        }catch(e){ if(typeof showToast==='function')showToast(t('toast_no_abrir_mov'),'error'); return; }
       }
       return original(pageId);
     };
@@ -3715,7 +3799,7 @@ async function saveInv(){
     if(zona.querySelector('#kashyEyeBtn')||zona.querySelector('.kashy-eye'))return;
     var b=document.createElement('button');
     b.className='icon-btn kashy-eye';
-    b.setAttribute('aria-label','Ocultar saldos');
+    b.setAttribute('aria-label',t('aria_ocultar_saldos'));
     b.innerHTML="<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"width:17px;height:17px\"><path d=\"M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"2.6\"/></svg>";
     b.onclick=function(){window.kashyPrivacy&&window.kashyPrivacy();};
     zona.insertBefore(b,zona.firstChild);
@@ -3727,7 +3811,7 @@ async function saveInv(){
     document.body.classList.toggle('kashy-privado',activo);
     ojos.forEach(function(b){
       b.innerHTML=activo?ICONO_OCULTO:ICONO_VER;
-      b.setAttribute('aria-label',activo?'Mostrar saldos':'Ocultar saldos');
+      b.setAttribute('aria-label',activo?t('aria_mostrar_saldos'):t('aria_ocultar_saldos'));
     });
   }
   window.kashyPrivacy=function(){
@@ -3736,16 +3820,6 @@ async function saveInv(){
     pintarOjo(activo);
   };
   pintarOjo(localStorage.getItem(PRIV_KEY)==='1');
-
-  /* La animación de apertura se reproduce DESPUÉS de identificarte */
-  function reproducirSplash(){
-    var s=document.getElementById('splashScreen');
-    if(!s)return;
-    var copia=s.cloneNode(true);
-    copia.classList.remove('hide');
-    s.parentNode.replaceChild(copia,s);
-    setTimeout(function(){copia.classList.add('hide');},1600);
-  }
 
   var host=document.getElementById('accountCards');
   if(host)new MutationObserver(paintAccounts).observe(host,{childList:true,subtree:true});
@@ -3764,7 +3838,7 @@ async function saveInv(){
         var texto=(chip.dataset.plain||chip.textContent).replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
         chip.dataset.plain=texto;
         var c=colorDe(texto);
-        if(c){chip.style.background=c;chip.dataset.bank='1';}
+        if(c){chip.style.background=c;chip.style.setProperty('--bank',c);chip.dataset.bank='1';chip.classList.toggle('tinta-oscura',tintaOscura(c,0));}
       });
     });
   }
@@ -3805,8 +3879,8 @@ async function saveInv(){
     sw.appendChild(fila);
     var acciones=document.createElement('div');
     acciones.className='swipe-actions';
-    acciones.innerHTML='<button class="swipe-act swipe-edit">'+ICO_EDIT+'Editar</button>'+
-                       '<button class="swipe-act swipe-del">'+ICO_DEL+'Eliminar</button>';
+    acciones.innerHTML='<button class="swipe-act swipe-edit">'+ICO_EDIT+t('btn_editar')+'</button>'+
+                       '<button class="swipe-act swipe-del">'+ICO_DEL+t('btn_eliminar')+'</button>';
     sw.appendChild(acciones);
     acciones.querySelector('.swipe-edit').onclick=function(){sw.scrollTo({left:0,behavior:'smooth'});window[fnEdit](id);};
     acciones.querySelector('.swipe-del').onclick=function(){window[fnDel](id,objetivo);};
@@ -3857,11 +3931,9 @@ async function saveInv(){
     autoHecho=true;
     setTimeout(function(){ if(open)unlock(true); },260);
   }
-  var splashPendiente=true; // solo el primer desbloqueo tras abrir la app muestra la animación
   function hide(){
     open=false;lock.classList.add('hide');lock.setAttribute('aria-hidden','true');
     document.body.classList.remove('kashy-locked');
-    if(splashPendiente&&typeof reproducirSplash==='function'){splashPendiente=false;reproducirSplash();}
   }
   var fallos=0;
   var salida=document.getElementById('kashySkipBtn');
@@ -3900,10 +3972,10 @@ async function saveInv(){
         var disponible=await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
         if(disponible){
           if(!localStorage.getItem(CRED_KEY)){
-            btn.textContent='Activando Face ID…';
+            btn.textContent=t('lock_activando');
             await registrar();
           }
-          btn.textContent='Identificando…';
+          btn.textContent=t('lock_identificando');
           await verificar();
           hide();return;
         }
@@ -3913,15 +3985,15 @@ async function saveInv(){
       if(e&&(e.name==='InvalidStateError'||e.name==='NotAllowedError'))localStorage.removeItem(CRED_KEY);
       if(e&&e.name==='NotAllowedError'){
         btn.disabled=false;
-        if(auto){ autoHecho=false;btn.textContent='Desbloquear con Face ID';return; }
+        if(auto){ autoHecho=false;btn.textContent=t('lock_desbloquear');return; }
         fallos++;
-        btn.textContent='Reintentar con Face ID';
+        btn.textContent=t('lock_reintentar');
         if(fallos>=2&&salida){salida.style.display='block';}
         return;
       }
     }finally{
       btn.disabled=false;
-      if(btn.textContent!=='Reintentar con Face ID')btn.textContent='Desbloquear con Face ID';
+      if(btn.textContent!==t('lock_reintentar'))btn.textContent=t('lock_desbloquear');
     }
     hide();
   }
@@ -3935,8 +4007,14 @@ async function saveInv(){
   if(enabled){var sp=document.getElementById('splashScreen');if(sp)sp.classList.add('hide');}
   else{try{localStorage.removeItem('kashy-cred-id');}catch(e){}}
   show();
+  /* Al salir se difumina (vista previa del multitarea); solo pide Face ID si estuvo fuera más de 60 s */
+  var ocultaDesde=0;
   document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState==='hidden'&&!open)show();
+    if(!enabled||open)return;
+    if(document.visibilityState==='hidden'){ocultaDesde=Date.now();document.body.classList.add('kashy-locked');return;}
+    if(ocultaDesde&&Date.now()-ocultaDesde>60000)show();
+    else document.body.classList.remove('kashy-locked');
+    ocultaDesde=0;
   });
 })();
 </script>
