@@ -608,29 +608,6 @@ button:focus-visible,.chip:focus-visible,.cat-item:focus-visible{outline:2px sol
 input:focus,input:focus-visible,select:focus,textarea:focus{outline:none!important;}
 .amount-in,.amount-in:focus{outline:none!important;border:none!important;box-shadow:none!important;background:none!important;caret-color:var(--accent);}
 
-/* ── BLOQUEO ── */
-#kashyLock{position:fixed;inset:0;z-index:2000;background:var(--page);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:0 34px;
-  transition:opacity .45s ease,visibility .45s ease;}
-#kashyLock.hide{opacity:0;visibility:hidden;pointer-events:none;}
-#kashyLock .kl-brand{font-size:44px;font-weight:600;letter-spacing:-1.6px;color:var(--text);margin-bottom:6px;}
-#kashyLock .kl-brand span{color:var(--accent);}
-#kashyLock .kl-ring{position:relative;width:70px;height:70px;display:flex;align-items:center;justify-content:center;}
-#kashyLock .kl-ring::before{content:'';position:absolute;inset:0;border-radius:24px;
-  border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);animation:klRing 1.9s ease-out infinite;}
-@keyframes klRing{from{transform:scale(.6);opacity:.9}to{transform:scale(1.5);opacity:0}}
-#kashyLock .kl-face{width:70px;height:70px;border-radius:22px;display:flex;align-items:center;justify-content:center;
-  background:color-mix(in srgb,var(--accent) 16%,transparent);
-  border:1px solid color-mix(in srgb,var(--accent) 32%,transparent);}
-#kashyLock .kl-face svg{width:36px;height:36px;stroke:var(--accent);fill:none;stroke-width:1.8;}
-#kashyLock .kl-title{font-size:16px;font-weight:600;color:var(--text);margin-top:6px;}
-#kashyLock .kl-sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.5;}
-#kashyLock .kl-btn{margin-top:10px;padding:14px 24px;border:none;border-radius:16px;cursor:pointer;
-  background:var(--accent-bg);color:var(--accent-text);font-size:15px;font-weight:700;
-  box-shadow:0 14px 28px rgba(107,94,240,.35);}
-#kashyLock .kl-btn:active{transform:scale(.96);}
-#kashyLock .kl-skip{margin-top:4px;background:none;border:none;cursor:pointer;
-  color:var(--muted);font-size:13px;font-weight:600;text-decoration:underline;padding:8px;}
 .hero-badges{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
 .hero-badges .hero-sub{font-size:12.5px;}
 .hero-card .hero-row{margin-top:18px;}
@@ -749,8 +726,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0!imp
 .account-chevron::before{content:'';display:block;width:11px;height:11px;
   border-right:2px solid rgba(255,255,255,.9);border-bottom:2px solid rgba(255,255,255,.9);
   transform:rotate(45deg);margin-top:-4px;}
-body.kashy-locked{overflow:hidden;}
-body.kashy-locked .app,body.kashy-locked .nav{filter:blur(22px);}
 
 /* ── Ajustes de PWA en iPhone (mobile-native) ── */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
@@ -786,7 +761,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
   @keyframes splashEuroIn{from{opacity:0;}to{opacity:1;}}
   @keyframes splashNameIn{from{opacity:0;}to{opacity:1;}}
   @keyframes splashWordIn{from{opacity:0;}to{opacity:1;}}
-  @keyframes klRing{from{opacity:.9;}to{opacity:0;}}
   .splash-euro{transform:none;}
   .modal-overlay .modal,.modal-overlay.show .modal{transform:none;}
   .toast,.toast.show{transform:translateX(-50%);}
@@ -797,10 +771,10 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
 
 /* ── Zonas táctiles de 44 px sin cambiar el tamaño visual ── */
 .icon-btn,.sus-btn,.pat-period,.period-btn,.type-btn,.acc-action,.wish-buy-btn,.goal-menu,.del-btn,
-.inv-date-link,.quick-accounts-head button,.acc-movs-viewall,#kashyLock .kl-skip{position:relative;}
+.inv-date-link,.quick-accounts-head button,.acc-movs-viewall{position:relative;}
 .icon-btn::before,.sus-btn::before,.pat-period::before,.period-btn::before,.type-btn::before,.acc-action::before,
 .wish-buy-btn::before,.goal-menu::before,.del-btn::before,.inv-date-link::before,.quick-accounts-head button::before,
-.acc-movs-viewall::before,#kashyLock .kl-skip::before{
+.acc-movs-viewall::before{
   content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%);}
 
 /* ── Cifras de ancho fijo: no bailan al contar ni al cambiar ── */
@@ -1400,9 +1374,6 @@ const I18N={
     tus_cuentas:'Tus cuentas',ver_todas:'Ver todas',este_mes:'este mes',mov_mes_uno:'movimiento este mes',mov_mes_varios:'movimientos este mes',
     btn_editar:'Editar',sin_gastos_mes:'Sin gastos este mes',sin_ingresos:'Sin ingresos',sin_fecha:'Sin fecha',
     toast_no_abrir_mov:'No se pudo abrir el movimiento',aria_ocultar_saldos:'Ocultar saldos',aria_mostrar_saldos:'Mostrar saldos',
-    lock_titulo:'Ka$hy está bloqueada',lock_sub:'Tus saldos quedan ocultos hasta que te identifiques.',
-    lock_desbloquear:'Desbloquear con Face ID',lock_activando:'Activando Face ID…',lock_identificando:'Identificando…',
-    lock_reintentar:'Reintentar con Face ID',lock_sin_faceid:'Entrar sin Face ID',
     aria_recargar:'Recargar',aria_tema:'Cambiar tema',
   },
   en:{
@@ -1504,9 +1475,6 @@ const I18N={
     tus_cuentas:'Your accounts',ver_todas:'See all',este_mes:'this month',mov_mes_uno:'transaction this month',mov_mes_varios:'transactions this month',
     btn_editar:'Edit',sin_gastos_mes:'No expenses this month',sin_ingresos:'No income',sin_fecha:'No date',
     toast_no_abrir_mov:'Couldn\'t open the transaction',aria_ocultar_saldos:'Hide balances',aria_mostrar_saldos:'Show balances',
-    lock_titulo:'Ka$hy is locked',lock_sub:'Your balances stay hidden until you verify it\'s you.',
-    lock_desbloquear:'Unlock with Face ID',lock_activando:'Setting up Face ID…',lock_identificando:'Verifying…',
-    lock_reintentar:'Retry with Face ID',lock_sin_faceid:'Continue without Face ID',
     aria_recargar:'Reload',aria_tema:'Toggle theme',
   }
 };
@@ -1788,7 +1756,7 @@ function showSuccessBurst(){
   const sectionLoaders={inicio:loadInicio,movimientos:loadMovs,cuentas:()=>{loadAccounts();loadGoals();loadWishes();},stats:loadStats,inversion:loadInversion};
   document.addEventListener('touchstart',e=>{
     if(window.scrollY>4)return;
-    if(document.querySelector('.modal-overlay.show')||document.body.classList.contains('kashy-locked'))return;
+    if(document.querySelector('.modal-overlay.show'))return;
     startY=e.touches[0].clientY;pulling=true;triggered=false;
   },{passive:true});
   document.addEventListener('touchmove',e=>{
@@ -3601,16 +3569,8 @@ async function saveInv(){
 }
 </script>
 
-<div id="kashyLock" class="hide" aria-hidden="true">
-  <div class="kl-brand">Ka<span>$</span>hy</div>
-  <div class="kl-ring"><div class="kl-face"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M20 16v2a2 2 0 0 1-2 2h-2"/><path d="M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="9.5" cy="10.5" r="1"/><circle cx="14.5" cy="10.5" r="1"/><path d="M9 14.5s1.2 1.2 3 1.2 3-1.2 3-1.2"/></svg></div></div>
-  <div class="kl-title" data-i18n="lock_titulo">Ka$hy está bloqueada</div>
-  <div class="kl-sub" data-i18n="lock_sub">Tus saldos quedan ocultos hasta que te identifiques.</div>
-  <button class="kl-btn" id="kashyUnlockBtn" type="button" data-i18n="lock_desbloquear">Desbloquear con Face ID</button>
-  <button class="kl-skip" id="kashySkipBtn" type="button" style="display:none" data-i18n="lock_sin_faceid">Entrar sin Face ID</button>
-</div>
 <script>
-/* ── Ka$hy · color por banco + bloqueo biométrico. Añadido, no modifica nada existente. ── */
+/* ── Ka$hy · color por banco. Añadido, no modifica nada existente. ── */
 (function(){
   /* Cada tarjeta de cuenta toma el color de BANK_COLORS */
   function paintAccounts(){
@@ -3762,7 +3722,6 @@ async function saveInv(){
     };
   }
   parchearEdicion();
-  window.kashyLockNow=function(){show();};
 
   /* Ocultar saldos */
   var PRIV_KEY='kashy-privacy';
@@ -3882,111 +3841,9 @@ async function saveInv(){
   /* Las cuentas se cargan al arrancar para que el carrusel tenga datos */
   setTimeout(function(){ if(typeof loadAccounts==='function'&&!document.querySelector('#accountCards .account-card'))loadAccounts(); },900);
 
-  /* Bloqueo: se activa al abrir y al volver de segundo plano */
-  var LOCK_KEY='kashy-lock-enabled';
-  var lock=document.getElementById('kashyLock');
-  var btn=document.getElementById('kashyUnlockBtn');
-  var enabled=localStorage.getItem(LOCK_KEY)==='1';
-  var open=false;
+  /* El bloqueo con Face ID se ha quitado: limpia lo que dejó guardado en este dispositivo */
+  try{localStorage.removeItem('kashy-lock-enabled');localStorage.removeItem('kashy-cred-id');}catch(e){}
 
-  function show(){
-    if(!enabled)return;
-    open=true;lock.classList.remove('hide');lock.setAttribute('aria-hidden','false');
-    document.body.classList.add('kashy-locked');
-    intentoAuto();
-  }
-  /* Si ya hay Face ID activado, se lanza solo; si iOS exige un toque, queda el botón */
-  var autoHecho=false;
-  function intentoAuto(){
-    if(autoHecho||!localStorage.getItem(CRED_KEY))return;
-    autoHecho=true;
-    setTimeout(function(){ if(open)unlock(true); },260);
-  }
-  function hide(){
-    open=false;lock.classList.add('hide');lock.setAttribute('aria-hidden','true');
-    document.body.classList.remove('kashy-locked');
-  }
-  var fallos=0;
-  var salida=document.getElementById('kashySkipBtn');
-  if(salida)salida.addEventListener('click',function(){hide();});
-  var CRED_KEY='kashy-cred-id';
-  var RP_ID='gestion-dinero-dusky.vercel.app';
-  function rpId(){ return location.hostname.indexOf(RP_ID)>=0 ? RP_ID : location.hostname; }
-  function b64(buf){ return btoa(String.fromCharCode.apply(null,new Uint8Array(buf))); }
-  function unb64(s){ var raw=atob(s),a=new Uint8Array(raw.length); for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i); return a; }
-
-  async function registrar(){
-    var ch=new Uint8Array(32);crypto.getRandomValues(ch);
-    var uid=new Uint8Array(16);crypto.getRandomValues(uid);
-    var cred=await navigator.credentials.create({publicKey:{
-      challenge:ch,
-      rp:{id:rpId(),name:'Ka$hy'},
-      user:{id:uid,name:'kashy',displayName:'Ka$hy'},
-      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
-      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
-      timeout:60000,attestation:'none'
-    }});
-    if(cred)localStorage.setItem(CRED_KEY,b64(cred.rawId));
-    return !!cred;
-  }
-  async function verificar(){
-    var ch=new Uint8Array(32);crypto.getRandomValues(ch);
-    var saved=localStorage.getItem(CRED_KEY);
-    var pk={challenge:ch,timeout:60000,userVerification:'required',rpId:rpId()};
-    if(saved)pk.allowCredentials=[{type:'public-key',id:unb64(saved)}];
-    return !!(await navigator.credentials.get({publicKey:pk}));
-  }
-  async function unlock(auto){
-    btn.disabled=true;
-    try{
-      if(window.PublicKeyCredential&&navigator.credentials&&location.protocol==='https:'){
-        var disponible=await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-        if(disponible){
-          if(!localStorage.getItem(CRED_KEY)){
-            btn.textContent=t('lock_activando');
-            await registrar();
-          }
-          btn.textContent=t('lock_identificando');
-          await verificar();
-          hide();return;
-        }
-      }
-    }catch(e){
-      /* Cancelado o credencial inválida: se limpia para volver a registrar la próxima vez */
-      if(e&&(e.name==='InvalidStateError'||e.name==='NotAllowedError'))localStorage.removeItem(CRED_KEY);
-      if(e&&e.name==='NotAllowedError'){
-        btn.disabled=false;
-        if(auto){ autoHecho=false;btn.textContent=t('lock_desbloquear');return; }
-        fallos++;
-        btn.textContent=t('lock_reintentar');
-        if(fallos>=2&&salida){salida.style.display='block';}
-        return;
-      }
-    }finally{
-      btn.disabled=false;
-      if(btn.textContent!==t('lock_reintentar'))btn.textContent=t('lock_desbloquear');
-    }
-    hide();
-  }
-  btn.addEventListener('click',function(){unlock(false);});
-  /* Al volver de segundo plano con la app ya bloqueada, se reintenta solo */
-  document.addEventListener('visibilitychange',function(){ if(!document.hidden&&open){autoHecho=false;intentoAuto();} });
-  window.kashyLockToggle=function(){
-    enabled=!enabled;localStorage.setItem(LOCK_KEY,enabled?'1':'0');
-    return enabled?'Bloqueo activado':'Bloqueo desactivado';
-  };
-  if(enabled){var sp=document.getElementById('splashScreen');if(sp)sp.classList.add('hide');}
-  else{try{localStorage.removeItem('kashy-cred-id');}catch(e){}}
-  show();
-  /* Al salir se difumina (vista previa del multitarea); solo pide Face ID si estuvo fuera más de 60 s */
-  var ocultaDesde=0;
-  document.addEventListener('visibilitychange',function(){
-    if(!enabled||open)return;
-    if(document.visibilityState==='hidden'){ocultaDesde=Date.now();document.body.classList.add('kashy-locked');return;}
-    if(ocultaDesde&&Date.now()-ocultaDesde>60000)show();
-    else document.body.classList.remove('kashy-locked');
-    ocultaDesde=0;
-  });
 })();
 </script>
 </body>
