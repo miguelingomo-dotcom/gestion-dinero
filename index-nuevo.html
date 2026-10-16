@@ -771,6 +771,14 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
 
 [data-theme="light"] .wish-badge.gift{color:#be185d;}
 
+/* ── Toast con «Deshacer» ── */
+.toast.con-accion{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:6px 6px 6px 18px;}
+.toast-accion{position:relative;flex-shrink:0;border:none;border-radius:100px;padding:8px 14px;cursor:pointer;
+  background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font:inherit;font-weight:700;}
+.toast-accion::before{content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%);}
+/* ── Hoja de acción (sustituye a los diálogos nativos) ── */
+.modal-confirm.peligro{background:var(--red);color:var(--on-red);box-shadow:none;}
+
 /* ── Zonas táctiles de 44 px sin cambiar el tamaño visual ── */
 .icon-btn,.sus-btn,.pat-period,.period-btn,.type-btn,.acc-action,.wish-buy-btn,.goal-menu,.del-btn,
 .inv-date-link,.quick-accounts-head button,.acc-movs-viewall{position:relative;}
@@ -1265,6 +1273,18 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div id="budgetManagerList" style="max-height:50vh;overflow-y:auto;"></div>
     <div class="modal-btns" style="margin-top:16px;">
       <button class="modal-cancel" onclick="closeBudgetManager()" style="flex:1;" data-i18n="btn_cerrar">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOJA DE ACCIÓN (confirmaciones) ── -->
+<div class="modal-overlay" id="accionOverlay">
+  <div class="modal" role="alertdialog" aria-labelledby="accionTitulo" aria-describedby="accionTexto">
+    <div class="modal-title" id="accionTitulo"></div>
+    <div class="modal-detail" id="accionTexto"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" id="accionCancelar">Cancelar</button>
+      <button class="modal-confirm" id="accionConfirmar"></button>
     </div>
   </div>
 </div>
@@ -2219,14 +2239,8 @@ function quitarFilaMov(fila){
   });
   Promise.all(anims).then(fin,fin);
 }
-async function deleteMovement(pageId,btn){
-  if(!confirm(t('confirm_del_mov')))return;
-  try{
-    const res=await fetch('/api/delete?pageId='+pageId,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
-    const data=await res.json();
-    if(data.archived||data.in_trash){quitarFilaMov(btn.closest('.mov-item'));showToast(t('toast_eliminado'),'success');}
-    else showToast(t('toast_error_eliminar'),'error');
-  }catch(e){showToast(t('toast_conexion'),'error');}
+function deleteMovement(pageId,btn){
+  return borrarConDeshacer(pageId,{quitar:()=>quitarFilaMov(btn&&btn.closest('.mov-item')),msg:'Movimiento eliminado',recargar:()=>loadMovs(true)});
 }
 
 /* ── EDITAR MOVIMIENTO ── */
@@ -3054,14 +3068,8 @@ async function saveGoal(){
     else{showToast('Error: '+(data.message||t('toast_no_pudo_crear')),'error');console.error('Goal create error:',data);}
   }catch(e){showToast(t('toast_conexion'),'error');console.error(e);}
 }
-async function deleteGoal(id,btn){
-  if(!confirm(t('confirm_del_meta')))return;
-  try{
-    const res=await fetch('/api/delete?pageId='+id,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
-    const data=await res.json();
-    if(data.archived||data.in_trash){btn.closest('.goal-card').remove();showToast(t('toast_meta_eliminada'),'success');}
-    else showToast(t('toast_error_eliminar'),'error');
-  }catch(e){showToast(t('toast_conexion'),'error');}
+function deleteGoal(id,btn){
+  return borrarConDeshacer(id,{quitar:()=>{const c=btn&&btn.closest('.goal-card');if(c)c.remove();},msg:'Meta eliminada',recargar:loadGoals});
 }
 function openGoalAdd(id,nombre){
   editingGoalId=id;
@@ -3166,19 +3174,13 @@ async function saveWish(){
     else{showToast('Error: '+(data.message||t('toast_no_pudo_crear')),'error');console.error('Wish create error:',data);}
   }catch(e){showToast(t('toast_conexion'),'error');console.error(e);}
 }
-async function deleteWish(id,btn){
-  if(!confirm(t('confirm_del_deseo')))return;
-  try{
-    const res=await fetch('/api/delete?pageId='+id,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
-    const data=await res.json();
-    if(data.archived||data.in_trash){btn.closest('.wish-card').remove();showToast(t('toast_deseo_eliminado'),'success');}
-    else showToast(t('toast_error_eliminar'),'error');
-  }catch(e){showToast(t('toast_conexion'),'error');}
+function deleteWish(id,btn){
+  return borrarConDeshacer(id,{quitar:()=>{const c=btn&&btn.closest('.wish-card');if(c)c.remove();},msg:'Deseo eliminado',recargar:loadWishes});
 }
 async function markPurchased(id){
   const w=wishCache.find(x=>x.id===id);
   if(!w)return;
-  if(!confirm(t('confirm_marcar_comprado',{n:w.nombre})))return;
+  if(!await hojaAccion({titulo:'¿Marcar como comprado?',texto:w.nombre,confirmar:'Marcar como comprado'}))return;
   try{
     const res=await fetch('/api/page?pageId='+id,{
       method:'PATCH',
@@ -3192,7 +3194,7 @@ async function markPurchased(id){
 }
 
 async function deactivateAccount(pageId,name){
-  if(!confirm(t('confirm_desactivar',{n:name})))return;
+  if(!await hojaAccion({titulo:'¿Desactivar '+name+'?',texto:'Dejará de aparecer en tus cuentas. Podrás reactivarla desde «Ver cuentas inactivas».',confirmar:'Desactivar',peligro:true}))return;
   try{
     const res=await fetch('/api/page?pageId='+pageId,{
       method:'PATCH',
@@ -3303,12 +3305,56 @@ async function submitTransfer(){
 
 /* ── TOAST ── */
 let toastTimer=0;
-function showToast(msg,type=''){
+/* accion (opcional): {texto,fn}. Con acción, el toast admite toques y dura 5 s */
+function showToast(msg,type='',accion){
   const t=document.getElementById('toast');
   clearTimeout(toastTimer); // un toast nuevo reinicia el tiempo en vez de cortarse
-  t.textContent=msg;t.className='toast '+type+' show';
-  toastTimer=setTimeout(()=>t.className='toast '+type,3000);
+  const ocultar=()=>{clearTimeout(toastTimer);t.className='toast '+type;};
+  t.textContent=msg;
+  if(accion){
+    const b=document.createElement('button');
+    b.type='button';b.className='toast-accion';b.textContent=accion.texto;
+    b.onclick=()=>{ocultar();accion.fn();};
+    t.appendChild(b);
+  }
+  t.className='toast '+type+' show'+(accion?' con-accion':'');
+  toastTimer=setTimeout(ocultar,accion?5000:3000);
 }
+/* Borra (archiva en Notion) al momento y ofrece «Deshacer» 5 s: deshacer desarchiva la misma página, sin recrearla */
+async function borrarConDeshacer(pageId,{quitar,msg,recargar}){
+  try{
+    const res=await fetch('/api/delete?pageId='+pageId,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
+    const data=await res.json();
+    if(!(data.archived||data.in_trash)){showToast(t('toast_error_eliminar'),'error');return;}
+    if(quitar)quitar();
+    showToast(msg,'',{texto:'Deshacer',fn:async()=>{
+      try{
+        const r=await fetch('/api/page?pageId='+pageId,{method:'PATCH',
+          headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({archived:false})});
+        const d=await r.json();
+        if(d.id&&!d.archived){showToast('✓ Restaurado','success');if(recargar)recargar();}
+        else showToast('No se pudo restaurar','error');
+      }catch(e){showToast(t('toast_conexion'),'error');}
+    }});
+  }catch(e){showToast(t('toast_conexion'),'error');}
+}
+/* Hoja de acción propia en lugar del diálogo nativo: resuelve true si se confirma */
+let accionResolver=null;
+function hojaAccion({titulo,texto,confirmar,peligro}){
+  if(accionResolver)accionResolver(false);
+  document.getElementById('accionTitulo').textContent=titulo;
+  document.getElementById('accionTexto').textContent=texto||'';
+  const ok=document.getElementById('accionConfirmar');
+  ok.textContent=confirmar;ok.className='modal-confirm'+(peligro?' peligro':'');
+  document.getElementById('accionOverlay').classList.add('show');
+  return new Promise(res=>{accionResolver=res;});
+}
+function cerrarAccion(valor){
+  document.getElementById('accionOverlay').classList.remove('show');
+  if(accionResolver){const r=accionResolver;accionResolver=null;r(valor===true);}
+}
+document.getElementById('accionCancelar').onclick=()=>cerrarAccion(false);
+document.getElementById('accionConfirmar').onclick=()=>cerrarAccion(true);
 
 /* ── INVERSIÓN (MyInvestor) ── */
 let invPendingTipo='Aportación',invCache={},editingInvId=null,editingInvFondo='';
@@ -3465,7 +3511,8 @@ function closeInvModal(){document.getElementById('invOverlay').classList.remove(
 /* ── HOJAS MODALES: cerrar tocando fuera o arrastrando el asa hacia abajo ── */
 (function(){
   const CIERRES={goalOverlay:'closeGoalModal',goalAddOverlay:'closeGoalAdd',wishOverlay:'closeWishModal',invOverlay:'closeInvModal',
-    modalOverlay:'closeConfirm',transferOverlay:'closeTransfer',editOverlay:'closeEdit',budgetOverlay:'closeBudgetManager'};
+    modalOverlay:'closeConfirm',transferOverlay:'closeTransfer',editOverlay:'closeEdit',budgetOverlay:'closeBudgetManager',
+    accionOverlay:'cerrarAccion'};
   function cerrar(ov){const fn=window[CIERRES[ov.id]];if(typeof fn==='function')fn();else ov.classList.remove('show');}
   document.querySelectorAll('.modal-overlay').forEach(ov=>{
     const modal=ov.querySelector('.modal');
@@ -3518,14 +3565,8 @@ function openEditInv(pageId){
   document.getElementById('invDate').value=r.properties?.InvFecha?.date?.start||'';
   document.getElementById('invOverlay').classList.add('show');
 }
-async function deleteInv(pageId,btn){
-  if(!confirm(t('confirm_del_inv')))return;
-  try{
-    const res=await fetch('/api/delete?pageId='+pageId,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
-    const data=await res.json();
-    if(data.archived||data.in_trash){showToast(t('toast_eliminado'),'success');loadInversion();}
-    else showToast(t('toast_error_eliminar'),'error');
-  }catch(e){showToast(t('toast_conexion'),'error');}
+function deleteInv(pageId,btn){
+  return borrarConDeshacer(pageId,{quitar:loadInversion,msg:'Registro eliminado',recargar:loadInversion});
 }
 function crearAportacion(nombre,amt,date){
   return nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
