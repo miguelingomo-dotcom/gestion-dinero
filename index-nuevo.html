@@ -1838,8 +1838,15 @@ async function nFetch(path,method='GET',body=null){
     url='/api/page';
     opts={method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(body||{})};
   }
-  const res=await fetch(url,opts);
-  return res.json();
+  // Notion admite ~3 peticiones/s: ante un 429 se reintenta con espera creciente. Las consultas (solo lectura)
+  // también ante un 5xx del proxy; las escrituras no, porque podrían haberse guardado y se duplicarían
+  const esLectura=path.includes('/query');
+  for(let intento=0;;intento++){
+    const res=await fetch(url,opts);
+    const reintentar=res.status===429||(esLectura&&res.status>=500);
+    if(!reintentar||intento>=3)return res.json();
+    await new Promise(r=>setTimeout(r,[400,1000,2000][intento]));
+  }
 }
 
 // Consulta paginada: Notion devuelve como mucho 100 filas por página; esto sigue next_cursor hasta el final
@@ -3078,7 +3085,8 @@ async function toggleAccountMovs(pageId,headerEl){
       sorts:[{timestamp:'created_time',direction:'descending'}],
       page_size:100
     });
-    const pages=(data.results||[]).filter(p=>(p.properties?.Gasto?.number||0)+(p.properties?.Ingreso?.number||0)>0);
+    if(!data||!data.results)throw new Error('consulta fallida'); // un error no es «sin movimientos»; al reabrir se reintenta
+    const pages=data.results.filter(p=>(p.properties?.Gasto?.number||0)+(p.properties?.Ingreso?.number||0)>0);
     if(!pages.length){
       inner.innerHTML='<div class="acc-movs-empty">Sin movimientos registrados en esta cuenta</div>';
     }else{
