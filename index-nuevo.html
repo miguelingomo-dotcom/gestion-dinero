@@ -2391,6 +2391,15 @@ function fechaRegistro(){
   if(fechaTipo==='otra')return document.getElementById('inputFecha').value||hoyLocal();
   return hoyLocal();
 }
+/* Vuelve a dejar la fecha como estaba (sin abrir el selector, a diferencia de selFecha) */
+function restaurarFecha(tipo,valor){
+  fechaTipo=tipo;
+  document.querySelectorAll('#fechaChips .chip').forEach(c=>c.classList.toggle('selected',c.dataset.fecha===tipo));
+  const input=document.getElementById('inputFecha');
+  input.value=tipo==='otra'?(valor||''):'';
+  input.style.display=tipo==='otra'?'':'none';
+  fechaElegida(input.value);
+}
 function reiniciarFecha(){
   const hoy=document.querySelector('#fechaChips [data-fecha="hoy"]');
   document.getElementById('inputFecha').value='';fechaElegida('');
@@ -2419,8 +2428,9 @@ async function submitMovement(){
     if(res.id){
       guardarPref('kashy-ult-cuenta',selectedAccId);guardarPref('kashy-ult-cat-'+currentType,selectedCatId);
       const importeTxt=document.getElementById('inputAmt').value;
+      const fechaUsada={tipo:fechaTipo,valor:document.getElementById('inputFecha').value};
       showSuccessBurst();
-      showToast(isG?t('toast_gasto_ok'):t('toast_ingreso_ok'),'',{texto:'Deshacer',fn:()=>deshacerRegistro(res.id,importeTxt,name)});
+      showToast(isG?t('toast_gasto_ok'):t('toast_ingreso_ok'),'',{texto:'Deshacer',fn:()=>deshacerRegistro(res.id,importeTxt,name,fechaUsada)});
       document.getElementById('inputAmt').value='';document.getElementById('inputName').value='';
       catTocada=false;reiniciarFecha();
     }
@@ -2429,13 +2439,13 @@ async function submitMovement(){
   btn.disabled=false;btn.textContent=isG?t('btn_reg_gasto'):t('btn_reg_ingreso');
 }
 /* Deshacer un registro recién hecho: archiva la página creada y devuelve importe y nombre al formulario */
-async function deshacerRegistro(pageId,importeTxt,nombre){
+async function deshacerRegistro(pageId,importeTxt,nombre,fechaUsada){
   try{
     const res=await fetch('/api/delete?pageId='+pageId,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
     const data=await res.json();
     if(!(data.archived||data.in_trash)){showToast('No se pudo deshacer','error');return;}
     const amt=document.getElementById('inputAmt'),nom=document.getElementById('inputName');
-    if(!amt.value&&!nom.value){amt.value=importeTxt;nom.value=nombre;}
+    if(!amt.value&&!nom.value){amt.value=importeTxt;nom.value=nombre;if(fechaUsada)restaurarFecha(fechaUsada.tipo,fechaUsada.valor);}
     showToast('Registro deshecho');
   }catch(e){showToast(t('toast_conexion'),'error');}
 }
