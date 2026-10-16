@@ -12,7 +12,7 @@ There are no build or test commands. The `/api/*` routes need a Vercel runtime, 
 
 ## Files
 
-- `index-nuevo.html`: **the version in use; make all changes here by default.** It is one file of about 3.5k lines that holds all CSS, markup, and JS (no framework, no modules). It adds features the old version lacks: a splash screen, a privacy "eye" toggle that hides amounts, swipe gestures, category chips for filtering movements, and a WebAuthn/passkey app lock (`registrar`/`verificar`/`unlock`, with `RP_ID` hard-coded to the Vercel domain, so the lock only works over HTTPS on that domain).
+- `index-nuevo.html`: **the version in use; make all changes here by default.** It is one file of about 3.5k lines that holds all CSS, markup, and JS (no framework, no modules). It adds features the old version lacks: a splash screen, a privacy "eye" toggle that hides amounts, swipe gestures, and category chips for filtering movements. It used to have a WebAuthn/passkey (Face ID) app lock; that was removed and the app now opens straight to Inicio.
 - `index.html`: the older version, kept for reference. Don't edit it unless asked.
 - The owner updates files by uploading them through GitHub's web UI, which is why the history shows repeated "Delete index-nuevo.html" / "Add files via upload" commits.
 - `api/query.js`, `api/page.js`, `api/delete.js`: thin CORS-enabled proxies to Notion (`Notion-Version: 2022-06-28`):
@@ -27,7 +27,7 @@ There are no build or test commands. The `/api/*` routes need a Vercel runtime, 
 - **Navigation**: the sections are `<div class="section" id="sec-{name}">` (inicio, movimientos, registrar, stats, cuentas, inversion). `showSec(name, navIdx)` switches between them and calls that section's loader (`loadInicio`, `loadMovs`, `loadStats`, `loadAccounts`/`loadGoals`/`loadWishes`, `loadInversion`). Data is fetched fresh each time a section opens, and skeleton placeholders (`skeletonCards`/`skeletonRows`) show while it loads.
 - **i18n**: the `I18N = { es: {...}, en: {...} }` dictionary goes with `t(key, vars)`, which fills `{var}` placeholders and falls back to `es`, then to the key itself. `applyI18n` and `setLang` handle switching languages. Every new user-facing string needs entries in both languages.
 - **Theming**: CSS custom properties sit on `:root` (dark) and `[data-theme="light"]`. An inline script in `<head>` applies the saved theme before the first paint.
-- **localStorage keys**: these use a `kashy-` prefix (`kashy-theme`, `kashy-lang`) or are named by constants (`PRIV_KEY`, `LOCK_KEY`, `CRED_KEY`). localStorage only holds UI preferences; all financial data lives in Notion.
+- **localStorage keys**: these use a `kashy-` prefix (`kashy-theme`, `kashy-lang`) or are named by constants (`PRIV_KEY`). localStorage only holds UI preferences; all financial data lives in Notion.
 - **Layout**: mobile-first, with `.app` capped at 430px wide and a fixed bottom nav. The app is meant to be installed as an iOS home-screen web app (apple-mobile-web-app meta tags, `icon.png`).
 - **Formatting**: amounts are in euros. Use `fmt`/`parseAmt`/`sanitizeAmt` for money and `getDateRange` for month windows.
 
