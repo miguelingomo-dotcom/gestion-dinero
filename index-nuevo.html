@@ -3840,10 +3840,6 @@ async function saveInv(){
     if(!id)return;
     var objetivo=del||fila;
 
-    /* Pulsar la fila ya no abre la edición */
-    fila.querySelectorAll('[onclick*="'+fnEdit+'"]').forEach(function(el){
-      el.removeAttribute('onclick');el.style.cursor='default';
-    });
 
     var sw=document.createElement('div');
     sw.className='swipe';
@@ -3857,6 +3853,13 @@ async function saveInv(){
     acciones.querySelector('.swipe-edit').onclick=function(){sw.scrollTo({left:0,behavior:'smooth'});window[fnEdit](id);};
     acciones.querySelector('.swipe-del').onclick=function(){window[fnDel](id,objetivo);};
     sw.addEventListener('scroll',function(){ if(sw.scrollLeft>4)cerrarOtros(sw); },{passive:true});
+    /* Con la fila deslizada, tocarla solo la cierra (como en iOS); cerrada, el toque abre la edición */
+    sw.addEventListener('click',function(e){
+      if(sw.scrollLeft>4&&!e.target.closest('.swipe-actions')){
+        e.stopPropagation();e.preventDefault();
+        sw.scrollTo({left:0,behavior:'smooth'});
+      }
+    },true);
   }
   function prepararTodos(){
     document.querySelectorAll('#recentMovs .mov-item, #invHistList .mov-item').forEach(prepararSwipe);
