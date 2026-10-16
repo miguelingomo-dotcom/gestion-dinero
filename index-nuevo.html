@@ -3912,7 +3912,9 @@ async function saveInv(){
       var em=emojiDe(nombre);
       var saldo=(b.dataset.bal!==undefined&&typeof fmt==='function')
         ? fmt(parseFloat(b.dataset.bal))+' €' : b.textContent;
-      var idCuenta=(typeof CUENTAS==='object'&&(CUENTAS.filter(function(x){return x.name===(encajar(nombre)||nombre);})[0]||{}).id)||'';
+      // El id sale de la propia tarjeta (movs-<id>), no del nombre: «Revolut» o «MyInvestor Remunerada (2,50%)» no casaban con CUENTAS
+      var wrapMovs=card.querySelector('.account-movs-wrap');
+      var idCuenta=wrapMovs?wrapMovs.id.replace('movs-',''):'';
       return '<div class="qa-card" style="background:'+color+'" onclick="abrirCuentaDesdeInicio(\''+idCuenta+'\')">'+
         '<div class="qa-name"><span class="acc-ico">'+em+'</span> '+nombre+'</div>'+
         '<div class="qa-bal">'+saldo+'</div></div>';
