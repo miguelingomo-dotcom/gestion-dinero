@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-**Ka$hy** is a single-user personal finance PWA (Spanish-first, with English i18n) deployed on Vercel at `gestion-dinero-dusky.vercel.app`. It uses **Notion databases as its backend**. The project has no build step, package.json, linter, or tests. The frontend is a single self-contained HTML file, and three Vercel serverless functions proxy requests to the Notion API.
+**Ka$hy** is a single-user personal finance PWA (Spanish-first, with English i18n) deployed on Vercel at `gestion-dinero-dusky.vercel.app`. It uses **Notion databases as its backend**. The project has no build step, package.json, linter, or tests. The frontend is a single self-contained HTML file, and a few Vercel serverless functions proxy requests to the Notion API.
 
 ## Running locally
 
@@ -19,6 +19,7 @@ There are no build or test commands. The `/api/*` routes need a Vercel runtime, 
   - `POST /api/query?dbId=…` → `databases/{dbId}/query`
   - `POST /api/page` → create a page; `PATCH /api/page?pageId=…` → update page properties
   - `DELETE /api/delete?pageId=…` → archive the page (`archived: true`)
+  - `GET /api/gasto` → lists for an iOS Shortcut (expense categories read live from the Notion Categorías database, with "✨ Automática" first; active accounts with Revolut first). `POST /api/gasto` with `{importe, concepto, categoria?, cuenta?}` → creates the expense dated today (Europe/Madrid); "Automática" guesses the category from the concept (category name, then the same keyword map as the app), and the account defaults to Revolut. It replies with a short text for the Shortcut's notification. Like `/api/history`, it calls this deployment's own proxies, so it holds no token.
   - `GET /api/history?movs=&cuentas=&transfers=&excluir=&hasta=` → daily net-worth history of the accounts (excluding MyInvestor) rebuilt from Balance Inicial + dated movements/transfers, plus the raw investment rows. It calls `/api/query` on its own deployment (paginating), so it holds no token. The app adds the portfolio value per day (`valorCarteraDia`, same logic as `fetchValorCartera`) to draw the patrimonio curve, and caches the response in localStorage (`kashy-pat-hist`).
 
 ## Architecture of the HTML app
