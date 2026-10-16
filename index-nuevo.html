@@ -901,10 +901,18 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
         <div class="amount-lbl" data-i18n="lbl_cantidad">Cantidad</div>
         <input class="amount-in" type="text" id="inputAmt" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">
       </div>
-      <div class="field"><label data-i18n="lbl_nombre_field">Nombre</label><input type="text" id="inputName" placeholder="Ej: Mercadona" data-i18n-placeholder="lbl_ejemplo_nombre"></div>
+      <div class="field"><label data-i18n="lbl_fecha">Fecha</label>
+        <div class="chips-wrap" id="fechaChips">
+          <div class="chip selected" data-fecha="hoy" onclick="selFecha('hoy',this)">Hoy</div>
+          <div class="chip" data-fecha="ayer" onclick="selFecha('ayer',this)">Ayer</div>
+          <div class="chip" data-fecha="otra" onclick="selFecha('otra',this)">Otra</div>
+        </div>
+        <input type="date" id="inputFecha" style="display:none;margin-top:8px;" onchange="fechaElegida(this.value)">
+      </div>
+      <div class="field"><label data-i18n="lbl_nombre_field">Nombre</label><input type="text" id="inputName" placeholder="Ej: Mercadona" data-i18n-placeholder="lbl_ejemplo_nombre" oninput="sugerirCategoria()"></div>
       <div class="field"><label data-i18n="lbl_cuenta">Cuenta</label><div class="chips-wrap" id="accountChips"></div></div>
       <div class="field"><label data-i18n="lbl_categoria">Categoría</label><div class="cat-grid" id="catGrid"></div></div>
-      <button class="submit-btn" id="submitBtn" onclick="showConfirm()">Registrar Gasto</button>
+      <button class="submit-btn" id="submitBtn" onclick="submitMovement()">Registrar Gasto</button>
       <div class="sus-section">
         <div class="sus-sec-title" data-i18n="gastos_fijos">Pagos recurrentes</div>
         <div id="suscripList"></div>
@@ -1214,18 +1222,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
   </button>
 </nav>
 
-<!-- ── CONFIRM MODAL ── -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-title" id="modalTitle">Confirmar</div>
-    <div class="modal-amount" id="modalAmount"></div>
-    <div class="modal-detail" id="modalDetail"></div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeConfirm()" data-i18n="btn_cancelar">Cancelar</button>
-      <button class="modal-confirm" id="modalConfirm" onclick="submitMovement()" data-i18n="btn_confirmar">Confirmar</button>
-    </div>
-  </div>
-</div>
 
 <!-- ── TRANSFER MODAL ── -->
 <div class="modal-overlay" id="transferOverlay">
@@ -1612,8 +1608,11 @@ const INGRESOS_RAPIDOS=[
 ];
 
 /* ── STATE ── */
-let currentType='gasto',selectedAccId=CUENTAS[0].id,selectedCatId=GASTOS[0].id;
-let isDark=false,pendingAmt=0,pendingName='';
+function leerPref(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function guardarPref(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+// Registrar arranca con la última cuenta y categoría usadas
+let currentType='gasto',selectedAccId=leerPref('kashy-ult-cuenta')||CUENTAS[0].id,selectedCatId=leerPref('kashy-ult-cat-gasto')||GASTOS[0].id;
+let isDark=false,catTocada=false,fechaTipo='hoy';
 let transferFromId='',statPeriod=0;
 let selectedHistMonth=0,histMonthData=[],histMonthLabel='';
 let cuentasActivasIds=new Set(CUENTAS.map(c=>c.id));
@@ -1667,6 +1666,7 @@ function showSec(name,idx){
   // Tocar la pestaña en la que ya estás sube arriba, como en iOS
   if(actual&&actual.id==='sec-'+name){
     window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    if(name==='registrar')document.getElementById('inputAmt').focus({preventScroll:true});
     return;
   }
   if(actual)scrollPorSeccion[actual.id]=window.scrollY;
@@ -1675,6 +1675,7 @@ function showSec(name,idx){
   document.getElementById('sec-'+name).classList.add('active');
   if(idx>=0)document.getElementById('nav'+idx).classList.add('active');
   window.scrollTo(0,scrollPorSeccion['sec-'+name]||0);
+  if(name==='registrar')document.getElementById('inputAmt').focus({preventScroll:true});
   if(name==='inicio')loadInicio();
   if(name==='movimientos')loadMovs();
   if(name==='cuentas'){loadAccounts();loadGoals();loadWishes();}
@@ -1819,12 +1820,13 @@ function checkAlerts(){
     document.getElementById('alertItems').textContent=sus.map(s=>s.emoji+' '+s.name).join(', ')+' · -'+total.toFixed(2)+' €';
   }
 }
-function getEmoji(n){
-  n=n.toLowerCase();
-  const m=[['mercadona','🛒'],['supermercado','🛒'],['restaurante','🍽️'],['gasolina','⛽'],['spotify','🎵'],['gym','💪'],['coche','🚗'],['letra','🚗'],['icloud','☁️'],['farmacia','💊'],['nómina','💼'],['nomina','💼'],['mamá','👩‍👧'],['bizum','📲'],['transferencia','⇄']];
-  for(const[k,e]of m)if(n.includes(k))return e;
-  return'💶';
+const PALABRAS_EMOJI=[['mercadona','🛒'],['supermercado','🛒'],['restaurante','🍽️'],['gasolina','⛽'],['spotify','🎵'],['gym','💪'],['coche','🚗'],['letra','🚗'],['icloud','☁️'],['farmacia','💊'],['nómina','💼'],['nomina','💼'],['mamá','👩‍👧'],['bizum','📲'],['transferencia','⇄']];
+function emojiPorPalabra(n){
+  n=(n||'').toLowerCase();
+  for(const[k,e]of PALABRAS_EMOJI)if(n.includes(k))return e;
+  return null;
 }
+function getEmoji(n){return emojiPorPalabra(n)||'💶';}
 
 /* ── API ── */
 async function nFetch(path,method='GET',body=null){
@@ -2315,57 +2317,106 @@ function setType(typ){
   const btn=document.getElementById('submitBtn');
   btn.textContent=typ==='gasto'?t('btn_reg_gasto'):t('btn_reg_ingreso');
   btn.className='submit-btn'+(typ==='ingreso'?' ing':'');
+  catTocada=false;
   renderCats(typ);
 }
 function renderChips(){
   const accs=CUENTAS.filter(c=>cuentasActivasIds.has(c.id));
-  document.getElementById('accountChips').innerHTML=accs.map((c,i)=>`<div class="chip${i===0?' selected':''}" style="border-left:3px solid ${bankColor(c.name)};" onclick="selAcc('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
-  if(accs.length)selectedAccId=accs[0].id;
+  const sel=accs.find(c=>c.id===selectedAccId)||accs[0];
+  document.getElementById('accountChips').innerHTML=accs.map(c=>`<div class="chip${c===sel?' selected':''}" style="border-left:3px solid ${bankColor(c.name)};" onclick="selAcc('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
+  if(sel)selectedAccId=sel.id;
 }
 function selAcc(id,el){selectedAccId=id;el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
 function renderCats(typ){
   const cats=typ==='gasto'?GASTOS:INGRESOS;
-  selectedCatId=cats[0].id;
-  document.getElementById('catGrid').innerHTML=cats.map((c,i)=>`<div class="cat-item${i===0?' selected':''}" onclick="selCat('${c.id}',this)"><div class="cat-circle">${c.emoji}</div><div class="cat-lbl">${dispName(c)}</div></div>`).join('');
+  // Se mantiene la elegida; si es de otro tipo, la última usada de este tipo; si no, la primera
+  const ult=leerPref('kashy-ult-cat-'+typ);
+  const sel=cats.find(c=>c.id===selectedCatId)||cats.find(c=>c.id===ult)||cats[0];
+  selectedCatId=sel.id;
+  document.getElementById('catGrid').innerHTML=cats.map(c=>`<div class="cat-item${c===sel?' selected':''}" data-cat="${c.id}" onclick="selCat('${c.id}',this)"><div class="cat-circle">${c.emoji}</div><div class="cat-lbl">${dispName(c)}</div></div>`).join('');
 }
-function selCat(id,el){selectedCatId=id;el.parentElement.querySelectorAll('.cat-item').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
-function showConfirm(){
+function selCat(id,el){catTocada=true;selectedCatId=id;el.parentElement.querySelectorAll('.cat-item').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
+/* Propone la categoría según el nombre (el de la categoría o el mismo mapa que getEmoji); no pisa una elegida a mano */
+function sugerirCategoria(){
+  if(catTocada)return;
+  const n=document.getElementById('inputName').value.trim().toLowerCase();
+  if(n.length<3)return;
+  const cats=currentType==='gasto'?GASTOS:INGRESOS;
+  const emo=emojiPorPalabra(n);
+  // Primero el nombre de la categoría (más específico: «nómina pluxee»), después el mapa de palabras
+  const cat=cats.find(c=>n.includes(c.name.toLowerCase()))||(emo&&cats.find(c=>c.emoji===emo));
+  if(!cat||cat.id===selectedCatId)return;
+  selectedCatId=cat.id;
+  document.querySelectorAll('#catGrid .cat-item').forEach(el=>el.classList.toggle('selected',el.dataset.cat===cat.id));
+}
+/* ── Fecha del registro: Hoy · Ayer · Otra ── */
+function fechaLocalDe(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function selFecha(tipo,el){
+  fechaTipo=tipo;
+  el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',c===el));
+  const input=document.getElementById('inputFecha');
+  if(tipo!=='otra'){input.style.display='none';return;}
+  input.max=hoyLocal();
+  if(!input.value)input.value=hoyLocal();
+  input.style.display='';
+  try{input.showPicker();}catch(e){input.focus();}
+}
+function fechaElegida(v){
+  const chip=document.querySelector('#fechaChips [data-fecha="otra"]');
+  chip.textContent=v?new Date(v+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short'}):'Otra';
+}
+function fechaRegistro(){
+  if(fechaTipo==='ayer'){const d=new Date();d.setDate(d.getDate()-1);return fechaLocalDe(d);}
+  if(fechaTipo==='otra')return document.getElementById('inputFecha').value||hoyLocal();
+  return hoyLocal();
+}
+function reiniciarFecha(){
+  const hoy=document.querySelector('#fechaChips [data-fecha="hoy"]');
+  document.getElementById('inputFecha').value='';fechaElegida('');
+  selFecha('hoy',hoy);
+}
+async function submitMovement(){
   const amt=parseAmt(document.getElementById('inputAmt').value);
   const name=document.getElementById('inputName').value.trim();
   if(!amt||amt<=0){showToast(t('toast_importe_invalido'),'error');return;}
   if(!name){showToast(t('toast_nombre'),'error');return;}
-  pendingAmt=amt;pendingName=name;
-  const isG=currentType==='gasto';
-  const acc=CUENTAS.find(c=>c.id===selectedAccId);
-  const cat=(isG?GASTOS:INGRESOS).find(c=>c.id===selectedCatId);
-  document.getElementById('modalTitle').textContent=isG?t('confirm_gasto'):t('confirm_ingreso');
-  document.getElementById('modalAmount').textContent=(isG?'-':'+')+fmt(amt)+' €';
-  document.getElementById('modalAmount').style.color=isG?'var(--red)':'var(--green)';
-  document.getElementById('modalDetail').textContent=name+' · '+(cat?dispName(cat):'')+' · '+(acc?.name||'');
-  document.getElementById('modalConfirm').className='modal-confirm'+(isG?'':' ing');
-  document.getElementById('modalOverlay').classList.add('show');
-}
-function closeConfirm(){document.getElementById('modalOverlay').classList.remove('show');}
-async function submitMovement(){
-  closeConfirm();
   const btn=document.getElementById('submitBtn');
+  if(btn.disabled)return; // evita doble registro con dos toques rápidos
   btn.disabled=true;btn.textContent=t('enviando');
   const isG=currentType==='gasto';
-  const today=hoyLocal();
+  const fecha=fechaRegistro();
   const body={parent:{database_id:DB_ID},properties:{
-    Nombre:{title:[{text:{content:pendingName}}]},
-    Fecha:{date:{start:today}},
+    Nombre:{title:[{text:{content:name}}]},
+    Fecha:{date:{start:fecha}},
     Tipo:{select:{name:isG?'Expense':'Income'}},
     Cuenta:{relation:[{id:selectedAccId}]},
   }};
-  if(isG){body.properties.Gasto={number:pendingAmt};body.properties['Fuente de Gasto']={relation:[{id:selectedCatId}]};}
-  else{body.properties.Ingreso={number:pendingAmt};body.properties['Fuente de Ingreso']={relation:[{id:selectedCatId}]};}
+  if(isG){body.properties.Gasto={number:amt};body.properties['Fuente de Gasto']={relation:[{id:selectedCatId}]};}
+  else{body.properties.Ingreso={number:amt};body.properties['Fuente de Ingreso']={relation:[{id:selectedCatId}]};}
   try{
     const res=await nFetch('/pages','POST',body);
-    if(res.id){showSuccessBurst();showToast(isG?t('toast_gasto_ok'):t('toast_ingreso_ok'),'success');document.getElementById('inputAmt').value='';document.getElementById('inputName').value='';}
+    if(res.id){
+      guardarPref('kashy-ult-cuenta',selectedAccId);guardarPref('kashy-ult-cat-'+currentType,selectedCatId);
+      const importeTxt=document.getElementById('inputAmt').value;
+      showSuccessBurst();
+      showToast(isG?t('toast_gasto_ok'):t('toast_ingreso_ok'),'',{texto:'Deshacer',fn:()=>deshacerRegistro(res.id,importeTxt,name)});
+      document.getElementById('inputAmt').value='';document.getElementById('inputName').value='';
+      catTocada=false;reiniciarFecha();
+    }
     else showToast('Error: '+(res.message||'—'),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
   btn.disabled=false;btn.textContent=isG?t('btn_reg_gasto'):t('btn_reg_ingreso');
+}
+/* Deshacer un registro recién hecho: archiva la página creada y devuelve importe y nombre al formulario */
+async function deshacerRegistro(pageId,importeTxt,nombre){
+  try{
+    const res=await fetch('/api/delete?pageId='+pageId,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
+    const data=await res.json();
+    if(!(data.archived||data.in_trash)){showToast('No se pudo deshacer','error');return;}
+    const amt=document.getElementById('inputAmt'),nom=document.getElementById('inputName');
+    if(!amt.value&&!nom.value){amt.value=importeTxt;nom.value=nombre;}
+    showToast('Registro deshecho');
+  }catch(e){showToast(t('toast_conexion'),'error');}
 }
 
 /* ── SUSCRIPCIONES ── */
@@ -3511,7 +3562,7 @@ function closeInvModal(){document.getElementById('invOverlay').classList.remove(
 /* ── HOJAS MODALES: cerrar tocando fuera o arrastrando el asa hacia abajo ── */
 (function(){
   const CIERRES={goalOverlay:'closeGoalModal',goalAddOverlay:'closeGoalAdd',wishOverlay:'closeWishModal',invOverlay:'closeInvModal',
-    modalOverlay:'closeConfirm',transferOverlay:'closeTransfer',editOverlay:'closeEdit',budgetOverlay:'closeBudgetManager',
+    transferOverlay:'closeTransfer',editOverlay:'closeEdit',budgetOverlay:'closeBudgetManager',
     accionOverlay:'cerrarAccion'};
   function cerrar(ov){const fn=window[CIERRES[ov.id]];if(typeof fn==='function')fn();else ov.classList.remove('show');}
   document.querySelectorAll('.modal-overlay').forEach(ov=>{
