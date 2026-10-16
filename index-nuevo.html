@@ -863,8 +863,8 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       <div class="header-right">
         <button class="icon-btn" id="kashyEyeBtn" onclick="window.kashyPrivacy&&window.kashyPrivacy()" aria-label="Ocultar saldos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg></button>
         <button class="icon-btn" onclick="showSec('stats',-1)" aria-label="Stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2v10h10A10 10 0 0 0 12 2z"/></svg></button>
-        <button class="icon-btn" onclick="loadInicio()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
-        <button class="icon-btn" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
+        <button class="icon-btn" onclick="loadInicio()" aria-label="Recargar" data-i18n-aria="aria_recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
+        <button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
     <div class="alert-banner compact" id="alertBanner"><div class="alert-title" data-i18n="cobros_hoy">⚠️ Cobros hoy</div><div id="alertItems" class="compact-body"></div></div>
@@ -901,7 +901,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     </div>
     <div class="quick-accounts-head">
       <span data-i18n="tus_cuentas">Tus cuentas</span>
-      <button type="button" onclick="showSec('cuentas',3)" data-i18n="ver_todas">Ver todas</button>
+      <button type="button" onclick="showSec('cuentas',2)" data-i18n="ver_todas">Ver todas</button>
     </div>
     <div class="quick-accounts" id="quickAccounts"></div>
     <div class="card">
@@ -915,8 +915,8 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="header">
       <div class="header-left"><h1 data-i18n="h_movs_title">Movimientos</h1><p data-i18n="h_movs_sub">Historial de transacciones</p></div>
       <div class="header-right">
-        <button class="icon-btn" onclick="loadMovs()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
-        <button class="icon-btn" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
+        <button class="icon-btn" onclick="loadMovs()" aria-label="Recargar" data-i18n-aria="aria_recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
+        <button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
     <div class="chips-wrap" id="movFilterChips" style="margin:0 20px 10px;"></div>
@@ -928,7 +928,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
   <div class="section" id="sec-registrar">
     <div class="header">
       <div class="header-left"><h1 id="regTitle">Nuevo Gasto</h1><p data-i18n="h_reg_sub">Registra tu movimiento</p></div>
-      <div class="header-right"><button class="icon-btn" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button></div>
+      <div class="header-right"><button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button></div>
     </div>
     <div class="reg-wrap">
       <div class="type-toggle">
@@ -960,8 +960,8 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       <div class="header-left"><h1 data-i18n="h_stats_title">Stats</h1><p data-i18n="h_stats_sub">Tu salud financiera</p></div>
       <div class="header-right">
         <button class="icon-btn" onclick="showSec('inicio',0)" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M15 18l-6-6 6-6"/></svg></button>
-        <button class="icon-btn" onclick="loadStats()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
-        <button class="icon-btn" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
+        <button class="icon-btn" onclick="loadStats()" aria-label="Recargar" data-i18n-aria="aria_recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
+        <button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
     <div class="period-wrap">
@@ -1082,8 +1082,8 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="header">
       <div class="header-left"><h1 data-i18n="h_cuentas_title">Cuentas</h1><p data-i18n="h_cuentas_sub">Tus saldos actuales</p></div>
       <div class="header-right">
-        <button class="icon-btn" onclick="loadAccounts()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
-        <button class="icon-btn" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
+        <button class="icon-btn" onclick="loadAccounts()" aria-label="Recargar" data-i18n-aria="aria_recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
+        <button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
     <div id="accountCards"><div class="loading" data-i18n="cargando">Cargando...</div></div>
@@ -1170,7 +1170,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="header">
       <div class="header-left"><h1 data-i18n="h_inversion_title">Inversión</h1><p data-i18n="h_inversion_sub">MyInvestor</p></div>
       <div class="header-right">
-        <button class="icon-btn" onclick="loadInversion()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
+        <button class="icon-btn" onclick="loadInversion()" aria-label="Recargar" data-i18n-aria="aria_recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
       </div>
     </div>
     <div class="alert-banner" id="invReminderBannerInv" onclick="openInvModal('Valor Cartera')" style="cursor:pointer;"><div class="alert-title">📈 MyInvestor</div><div id="invReminderTextInv"></div></div>
@@ -1425,6 +1425,7 @@ const I18N={
     lock_titulo:'Ka$hy está bloqueada',lock_sub:'Tus saldos quedan ocultos hasta que te identifiques.',
     lock_desbloquear:'Desbloquear con Face ID',lock_activando:'Activando Face ID…',lock_identificando:'Identificando…',
     lock_reintentar:'Reintentar con Face ID',lock_sin_faceid:'Entrar sin Face ID',
+    aria_recargar:'Recargar',aria_tema:'Cambiar tema',
   },
   en:{
     nav_inicio:'HOME',nav_movs:'ACTIVITY',nav_cuentas:'ACCOUNTS',nav_inversion:'INVEST',
@@ -1528,6 +1529,7 @@ const I18N={
     lock_titulo:'Ka$hy is locked',lock_sub:'Your balances stay hidden until you verify it\'s you.',
     lock_desbloquear:'Unlock with Face ID',lock_activando:'Setting up Face ID…',lock_identificando:'Verifying…',
     lock_reintentar:'Retry with Face ID',lock_sin_faceid:'Continue without Face ID',
+    aria_recargar:'Reload',aria_tema:'Toggle theme',
   }
 };
 let LANG='es';
@@ -1558,6 +1560,9 @@ function applyI18n(){
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
     el.placeholder=t(el.getAttribute('data-i18n-placeholder'));
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{
+    el.setAttribute('aria-label',t(el.getAttribute('data-i18n-aria')));
   });
 
   document.getElementById('regTitle').textContent=currentType==='gasto'?t('h_reg_gasto'):t('h_reg_ingreso');
@@ -1852,14 +1857,6 @@ function getEmoji(n){
   for(const[k,e]of m)if(n.includes(k))return e;
   return'💶';
 }
-function getDateRange(monthOffset,months=1){
-  const now=new Date();
-  const startDate=new Date(now.getFullYear(),now.getMonth()+monthOffset,1);
-  const endDate=new Date(startDate.getFullYear(),startDate.getMonth()+months,0);
-  const start=startDate.toISOString().split('T')[0];
-  const end=endDate.toISOString().split('T')[0];
-  return{start,end};
-}
 
 /* ── API ── */
 async function nFetch(path,method='GET',body=null){
@@ -1874,6 +1871,18 @@ async function nFetch(path,method='GET',body=null){
   }
   const res=await fetch(url,opts);
   return res.json();
+}
+
+// Consulta paginada: Notion devuelve como mucho 100 filas por página; esto sigue next_cursor hasta el final
+async function nQueryAll(dbId,body){
+  let todas=[],cursor=null,paginas=0;
+  do{
+    const d=await nFetch('/databases/'+dbId+'/query','POST',cursor?{...body,start_cursor:cursor}:body);
+    if(!d||!d.results)return d;
+    todas=todas.concat(d.results);
+    cursor=d.has_more?d.next_cursor:null;
+  }while(cursor&&++paginas<50);
+  return{results:todas};
 }
 
 /* ── INICIO ── */
@@ -1971,7 +1980,7 @@ async function loadPatVariation(total){
     const start=`${now.getFullYear()}-${pad(now.getMonth()+1)}-01`;
     const lastDay=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
     const end=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(lastDay)}`;
-    const data=await nFetch('/databases/'+DB_ID+'/query','POST',{
+    const data=await nQueryAll(DB_ID,{
       filter:{and:[{property:'Fecha',date:{on_or_after:start}},{property:'Fecha',date:{on_or_before:end}}]},
       page_size:100
     });
@@ -2128,7 +2137,7 @@ async function loadResumen(){
     const start=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
     const lastDay=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
     const end=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(lastDay).padStart(2,'0');
-    const data=await nFetch('/databases/'+DB_ID+'/query','POST',{
+    const data=await nQueryAll(DB_ID,{
       filter:{and:[{property:'Fecha',date:{on_or_after:start}},{property:'Fecha',date:{on_or_before:end}}]},
       page_size:100
     });
@@ -2351,13 +2360,13 @@ function renderChips(){
   document.getElementById('accountChips').innerHTML=accs.map((c,i)=>`<div class="chip${i===0?' selected':''}" style="border-left:3px solid ${bankColor(c.name)};" onclick="selAcc('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
   if(accs.length)selectedAccId=accs[0].id;
 }
-function selAcc(id,el){selectedAccId=id;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
+function selAcc(id,el){selectedAccId=id;el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
 function renderCats(typ){
   const cats=typ==='gasto'?GASTOS:INGRESOS;
   selectedCatId=cats[0].id;
   document.getElementById('catGrid').innerHTML=cats.map((c,i)=>`<div class="cat-item${i===0?' selected':''}" onclick="selCat('${c.id}',this)"><div class="cat-circle">${c.emoji}</div><div class="cat-lbl">${dispName(c)}</div></div>`).join('');
 }
-function selCat(id,el){selectedCatId=id;document.querySelectorAll('.cat-item').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
+function selCat(id,el){selectedCatId=id;el.parentElement.querySelectorAll('.cat-item').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
 function showConfirm(){
   const amt=parseAmt(document.getElementById('inputAmt').value);
   const name=document.getElementById('inputName').value.trim();
@@ -2380,7 +2389,7 @@ async function submitMovement(){
   const btn=document.getElementById('submitBtn');
   btn.disabled=true;btn.textContent=t('enviando');
   const isG=currentType==='gasto';
-  const today=new Date().toISOString().split('T')[0];
+  const today=hoyLocal();
   const body={parent:{database_id:DB_ID},properties:{
     Nombre:{title:[{text:{content:pendingName}}]},
     Fecha:{date:{start:today}},
@@ -2455,7 +2464,7 @@ async function refreshSuscProgress(i){
 }
 async function regSusc(i){
   const s=SUSCRIPCIONES[i];
-  const today=new Date().toISOString().split('T')[0];
+  const today=hoyLocal();
   try{
     const res=await nFetch('/pages','POST',{parent:{database_id:DB_ID},properties:{
       Nombre:{title:[{text:{content:s.emoji+' '+s.name}}]},
@@ -2486,7 +2495,7 @@ function renderIngresosRapidos(){
 }
 async function regIngresoRapido(i){
   const s=INGRESOS_RAPIDOS[i];
-  const today=new Date().toISOString().split('T')[0];
+  const today=hoyLocal();
   try{
     const res=await nFetch('/pages','POST',{parent:{database_id:DB_ID},properties:{
       Nombre:{title:[{text:{content:s.emoji+' '+s.name}}]},
@@ -2527,7 +2536,7 @@ async function loadStats(){
   const startStr=`${start.getFullYear()}-${pad(start.getMonth()+1)}-${pad(start.getDate())}`;
   const endStr=`${end.getFullYear()}-${pad(end.getMonth()+1)}-${pad(end.getDate())}`;
   try{
-    const data=await nFetch('/databases/'+DB_ID+'/query','POST',{
+    const data=await nQueryAll(DB_ID,{
       filter:{and:[{property:'Fecha',date:{on_or_after:startStr}},{property:'Fecha',date:{on_or_before:endStr}}]},
       page_size:100
     });
@@ -2586,7 +2595,7 @@ async function loadStats(){
       const prevEndStr=`${prevEnd.getFullYear()}-${pad(prevEnd.getMonth()+1)}-${pad(prevEnd.getDate())}`;
       let prevG=0;const prevCatMap={};
       try{
-        const prevData=await nFetch('/databases/'+DB_ID+'/query','POST',{
+        const prevData=await nQueryAll(DB_ID,{
           filter:{and:[{property:'Fecha',date:{on_or_after:prevStartStr}},{property:'Fecha',date:{on_or_before:prevEndStr}}]},
           page_size:100
         });
@@ -2793,7 +2802,7 @@ async function loadHistMonth(offset,btn=null){
   let lbl=start.toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{month:'long',year:'numeric'});
   histMonthLabel=lbl.charAt(0).toUpperCase()+lbl.slice(1);
   try{
-    const data=await nFetch('/databases/'+DB_ID+'/query','POST',{
+    const data=await nQueryAll(DB_ID,{
       filter:{and:[{property:'Fecha',date:{on_or_after:startStr}},{property:'Fecha',date:{on_or_before:endStr}}]},
       page_size:100
     });
@@ -3303,7 +3312,7 @@ function showTransfer(accountId,accountName){
 }
 function closeTransfer(){document.getElementById('transferOverlay').classList.remove('show');}
 async function quickTransferMensual(){
-  const today=new Date().toISOString().split('T')[0];
+  const today=hoyLocal();
   try{
     const res=await nFetch('/pages','POST',{parent:{database_id:TRANSFER_DB},properties:{
       Nombre:{title:[{text:{content:'Ibercaja → Revolut Personal'}}]},
@@ -3323,7 +3332,7 @@ async function submitTransfer(){
   const fromName=document.getElementById('transferFrom').textContent;
   if(!amt||amt<=0){showToast(t('toast_importe_valido'),'error');return;}
   closeTransfer();
-  const today=new Date().toISOString().split('T')[0];
+  const today=hoyLocal();
   try{
     const res=await nFetch('/pages','POST',{parent:{database_id:TRANSFER_DB},properties:{
       Nombre:{title:[{text:{content:fromName+' → '+toName}}]},
@@ -3460,7 +3469,7 @@ function openInvModal(tipo){
   link.style.display=porFondo?'':'none';
   link.textContent=t('cambiar_fecha');
   document.getElementById('invDateWrap').style.display=porFondo?'none':'';
-  document.getElementById('invDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('invDate').value=hoyLocal();
   document.getElementById('invOverlay').classList.add('show');
   if(porFondo){
     renderInvResumen();
@@ -3539,7 +3548,7 @@ function crearAportacion(nombre,amt,date){
   }});
 }
 async function quickAportacionMensual(){
-  const today=new Date().toISOString().split('T')[0];
+  const today=hoyLocal();
   try{
     // Primero la transferencia Ibercaja → MyInvestor, para que el dinero salga de Ibercaja
     const tr=await nFetch('/pages','POST',{parent:{database_id:TRANSFER_DB},properties:{
@@ -3725,7 +3734,7 @@ async function saveInv(){
     var ini=n.getFullYear()+'-'+p(n.getMonth()+1)+'-01';
     var fin=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(new Date(n.getFullYear(),n.getMonth()+1,0).getDate());
     try{
-      var d=await nFetch('/databases/'+DB_ID+'/query','POST',{
+      var d=await nQueryAll(DB_ID,{
         filter:{and:[{property:'Fecha',date:{on_or_after:ini}},{property:'Fecha',date:{on_or_before:fin}}]},
         page_size:100});
       conteoMes={};
