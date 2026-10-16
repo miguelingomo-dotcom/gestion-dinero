@@ -540,7 +540,7 @@ body{background:var(--page);}
 .account-card::after{content:'';position:absolute;top:-40px;right:-30px;width:150px;height:150px;
   border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none;}
 .account-card > *{position:relative;z-index:1;}
-.account-card{background:#6b5ef0;}
+.account-card{background:var(--accent);}
 .account-card .account-name{color:rgba(255,255,255,.92);font-size:13px;font-weight:600;}
 .account-card .account-chevron{color:rgba(255,255,255,.85);}
 .account-card .acc-action{background:rgba(0,0,0,.22);border:none;color:#fff;border-radius:13px;}
@@ -548,7 +548,7 @@ body{background:var(--page);}
 .account-card .account-movs-inner{border-top:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);border-radius:14px;padding:6px 10px 10px;}
 .account-card .acc-mov-row .amn-emoji{background:rgba(255,255,255,.16);border:none;}
 .account-card .acc-mov-row .amn-name{color:#fff;}
-.account-card .acc-mov-row .amn-date{color:rgba(255,255,255,.85);}
+.account-card .acc-mov-row .amn-date{color:rgba(255,255,255,.72);}
 .account-card .acc-mov-row .amn-amt.g,.account-card .acc-mov-row .amn-amt.i{color:#fff;}
 .account-card .acc-movs-empty,.account-card .acc-movs-viewall{color:rgba(255,255,255,.85);}
 
@@ -744,7 +744,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0!imp
 .account-card .account-actions .acc-action:nth-child(3){display:none;}
 .account-card .account-actions .acc-action{flex:1;padding:11px 0;font-size:13.5px;font-weight:600;}
 .account-card .account-balance{font-size:30px;letter-spacing:-1.2px;margin-bottom:4px;}
-.account-card .acc-count{font-size:11.5px;color:rgba(255,255,255,.85);}
+.account-card .acc-count{font-size:11.5px;color:rgba(255,255,255,.78);}
 .account-chevron{font-size:0!important;padding:0 2px 0 10px!important;align-self:center!important;}
 .account-chevron::before{content:'';display:block;width:11px;height:11px;
   border-right:2px solid rgba(255,255,255,.9);border-bottom:2px solid rgba(255,255,255,.9);
@@ -793,28 +793,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
   .pat-item-fill,.res-bar-fill,.rate-fill{transition:none;}
 }
 
-/* ── Contraste sobre colores de banco ── */
-/* Chips de cuenta: sin seleccionar, neutros con una marca del color del banco; seleccionado, relleno con su color */
-#accountChips .chip[data-bank]:not(.selected),#editAccChips .chip[data-bank]:not(.selected),#movFilterChips .chip[data-bank]:not(.selected){
-  background:var(--surface2)!important;color:var(--text)!important;opacity:1;box-shadow:inset 4px 0 0 var(--bank,var(--accent));}
-#accountChips .chip.tinta-oscura.selected,#editAccChips .chip.tinta-oscura.selected,#movFilterChips .chip[data-bank].tinta-oscura.selected{color:#12131c!important;}
-/* Tarjetas de banco claras: texto oscuro y velo claro en lugar del oscuro */
-.account-card.tinta-oscura,.qa-card.tinta-oscura{color:#12131c;}
-.account-card.tinta-oscura::before,.qa-card.tinta-oscura::before{background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(0,0,0,.06));}
-.account-card.tinta-oscura .account-name{color:rgba(18,19,28,.92)!important;}
-.account-card.tinta-oscura .account-balance,.qa-card.tinta-oscura .qa-bal{color:#12131c;}
-.qa-card.tinta-oscura .qa-name{color:rgba(18,19,28,.9);}
-.account-card.tinta-oscura .acc-count,.account-card.tinta-oscura .acc-sub{color:rgba(18,19,28,.85);}
-.account-card.tinta-oscura .account-chevron::before{border-color:rgba(18,19,28,.85);}
-.account-card.tinta-oscura .acc-action,.account-card.tinta-oscura .acc-action:first-child{background:rgba(255,255,255,.4);color:#12131c;}
-.account-card.tinta-oscura .account-movs-inner{border-top-color:rgba(18,19,28,.18);background:rgba(255,255,255,.32);}
-.account-card.tinta-oscura .acc-mov-row .amn-emoji{background:rgba(255,255,255,.45);}
-.account-card.tinta-oscura .acc-mov-row .amn-name,.account-card.tinta-oscura .acc-mov-row .amn-amt.g,.account-card.tinta-oscura .acc-mov-row .amn-amt.i{color:#12131c;}
-.account-card.tinta-oscura .acc-mov-row .amn-date,.account-card.tinta-oscura .acc-movs-empty,.account-card.tinta-oscura .acc-movs-viewall{color:rgba(18,19,28,.85);}
-/* «Desactivar» toma el color del texto de la tarjeta (el rojo no se lee sobre los colores de banco) */
-.account-card .account-actions .acc-action:nth-child(4){color:inherit!important;}
-.account-card .account-actions{color:#fff;}
-.account-card.tinta-oscura .account-actions{color:#12131c;}
 [data-theme="light"] .wish-badge.gift{color:#be185d;}
 
 /* ── Zonas táctiles de 44 px sin cambiar el tamaño visual ── */
@@ -3641,9 +3619,8 @@ async function saveInv(){
       if(!el)return;
       var name=(el.dataset.plain||el.textContent).replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
       el.dataset.plain=name;
-      var c=colorDe(name)||COLOR_FALLBACK;
-      card.style.background=c;
-      card.classList.toggle('tinta-oscura',tintaOscura(c,.3,6));
+      var c=colorDe(name);
+      if(c)card.style.background=c;
       var em=emojiDe(name);
       if(!el.querySelector('.acc-ico'))el.innerHTML='<span class="acc-ico">'+(em||'')+'</span>'+name;
       pintarConteo();
@@ -3691,21 +3668,6 @@ async function saveInv(){
   function colorDe(name){
     var k=encajar(name);
     return k?BANK_COLORS[k]:null;
-  }
-  /* ¿Texto oscuro sobre este color? Compara el contraste WCAG del blanco (con el velo oscuro de la tarjeta) y de la tinta.
-     minimo: contraste que debe dar el blanco para quedarse (6 en tarjetas, para que el texto secundario semitransparente también pase) */
-  var COLOR_FALLBACK='#6b5ef0';
-  function luminancia(rgb){
-    var v=rgb.map(function(x){x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4);});
-    return .2126*v[0]+.7152*v[1]+.0722*v[2];
-  }
-  function contraste(a,b){var x=luminancia(a),y=luminancia(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
-  function tintaOscura(hex,velo,minimo){
-    var m=/^#?([0-9a-f]{6})$/i.exec(hex||'');if(!m)return false;
-    var rgb=[0,2,4].map(function(i){return parseInt(m[1].substr(i,2),16);});
-    var conVelo=rgb.map(function(x){return x*(1-(velo||0));});
-    var blanco=contraste([255,255,255],conVelo);
-    return blanco<(minimo||4.5)&&contraste([18,19,28],rgb)>blanco;
   }
   var ICONOS={
     plane:'<path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l3.9 4.2-2.6 2.6-1.9-.4a.5.5 0 0 0-.5.8L5 16.5l1.3 2a.5.5 0 0 0 .8-.1l-.4-1.9 2.6-2.6 4.2 3.9a.5.5 0 0 0 .8-.5z"/>',
@@ -3773,12 +3735,12 @@ async function saveInv(){
       var n=card.querySelector('.account-name'),b=card.querySelector('.account-balance');
       if(!n||!b)return '';
       var nombre=(n.dataset.plain||n.textContent).replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
-      var color=colorDe(nombre)||COLOR_FALLBACK;
+      var color=colorDe(nombre)||'var(--accent)';
       var em=emojiDe(nombre);
       var saldo=(b.dataset.bal!==undefined&&typeof fmt==='function')
         ? fmt(parseFloat(b.dataset.bal))+' €' : b.textContent;
       var idCuenta=(typeof CUENTAS==='object'&&(CUENTAS.filter(function(x){return x.name===(encajar(nombre)||nombre);})[0]||{}).id)||'';
-      return '<div class="qa-card'+(tintaOscura(color,.3,6)?' tinta-oscura':'')+'" style="background:'+color+'" onclick="window.kashyVerCuenta(\''+idCuenta+'\')">'+
+      return '<div class="qa-card" style="background:'+color+'" onclick="window.kashyVerCuenta(\''+idCuenta+'\')">'+
         '<div class="qa-name"><span class="acc-ico">'+em+'</span> '+nombre+'</div>'+
         '<div class="qa-bal">'+saldo+'</div></div>';
     }).join('');
@@ -3847,7 +3809,7 @@ async function saveInv(){
         var texto=(chip.dataset.plain||chip.textContent).replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
         chip.dataset.plain=texto;
         var c=colorDe(texto);
-        if(c){chip.style.background=c;chip.style.setProperty('--bank',c);chip.dataset.bank='1';chip.classList.toggle('tinta-oscura',tintaOscura(c,0));}
+        if(c){chip.style.background=c;chip.dataset.bank='1';}
       });
     });
   }
