@@ -1,5 +1,6 @@
 // Registrar un gasto desde un atajo de iOS (p. ej. con Toque posterior), sin abrir la app.
-//   GET  → { categorias: [...], cuentas: [...] } para las listas del atajo («✨ Automática» y Revolut primero).
+//   GET  → { categorias: [...], cuentas: [...] } para las listas del atajo (categorías de más a menos usadas
+//          en los últimos 90 días; Revolut la primera cuenta).
 //   POST { importe, concepto, categoria?, cuenta? } → crea el gasto con la fecha de hoy (hora de España)
 //        y responde un texto corto para mostrarlo como notificación.
 // Usa /api/query y /api/page de este mismo despliegue, así que no necesita su propio token.
@@ -7,7 +8,8 @@ const DB_MOVS = '25e21c54013f817481d6cd37b0daa2b5';
 const DB_CUENTAS = '25e21c54013f817e959ee75351072a94';
 const DB_CATEGORIAS = '25e21c54013f811abbffea0726c1d250';
 const REVOLUT = '31621c54013f817f9f00fc6acc160c26'; // cuenta por defecto
-const AUTO = '✨ Automática';
+const AUTO = '✨ Automática'; // ya no sale en la lista; se acepta por compatibilidad con atajos antiguos
+const DIAS_USO = 90; // ventana para ordenar las categorías por uso
 // Las mismas palabras que reconoce el registro de la app (PALABRAS_EMOJI), apuntando a su categoría
 const PALABRAS = [
   ['mercadona', 'supermercado'], ['restaurante', 'restaurantes'], ['gasolina', 'gasolina'],
@@ -66,18 +68,31 @@ export default async function handler(req, res) {
     return out;
   }
 
-  async function listas() {
-    const [cats, ctas] = await Promise.all([
+  async function listas(conUso) {
+    const hoyMadrid = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+    const desde = new Date(hoyMadrid + 'T12:00:00Z');
+    desde.setUTCDate(desde.getUTCDate() - DIAS_USO);
+    const [cats, ctas, usados] = await Promise.all([
       consulta(DB_CATEGORIAS, { property: 'Tipo', multi_select: { contains: 'Gasto' } }),
       consulta(DB_CUENTAS, { and: [
         { property: 'Cuenta o Meta', select: { equals: 'Cuenta' } },
         { property: 'Estado', select: { equals: '🟢 Activo' } },
       ] }),
+      conUso ? consulta(DB_MOVS, { and: [
+        { property: 'Gasto', number: { greater_than: 0 } },
+        { property: 'Fecha', date: { on_or_after: desde.toISOString().slice(0, 10) } },
+      ] }) : Promise.resolve([]),
     ]);
+    // Cuántas veces se ha usado cada categoría en la ventana
+    const usos = {};
+    for (const m of usados) {
+      const rel = m.properties?.['Fuente de Gasto']?.relation?.[0]?.id;
+      if (rel) usos[sinGuiones(rel)] = (usos[sinGuiones(rel)] || 0) + 1;
+    }
     const titulo = p => (p.properties?.Nombre?.title || []).map(t => t.plain_text).join('').trim();
     const categorias = cats.map(p => ({ id: sinGuiones(p.id), nombre: titulo(p) }))
       .filter(c => c.nombre)
-      .sort((a, b) => sinEmoji(a.nombre).localeCompare(sinEmoji(b.nombre), 'es'));
+      .sort((a, b) => (usos[b.id] || 0) - (usos[a.id] || 0) || sinEmoji(a.nombre).localeCompare(sinEmoji(b.nombre), 'es'));
     const cuentas = ctas.map(p => ({ id: sinGuiones(p.id), nombre: sinEmoji(titulo(p)) }))
       .filter(c => c.nombre)
       .sort((a, b) => (b.id === REVOLUT) - (a.id === REVOLUT) || a.nombre.localeCompare(b.nombre, 'es'));
@@ -86,8 +101,8 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const l = await listas();
-      res.status(200).json({ categorias: [AUTO, ...l.categorias.map(c => c.nombre)], cuentas: l.cuentas.map(c => c.nombre) });
+      const l = await listas(true);
+      res.status(200).json({ categorias: l.categorias.map(c => c.nombre), cuentas: l.cuentas.map(c => c.nombre) });
       return;
     }
     if (req.method !== 'POST') { res.status(405).json({ error: 'Usa GET o POST' }); return; }
@@ -117,7 +132,7 @@ export default async function handler(req, res) {
       || l.cuentas.find(c => c.id === REVOLUT) || l.cuentas[0];
     if (!cuenta) return texto(res, '❌ No hay cuentas activas');
 
-    // Categoría: la elegida; con «Automática» (o sin categoría) se deduce del concepto
+    // Categoría: la elegida; sin categoría (o «Automática» de un atajo antiguo) se deduce del concepto
     const catN = norm(campos.categoria);
     let cat = null;
     if (catN && catN !== norm(AUTO)) {
