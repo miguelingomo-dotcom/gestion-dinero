@@ -10,6 +10,7 @@ const DB_CATEGORIAS = '25e21c54013f811abbffea0726c1d250';
 const REVOLUT = '31621c54013f817f9f00fc6acc160c26'; // cuenta por defecto
 const AUTO = '✨ Automática'; // ya no sale en la lista; se acepta por compatibilidad con atajos antiguos
 const DIAS_USO = 90; // ventana para ordenar las categorías por uso
+const AL_FINAL = ['apuestas']; // siempre al final de la lista, aunque se usen mucho
 // Las mismas palabras que reconoce el registro de la app (PALABRAS_EMOJI), apuntando a su categoría
 const PALABRAS = [
   ['mercadona', 'supermercado'], ['restaurante', 'restaurantes'], ['gasolina', 'gasolina'],
@@ -92,7 +93,8 @@ export default async function handler(req, res) {
     const titulo = p => (p.properties?.Nombre?.title || []).map(t => t.plain_text).join('').trim();
     const categorias = cats.map(p => ({ id: sinGuiones(p.id), nombre: titulo(p) }))
       .filter(c => c.nombre)
-      .sort((a, b) => (usos[b.id] || 0) - (usos[a.id] || 0) || sinEmoji(a.nombre).localeCompare(sinEmoji(b.nombre), 'es'));
+      .sort((a, b) => AL_FINAL.includes(norm(a.nombre)) - AL_FINAL.includes(norm(b.nombre))
+        || (usos[b.id] || 0) - (usos[a.id] || 0) || sinEmoji(a.nombre).localeCompare(sinEmoji(b.nombre), 'es'));
     const cuentas = ctas.map(p => ({ id: sinGuiones(p.id), nombre: sinEmoji(titulo(p)) }))
       .filter(c => c.nombre)
       .sort((a, b) => (b.id === REVOLUT) - (a.id === REVOLUT) || a.nombre.localeCompare(b.nombre, 'es'));
@@ -102,6 +104,8 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const l = await listas(true);
+      // La CDN de Vercel guarda la lista 10 min y la renueva en segundo plano: el atajo la recibe al momento
+      res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
       res.status(200).json({ categorias: l.categorias.map(c => c.nombre), cuentas: l.cuentas.map(c => c.nombre) });
       return;
     }
