@@ -92,28 +92,37 @@ export default async function handler(req, res) {
     }
     if (req.method !== 'POST') { res.status(405).json({ error: 'Usa GET o POST' }); return; }
 
-    let b = req.body || {};
-    if (typeof b === 'string') { try { b = JSON.parse(b); } catch (e) { b = {}; } }
-    const importe = leerImporte(b.importe);
-    const concepto = String(b.concepto || '').trim();
-    if (!(importe > 0)) return texto(res, '❌ Importe no válido');
-    if (!concepto) return texto(res, '❌ Falta el concepto');
+    // El cuerpo puede llegar como JSON, formulario o texto sin cabecera de tipo
+    let b = req.body;
+    if (Buffer.isBuffer(b)) b = b.toString('utf8');
+    if (typeof b === 'string') {
+      try { b = JSON.parse(b); } catch (e) { b = Object.fromEntries(new URLSearchParams(b)); }
+    }
+    if (!b || typeof b !== 'object') b = {};
+    // Claves sin distinguir mayúsculas ni tildes: el teclado de iOS escribe «Importe» o «Categoría»
+    const campos = {};
+    for (const [k, v] of Object.entries(b)) campos[norm(k)] = v;
+    const recibido = JSON.stringify(b).slice(0, 160);
+    const importe = leerImporte(campos.importe);
+    const concepto = String(campos.concepto || '').trim();
+    if (!(importe > 0)) return texto(res, `❌ Importe no válido. Recibido: ${recibido}`);
+    if (!concepto) return texto(res, `❌ Falta el concepto. Recibido: ${recibido}`);
 
     const l = await listas();
 
     // Cuenta: la elegida por nombre; si no viene o no se reconoce, Revolut
-    const cn = norm(b.cuenta);
+    const cn = norm(campos.cuenta);
     const cuenta = (cn && (l.cuentas.find(c => norm(c.nombre) === cn)
         || l.cuentas.find(c => norm(c.nombre).includes(cn) || cn.includes(norm(c.nombre)))))
       || l.cuentas.find(c => c.id === REVOLUT) || l.cuentas[0];
     if (!cuenta) return texto(res, '❌ No hay cuentas activas');
 
     // Categoría: la elegida; con «Automática» (o sin categoría) se deduce del concepto
-    const catN = norm(b.categoria);
+    const catN = norm(campos.categoria);
     let cat = null;
     if (catN && catN !== norm(AUTO)) {
       cat = l.categorias.find(c => norm(c.nombre) === catN) || l.categorias.find(c => norm(c.nombre).includes(catN));
-      if (!cat) return texto(res, `❌ No existe la categoría «${b.categoria}»`);
+      if (!cat) return texto(res, `❌ No existe la categoría «${campos.categoria}»`);
     } else {
       const con = norm(concepto);
       cat = l.categorias.find(c => con.includes(norm(c.nombre)));
