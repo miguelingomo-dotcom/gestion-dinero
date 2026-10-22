@@ -618,7 +618,10 @@ input:focus,input:focus-visible,select:focus,textarea:focus{outline:none!importa
 .hero-card .hero-row{margin-top:18px;}
 .hero-card .hero-mini-val{font-size:15px;}
 .mov-daygroup{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.6px;
-  margin:20px 20px 8px;text-transform:uppercase;}
+  margin:20px 20px 8px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
+.mov-day-bal{letter-spacing:0;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.mov-day-bal.pos{color:var(--green);}
+.mov-day-bal.neg{color:var(--red);}
 .mov-daygroup:first-child{margin-top:6px;}
 .mov-list{margin-bottom:0;}
 .mov-group{background:var(--surface);border:1px solid var(--border);border-radius:20px;
@@ -652,7 +655,7 @@ body.kashy-privado .qa-bal,body.kashy-privado .mov-amount,body.kashy-privado .am
 body.kashy-privado .res-val,body.kashy-privado .goal-saved,body.kashy-privado .chart-val,
 body.kashy-privado .sus-amount,body.kashy-privado .top-amount,body.kashy-privado .pat-item-val,
 body.kashy-privado .wish-price,body.kashy-privado #patVariation,
-body.kashy-privado .fondo-val,body.kashy-privado .fondo-rend{
+body.kashy-privado .fondo-val,body.kashy-privado .fondo-rend,body.kashy-privado .mov-day-bal{
   filter:blur(9px);user-select:none;pointer-events:none;transition:filter .25s ease;}
 /* Fondos de la cartera (Inversión) */
 .fondo-row{padding:12px 0;border-top:1px solid var(--border);}
@@ -1165,7 +1168,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="reg-wrap" style="margin-bottom:10px;">
       <div class="sus-card" style="margin:0 0 14px;">
         <div class="sus-icon">🔁</div>
-        <div class="sus-info"><div class="sus-name" data-i18n="aportacion_mensual">Aportación mensual</div><div class="sus-meta"><span data-i18n="transferencia_automatica">Transferencia automática</span> Ibercaja · <span id="invAportMensualLbl"></span>€</div></div>
+        <div class="sus-info"><div class="sus-name" data-i18n="aportacion_mensual">Aportación mensual</div><div class="sus-meta"><span data-i18n="transferencia_automatica">Transferencia automática</span> Ibercaja · <span id="invAportMensualLbl"></span>€ · <span data-i18n="dia_lbl">Día</span> <span id="invAportDiaLbl"></span></div></div>
         <div class="sus-right"><button class="sus-btn" onclick="quickAportacionMensual()" data-i18n="btn_registrar">Registrar</button></div>
       </div>
     </div>
@@ -1542,7 +1545,8 @@ const FONDOS=[
   {key:'MSCI World',nombre:'iShares Developed World Index (clase S)',isin:'IE000ZYRH0Q7',pct:.25,color:'var(--blue)'},
   {key:'Emergentes',nombre:'Fidelity MSCI Emerging Markets Index P-ACC-EUR',isin:'IE00BYX5M476',pct:.20,color:'var(--orange)'},
 ];
-const INV_APORTACION_MENSUAL=120; // Transferencia automática mensual desde Ibercaja
+const INV_APORTACION_MENSUAL=150; // Aportación periódica automática desde Ibercaja
+const INV_APORTACION_DIA=26; // Día del mes en que se ejecuta
 const IBERCAJA_ID='31621c54013f811ebd49f65e2776d28e';
 const REVOLUT_PERSONAL_ID='31621c54013f817f9f00fc6acc160c26';
 const BAR_COLORS=['#7b6ef6','#22c55e','#f97316','#3b82f6','#eab308','#ec4899','#06b6d4'];
@@ -1626,6 +1630,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderChips();renderCats('gasto');renderSusc();renderIngresosRapidos();
   renderMonthChips();
   document.getElementById('invAportMensualLbl').textContent=INV_APORTACION_MENSUAL;
+  document.getElementById('invAportDiaLbl').textContent=INV_APORTACION_DIA;
   // Sin tiempo mínimo: el splash se va en cuanto Inicio tiene datos que pintar (tope de 1,2 s si la red va lenta)
   Promise.race([loadInicio().catch(()=>{}),new Promise(r=>setTimeout(r,1200))])
     .then(()=>{document.getElementById('splashScreen').classList.add('hide');});
@@ -2229,7 +2234,7 @@ async function loadMovs(silencioso){
       const catRelId=isG?(p.properties?.['Fuente de Gasto']?.relation?.[0]?.id||'').replace(/-/g,''):(p.properties?.['Fuente de Ingreso']?.relation?.[0]?.id||'').replace(/-/g,'');
       const cat=[...GASTOS,...INGRESOS].find(c=>c.id===catRelId);
       const emoji=cat?cat.emoji:getEmoji(name);
-      return`<div class="mov-item">
+      return`<div class="mov-item" data-amt="${isG?-amt:amt}">
         <div class="mov-icon" onclick="openEditMovement('${p.id}')" style="cursor:pointer;">${emoji}</div>
         <div class="mov-info" onclick="openEditMovement('${p.id}')" style="cursor:pointer;"><div class="mov-name">${name}</div><div class="mov-date">${fechaStr}</div></div>
         <div class="mov-amount ${isG?'gasto':'ingreso'}" onclick="openEditMovement('${p.id}')" style="cursor:pointer;">${isG?'-':'+'}${fmt(amt)} €</div>
@@ -2237,6 +2242,16 @@ async function loadMovs(silencioso){
       </div>`;
     }).join('');
   }catch(e){document.getElementById('recentMovs').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
+}
+/* Balance del día en su cabecera: ingresos − gastos de las filas del grupo que le sigue */
+function pintarBalanceDia(cab){
+  const grupo=cab&&cab.nextElementSibling;
+  if(!grupo||!grupo.classList.contains('mov-group'))return;
+  const neto=Math.round([...grupo.querySelectorAll('.mov-item[data-amt]')].reduce((s,f)=>s+(Number(f.dataset.amt)||0),0)*100)/100;
+  let el=cab.querySelector('.mov-day-bal');
+  if(!el){el=document.createElement('span');cab.appendChild(el);}
+  el.className='mov-day-bal'+(neto>0?' pos':neto<0?' neg':'');
+  el.textContent=(neto>0?'+':neto<0?'-':'')+fmt(Math.abs(neto))+' €';
 }
 /* Quita la fila borrada (con su carril de deslizar) plegándola; si el día se queda vacío, también su cabecera */
 function quitarFilaMov(fila){
@@ -2249,6 +2264,7 @@ function quitarFilaMov(fila){
   const lista=document.getElementById('recentMovs');
   const fin=()=>{
     quitar.forEach(el=>el.remove());
+    if(!vacio&&grupo&&grupo.classList.contains('mov-group'))pintarBalanceDia(grupo.previousElementSibling);
     if(lista&&!lista.querySelector('.mov-item'))lista.innerHTML=emptyState('🧾',t('empty_movs_title'),movsFilterAccId?t('msg_sin_movs_cuenta'):t('empty_movs_sub'));
   };
   const reducido=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -3809,13 +3825,15 @@ async function saveInv(){
       if(texto!==dia){
         dia=texto;
         var cab=document.createElement('div');
-        cab.className='mov-daygroup';cab.textContent=texto;
+        cab.className='mov-daygroup';
+        var lbl=document.createElement('span');lbl.textContent=texto;cab.appendChild(lbl);
         frag.appendChild(cab);
         grupo=document.createElement('div');grupo.className='mov-group';
         frag.appendChild(grupo);
       }
       grupo.appendChild(fila);
     });
+    Array.prototype.forEach.call(frag.querySelectorAll('.mov-daygroup'),pintarBalanceDia);
     lista.innerHTML='';lista.appendChild(frag);
     lista.dataset.agrupado='si';
   }
