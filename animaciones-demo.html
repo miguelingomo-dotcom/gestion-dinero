@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Ka$hy · Animaciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<!-- Demo independiente de las animaciones de categoría. No está enlazada desde la app. -->
+<style>
+/* Tokens copiados de index-nuevo.html (tema oscuro por defecto, claro con data-theme o con el sistema) */
+:root{
+  --page:#12131c;--sheet:#1b1c27;--surface:rgba(255,255,255,.05);--surface2:rgba(255,255,255,.07);
+  --border:rgba(255,255,255,.08);--text:#ECECF2;--muted:#8A8AA0;
+  --accent:#a99bff;--green:#34d399;--on-green:#052e1c;
+  --sh-md:0 10px 26px rgba(0,0,0,.4);
+  --ease-out:cubic-bezier(0.23,1,0.32,1);--ease-in-out:cubic-bezier(0.77,0,0.175,1);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    --page:#f5f4f0;--sheet:#ffffff;--surface:#ffffff;--surface2:#f2efea;
+    --border:#ddd9d0;--text:#1a1a24;--muted:#66667a;
+    --accent:#5d50e6;--green:#137333;--on-green:#ffffff;
+    --sh-md:0 8px 22px rgba(20,20,30,.09);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --page:#f5f4f0;--sheet:#ffffff;--surface:#ffffff;--surface2:#f2efea;
+  --border:#ddd9d0;--text:#1a1a24;--muted:#66667a;
+  --accent:#5d50e6;--green:#137333;--on-green:#ffffff;
+  --sh-md:0 8px 22px rgba(20,20,30,.09);
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Inter',-apple-system,system-ui,sans-serif;background:var(--page);color:var(--text);
+  padding:calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 40px);}
+.wrap{max-width:430px;margin:0 auto;}
+h1{font-size:22px;font-weight:700;letter-spacing:-.2px;}
+.sub{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45;}
+h2{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin:26px 0 10px;}
+
+/* Controles */
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+.seg{display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:3px;}
+.seg button{min-height:38px;border:none;background:transparent;color:var(--muted);font:600 12px/1 inherit;font-family:inherit;padding:8px 12px;border-radius:100px;cursor:pointer;}
+.seg button[aria-pressed="true"]{background:var(--sheet);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.15);}
+.btn{min-height:44px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font:600 12px/1 inherit;font-family:inherit;
+  padding:9px 13px;border-radius:100px;cursor:pointer;transition:transform .15s var(--ease-out);}
+.btn:active{transform:scale(.96);}
+.btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);}
+
+/* Familias */
+.familias{display:flex;flex-wrap:wrap;gap:6px;}
+.fam{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:12px;padding:8px 10px;
+  font-family:inherit;text-align:left;cursor:pointer;transition:transform .15s var(--ease-out);}
+.fam:active{transform:scale(.96);}
+.fam b{display:block;font-size:12.5px;}
+.fam span{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums;}
+
+/* Tarjetas de categoría */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+/* Mismo círculo que .cat-circle en Registrar. La pulsación escala el círculo; la animación va en el emoji interior,
+   así no se pisan las dos transformaciones */
+.cat-circle{width:56px;height:56px;border-radius:16px;background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;
+  transition:transform .15s var(--ease-out),background .15s var(--ease-out),border-color .15s var(--ease-out);}
+.cat-circle:active{transform:scale(.92);}
+.card.selected .cat-circle{background:color-mix(in srgb,var(--accent) 20%,transparent);border-color:var(--accent);}
+.emo{display:inline-block;line-height:1;}
+.name{font-size:12.5px;font-weight:600;text-align:center;}
+.card.selected .name{color:var(--accent);}
+.tag{font-size:10.5px;color:var(--muted);}
+.acts{display:flex;gap:6px;width:100%;}
+.acts .btn{flex:1;padding:8px 6px;font-size:11.5px;}
+
+/* Pagos recurrentes (réplica de .sus-card) */
+.sus{display:flex;flex-direction:column;gap:8px;}
+.sus-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:12px 14px;}
+.sus-row{display:flex;align-items:center;gap:12px;}
+.sus-icon{width:44px;height:44px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.sus-info{flex:1;min-width:0;}
+.sus-name{font-size:14px;font-weight:600;}
+.sus-meta{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.res-bar{height:6px;border-radius:100px;background:var(--surface2);overflow:hidden;margin-top:10px;}
+.res-bar-fill{height:100%;width:100%;transform-origin:left;border-radius:100px;background:linear-gradient(90deg,var(--green),var(--accent));
+  transition:transform .35s var(--ease-out);}
+
+/* Momento de éxito: réplica del success-burst de la app + insignia con el emoji */
+@keyframes burstCircle{0%{transform:scale(.9);opacity:0;}60%{transform:scale(1.03);opacity:1;}100%{transform:scale(1);opacity:1;}}
+@keyframes burstCheck{0%{stroke-dashoffset:24;}100%{stroke-dashoffset:0;}}
+@keyframes burstFadeOut{0%{opacity:1;}100%{opacity:0;}}
+.burst{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50;pointer-events:none;opacity:0;}
+.burst.show{opacity:1;animation:burstFadeOut .3s var(--ease-out) .95s forwards;}
+.burst-circle{position:relative;width:74px;height:74px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(34,197,94,.4);}
+.burst.show .burst-circle{animation:burstCircle .32s var(--ease-out) both;}
+.burst-circle svg{width:34px;height:34px;stroke:var(--on-green);stroke-dasharray:24;stroke-dashoffset:24;}
+.burst.show .burst-circle svg{animation:burstCheck .3s var(--ease-out) .12s forwards;}
+.badge{position:absolute;right:-10px;bottom:-8px;width:38px;height:38px;border-radius:50%;background:var(--sheet);
+  border:1px solid var(--border);box-shadow:var(--sh-md);display:flex;align-items:center;justify-content:center;font-size:20px;opacity:0;}
+
+@media (prefers-reduced-motion:reduce){
+  @keyframes burstCircle{from{opacity:0;}to{opacity:1;}}
+  .res-bar-fill{transition:none;}
+}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Animaciones de categoría</h1>
+  <p class="sub">Propuesta para Ka$hy. Pulsa el emoji para ver la animación al elegir el chip en Registrar y «Éxito» para ver el aviso de movimiento registrado.</p>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Tema">
+      <button type="button" data-tema="sistema" aria-pressed="true">Sistema</button>
+      <button type="button" data-tema="light" aria-pressed="false">Claro</button>
+      <button type="button" data-tema="dark" aria-pressed="false">Oscuro</button>
+    </div>
+    <button type="button" class="btn" id="btnReducido" aria-pressed="false">Simular movimiento reducido</button>
+    <button type="button" class="btn" id="btnTodas">Reproducir todas</button>
+  </div>
+  <p class="note" id="notaReducido"></p>
+
+  <h2>Familias</h2>
+  <div class="familias" id="familias"></div>
+
+  <h2>Gastos</h2>
+  <div class="grid" id="gridGastos"></div>
+
+  <h2>Ingresos</h2>
+  <div class="grid" id="gridIngresos"></div>
+
+  <h2>Pagos recurrentes</h2>
+  <div class="sus" id="listaFijos"></div>
+  <p class="note">En los pagos con cuotas, al registrar avanza la barra y el icono hace la versión corta de su animación a la vez.</p>
+
+  <h2>Ingresos rápidos</h2>
+  <div class="sus" id="listaRapidos"></div>
+</div>
+
+<div class="burst" id="burst" aria-hidden="true">
+  <div class="burst-circle">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    <div class="badge" id="badge"><span class="emo" id="badgeEmo"></span></div>
+  </div>
+</div>
+
+<script>
+/* Curvas: los mismos tokens que la app (--ease-out y --ease-in-out) */
+const OUT='cubic-bezier(0.23,1,0.32,1)',INOUT='cubic-bezier(0.77,0,0.175,1)',LIN='linear';
+
+/* Siete familias. Cada una tiene dos versiones: «chip» (≤ 260 ms, poca amplitud) y «exito» (≤ 620 ms).
+   Solo transform y opacidad; todas acaban en reposo, así que no hace falta fill. */
+const FAMILIAS={
+  salto:{nombre:'Salto',idea:'alegría, juego, premio',origen:'50% 100%',
+    chip:{dur:260,kf:o=>[
+      {transform:'translateY(0) scale(1,1)',easing:OUT},
+      {transform:'translateY(-5px) scale(1,1)',offset:.45,easing:INOUT},
+      {transform:'translateY(0) scale(1.05,.95)',offset:.8,easing:OUT},
+      {transform:'translateY(0) scale(1,1)'}]},
+    exito:{dur:560,kf:o=>[
+      {transform:'translateY(0) scale(1,1)',easing:OUT},
+      {transform:'translateY(0) scale(1.06,.94)',offset:.12,easing:OUT},
+      {transform:'translateY(-12px) scale(.96,1.04)',offset:.42,easing:INOUT},
+      {transform:'translateY(0) scale(1.06,.94)',offset:.66,easing:OUT},
+      {transform:'translateY(-4px) scale(1,1)',offset:.82,easing:INOUT},
+      {transform:'translateY(0) scale(1,1)'}]}},
+  avance:{nombre:'Avance',idea:'transporte, envío, compra',origen:'50% 50%',
+    chip:{dur:240,kf:o=>[
+      {transform:'translate(0,0)',easing:OUT},
+      {transform:`translate(${4*o.dx}px,${4*o.dy}px)`,offset:.4,easing:INOUT},
+      {transform:'translate(0,0)'}]},
+    // Sale por delante y vuelve a entrar por detrás: el vehículo «pasa»
+    exito:{dur:600,kf:o=>[
+      {transform:'translate(0,0)',opacity:1,easing:OUT},
+      {transform:`translate(${-3*o.dx}px,${-3*o.dy}px)`,opacity:1,offset:.16,easing:INOUT},
+      {transform:`translate(${16*o.dx}px,${16*o.dy}px)`,opacity:0,offset:.48},
+      {transform:`translate(${-16*o.dx}px,${-16*o.dy}px)`,opacity:0,offset:.5,easing:OUT},
+      {transform:'translate(0,0)',opacity:1}]}},
+  flote:{nombre:'Flote',idea:'aire, vapor, ligereza',origen:'50% 50%',
+    chip:{dur:260,kf:o=>[
+      {transform:'translateY(0)',easing:OUT},
+      {transform:'translateY(-4px)',offset:.45,easing:INOUT},
+      {transform:'translateY(0)'}]},
+    exito:{dur:620,kf:o=>[
+      {transform:'translateY(0) rotate(0)',easing:OUT},
+      {transform:'translateY(-10px) rotate(-4deg)',offset:.45,easing:INOUT},
+      {transform:'translateY(-7px) rotate(3deg)',offset:.7,easing:INOUT},
+      {transform:'translateY(0) rotate(0)'}]}},
+  balanceo:{nombre:'Balanceo',idea:'colgar, música, cariño',origen:'50% 0%',
+    chip:{dur:260,kf:o=>[
+      {transform:'rotate(0)',easing:OUT},
+      {transform:'rotate(10deg)',offset:.35,easing:INOUT},
+      {transform:'rotate(-5deg)',offset:.7,easing:INOUT},
+      {transform:'rotate(0)'}]},
+    exito:{dur:600,kf:o=>[
+      {transform:'rotate(0)',easing:OUT},
+      {transform:'rotate(12deg)',offset:.2,easing:INOUT},
+      {transform:'rotate(-9deg)',offset:.45,easing:INOUT},
+      {transform:'rotate(5deg)',offset:.68,easing:INOUT},
+      {transform:'rotate(-2deg)',offset:.85,easing:INOUT},
+      {transform:'rotate(0)'}]}},
+  latido:{nombre:'Latido',idea:'salud, hogar, comida, energía',origen:'50% 50%',
+    chip:{dur:220,kf:o=>[
+      {transform:'scale(1)',easing:OUT},
+      {transform:'scale(1.15)',offset:.4,easing:INOUT},
+      {transform:'scale(1)'}]},
+    exito:{dur:520,kf:o=>[
+      {transform:'scale(1)',easing:OUT},
+      {transform:'scale(1.2)',offset:.18,easing:INOUT},
+      {transform:'scale(.95)',offset:.36,easing:OUT},
+      {transform:'scale(1.1)',offset:.56,easing:INOUT},
+      {transform:'scale(1)'}]}},
+  zumbido:{nombre:'Zumbido',idea:'aparatos, avisos, azar',origen:'50% 50%',
+    chip:{dur:200,kf:o=>[
+      {transform:'translateX(0)',easing:LIN},{transform:'translateX(-2px)',easing:LIN},
+      {transform:'translateX(2px)',easing:LIN},{transform:'translateX(-2px)',easing:LIN},
+      {transform:'translateX(0)'}]},
+    exito:{dur:420,kf:o=>[
+      {transform:'translateX(0) rotate(0)',easing:LIN},
+      {transform:'translateX(-3px) rotate(-3deg)',easing:LIN},{transform:'translateX(3px) rotate(3deg)',easing:LIN},
+      {transform:'translateX(-3px) rotate(-3deg)',easing:LIN},{transform:'translateX(3px) rotate(3deg)',easing:LIN},
+      {transform:'translateX(-2px) rotate(-2deg)',easing:LIN},{transform:'translateX(1px) rotate(1deg)',easing:OUT},
+      {transform:'translateX(0) rotate(0)'}]}},
+  giro:{nombre:'Giro',idea:'dinero, páginas, giro',origen:'50% 50%',
+    chip:{dur:240,kf:o=>[
+      {transform:'perspective(160px) rotateY(0)',easing:OUT},
+      {transform:'perspective(160px) rotateY(35deg)',offset:.4,easing:INOUT},
+      {transform:'perspective(160px) rotateY(0)'}]},
+    exito:{dur:600,kf:o=>[
+      {transform:'perspective(160px) rotateY(0)',easing:INOUT},
+      {transform:'perspective(160px) rotateY(360deg)'}]}},
+};
+
+/* dx/dy: dirección del Avance (✈️ despega en diagonal). origen: sustituye al de la familia (🍦 se tambalea desde la base) */
+const GASTOS=[
+  ['Supermercado','🛒','avance'],['Restaurantes','🍽️','salto'],['Café','☕','flote'],
+  ['Helados','🍦','balanceo',{origen:'50% 100%'}],['Comida Rápida','🍔','latido'],['Gasolina','⛽','latido'],
+  ['Coche','🚗','avance'],['Ropa','👕','balanceo'],['Apuestas','🎰','zumbido'],['Farmacia','💊','latido'],
+  ['Ocio','🎮','zumbido'],['Regalos','🎁','salto'],['Bizum','📲','avance'],['Viajes','✈️','avance',{dx:1,dy:-.7}],
+  ['Hogar','🏠','latido'],['Suscripciones','📱','zumbido'],['Peluquería','💈','giro'],['Salud','🏥','latido'],
+  ['Educación','🎓','salto'],['Libros','📚','giro'],
+];
+const INGRESOS=[
+  ['Nómina','💼','balanceo'],['Nómina Pluxee','🍽️','salto'],['Bizum','📲','avance'],
+  ['Transf. Mamá','👩‍👧','balanceo',{origen:'50% 100%'}],['Remuneración','💶','giro'],['Wins','🏆','salto'],
+  ['Otros Ingresos','💸','flote'],
+];
+const FIJOS=[
+  ['Spotify','🎵','balanceo',{origen:'50% 100%',meta:'20,99 € · día 3'}],
+  ['Letra Coche','🚗','avance',{meta:'432,35 € · día 5',cuotas:[3,24]}],
+  ['iCloud','☁️','flote',{meta:'1,50 € · día 30'}],
+  ['DAZN Basket','🏀','salto',{meta:'4,99 € · día 27',cuotas:[4,12]}],
+  ['Claude Pro','🤖','zumbido',{meta:'21,78 € · día 11'}],
+  ['DAZN Fútbol','⚽','salto',{meta:'2,99 € · día 28',cuotas:[0,12]}],
+];
+const RAPIDOS=[
+  ['Awela','👵','balanceo',{origen:'50% 100%',meta:'+10,00 €'}],
+  ['Mamá','👩‍👧','balanceo',{origen:'50% 100%',meta:'+50,00 €'}],
+];
+
+/* ── Movimiento reducido: el del sistema o el simulado ── */
+const mq=matchMedia('(prefers-reduced-motion: reduce)');
+let reducidoSimulado=false;
+const reducido=()=>reducidoSimulado||mq.matches;
+
+/* Reproduce una animación sobre el emoji. Cancela la anterior para que tocar varias veces no las acumule */
+function animar(el,familia,version,opts={}){
+  el.getAnimations().forEach(a=>a.cancel());
+  if(reducido())return null; // en reducido el emoji no se mueve; el chip solo cambia de color
+  const f=FAMILIAS[familia],v=f[version];
+  el.style.transformOrigin=opts.origen||f.origen;
+  return el.animate(v.kf({dx:opts.dx??1,dy:opts.dy??0}),{duration:v.dur,delay:opts.delay||0});
+}
+
+/* ── Momento de éxito: el burst de la app (1,25 s) con la insignia del emoji ──
+   0–320 ms círculo · 120–420 ms check · 180–400 ms entra la insignia · 380 ms en adelante la animación de la familia
+   (como mucho 620 ms → acaba a 1 s) · 950–1250 ms se funde todo */
+let burstTimer=0;
+function exito(emoji,familia,opts={}){
+  const burst=document.getElementById('burst'),badge=document.getElementById('badge'),emo=document.getElementById('badgeEmo');
+  clearTimeout(burstTimer);
+  burst.classList.remove('show');void burst.offsetWidth;
+  badge.getAnimations().forEach(a=>a.cancel());
+  emo.textContent=emoji;
+  burst.classList.add('show');
+  const entrada=reducido()
+    ?[{opacity:0},{opacity:1}]
+    :[{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'scale(1)'}];
+  badge.animate(entrada,{duration:220,delay:180,easing:OUT,fill:'both'});
+  animar(emo,familia,'exito',{...opts,delay:380});
+  burstTimer=setTimeout(()=>{burst.classList.remove('show');badge.getAnimations().forEach(a=>a.cancel());},1300);
+}
+
+/* ── Pintado ── */
+function tarjeta([nombre,emoji,familia,opts={}],grupo){
+  const f=FAMILIAS[familia];
+  const card=document.createElement('div');
+  card.className='card';card.dataset.familia=familia;card.dataset.grupo=grupo;
+  card.innerHTML=`<button type="button" class="cat-circle" aria-label="Elegir ${nombre}"><span class="emo">${emoji}</span></button>
+    <div class="name">${nombre}</div><div class="tag">${f.nombre}</div>
+    <div class="acts"><button type="button" class="btn" data-acc="chip">Chip</button><button type="button" class="btn" data-acc="exito">Éxito</button></div>`;
+  const emo=card.querySelector('.emo');
+  // Como en Registrar: elegir el chip lo marca y anima el emoji (solo al tocarlo, no al autoelegirse)
+  const elegir=()=>{
+    document.querySelectorAll(`.card[data-grupo="${grupo}"]`).forEach(c=>c.classList.toggle('selected',c===card));
+    animar(emo,familia,'chip',opts);
+  };
+  card.querySelector('.cat-circle').onclick=elegir;
+  card.querySelector('[data-acc="chip"]').onclick=elegir;
+  card.querySelector('[data-acc="exito"]').onclick=()=>exito(emoji,familia,opts);
+  card._play=delay=>animar(emo,familia,'chip',{...opts,delay});
+  return card;
+}
+function filaFija([nombre,emoji,familia,opts={}]){
+  const card=document.createElement('div');
+  card.className='sus-card';card.dataset.familia=familia;
+  const [pagadas,total]=opts.cuotas||[];
+  card.innerHTML=`<div class="sus-row"><div class="sus-icon"><span class="emo">${emoji}</span></div>
+    <div class="sus-info"><div class="sus-name">${nombre}</div><div class="sus-meta">${opts.meta} · ${FAMILIAS[familia].nombre}${opts.cuotas?` · <span class="cuotas">${pagadas}/${total}</span> cuotas`:''}</div></div>
+    <button type="button" class="btn">Registrar</button></div>
+    ${opts.cuotas?`<div class="res-bar"><div class="res-bar-fill" style="transform:scaleX(${pagadas/total})"></div></div>`:''}`;
+  const emo=card.querySelector('.emo');
+  let n=pagadas;
+  card.querySelector('.btn').onclick=()=>{
+    exito(emoji,familia,opts);
+    if(opts.cuotas){
+      // La barra avanza (350 ms, como en la app) y el icono hace su versión corta a la vez
+      n=n>=total?0:n+1;
+      card.querySelector('.res-bar-fill').style.transform=`scaleX(${n/total})`;
+      card.querySelector('.cuotas').textContent=n;
+      animar(emo,familia,'chip',opts);
+    }
+  };
+  card._play=delay=>animar(emo,familia,'chip',{...opts,delay});
+  return card;
+}
+const gG=document.getElementById('gridGastos'),gI=document.getElementById('gridIngresos');
+GASTOS.forEach(c=>gG.appendChild(tarjeta(c,'gasto')));
+INGRESOS.forEach(c=>gI.appendChild(tarjeta(c,'ingreso')));
+FIJOS.forEach(c=>document.getElementById('listaFijos').appendChild(filaFija(c)));
+RAPIDOS.forEach(c=>document.getElementById('listaRapidos').appendChild(filaFija(c)));
+
+/* Familias: tocar una reproduce todas sus categorías con un escalonado de 50 ms */
+const famCont=document.getElementById('familias');
+Object.entries(FAMILIAS).forEach(([k,f])=>{
+  const b=document.createElement('button');
+  b.type='button';b.className='fam';
+  b.innerHTML=`<b>${f.nombre}</b><span>${f.chip.dur} / ${f.exito.dur} ms · ${f.idea}</span>`;
+  b.onclick=()=>[...document.querySelectorAll(`[data-familia="${k}"]`)].forEach((c,i)=>c._play(i*50));
+  famCont.appendChild(b);
+});
+document.getElementById('btnTodas').onclick=()=>
+  [...document.querySelectorAll('.card,.sus-card')].forEach((c,i)=>c._play(i*40));
+
+/* Tema */
+document.querySelectorAll('[data-tema]').forEach(b=>b.onclick=()=>{
+  const v=b.dataset.tema;
+  if(v==='sistema')document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',v);
+  document.querySelectorAll('[data-tema]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+});
+
+/* Movimiento reducido */
+const btnRed=document.getElementById('btnReducido'),nota=document.getElementById('notaReducido');
+function pintarNota(){
+  nota.textContent=mq.matches
+    ?'Tu sistema tiene activado «Reducir movimiento»: los emojis no se mueven y la insignia solo aparece con un fundido.'
+    :reducidoSimulado?'Simulando «Reducir movimiento»: los emojis no se mueven y la insignia solo aparece con un fundido.':'';
+}
+btnRed.onclick=()=>{reducidoSimulado=!reducidoSimulado;btnRed.setAttribute('aria-pressed',String(reducidoSimulado));pintarNota();};
+mq.addEventListener('change',pintarNota);pintarNota();
+</script>
+</body>
+</html>
