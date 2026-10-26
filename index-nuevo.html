@@ -1394,7 +1394,8 @@ const I18N={
     editar_gasto:'Editar Gasto',editar_ingreso:'Editar Ingreso',editar_transferencia:'Editar Transferencia',
     aviso_transf_inv:'Si cambias esta transferencia, revisa la aportación en Inversión',toast_transf_actualizada:'✓ Transferencia actualizada',
     toast_transf_eliminada:'Transferencia eliminada',toast_transf_eliminada_inv:'Transferencia eliminada · revisa la aportación en Inversión',
-    toast_elige_cuentas:'Elige dos cuentas distintas',
+    toast_elige_cuentas:'Elige dos cuentas distintas',toast_transf_ap_eliminadas:'Transferencia y aportación eliminadas',
+    toast_transf_act_ap_eliminada:'Transferencia actualizada · aportación eliminada',toast_ap_no_sync:'Transferencia guardada, pero no se pudo actualizar la aportación',
     gestionar_presupuestos:'Gestionar Presupuestos',definir_limite:'Define un límite mensual por categoría',
     btn_cerrar:'Cerrar',
     nueva_meta:'Nueva Meta',ejemplo_viaje:'Ej: Viaje a Japón',
@@ -1495,7 +1496,8 @@ const I18N={
     editar_gasto:'Edit Expense',editar_ingreso:'Edit Income',editar_transferencia:'Edit Transfer',
     aviso_transf_inv:'If you change this transfer, check the contribution in Invest',toast_transf_actualizada:'✓ Transfer updated',
     toast_transf_eliminada:'Transfer deleted',toast_transf_eliminada_inv:'Transfer deleted · check the contribution in Invest',
-    toast_elige_cuentas:'Choose two different accounts',
+    toast_elige_cuentas:'Choose two different accounts',toast_transf_ap_eliminadas:'Transfer and contribution deleted',
+    toast_transf_act_ap_eliminada:'Transfer updated · contribution deleted',toast_ap_no_sync:'Transfer saved, but the contribution couldn\'t be updated',
     gestionar_presupuestos:'Manage Budgets',definir_limite:'Set a monthly limit per category',
     btn_cerrar:'Close',
     nueva_meta:'New Goal',ejemplo_viaje:'e.g. Trip to Japan',
@@ -2354,10 +2356,14 @@ function deleteMovement(pageId,btn){
 }
 
 /* ── EDITAR / BORRAR TRANSFERENCIA ──
-   La aportación que se crea al transferir a MyInvestor no guarda ningún vínculo con la transferencia,
-   así que no se sincroniza: solo se avisa de que hay que revisarla en Inversión */
+   Una transferencia a MyInvestor crea una aportación que guarda su id en InvTransferId; con ese vínculo,
+   editar o borrar la transferencia mantiene la aportación al día. Las aportaciones antiguas, sin vínculo,
+   no se tocan: solo se avisa de que hay que revisarlas en Inversión */
 let editTrId='',editTrFrom='',editTrTo='',editTrToOrig='';
+// editTrAp: promesa de la aportación enlazada; editTrApEstado: 'cargando', la aportación, null (sin vínculo) o 'error'
+let editTrAp=null,editTrApEstado='cargando';
 const relTr=(p,k)=>(p.properties?.[k]?.relation?.[0]?.id||'').replace(/-/g,'');
+const nombreCuenta=id=>CUENTAS.find(c=>c.id===id)?.name||'';
 function openEditTransfer(pageId){
   const p=transfCache[pageId];
   if(!p)return;
@@ -2370,47 +2376,76 @@ function openEditTransfer(pageId){
   const chips=(lado,sel)=>accs.map(c=>`<div class="chip${c.id===sel?' selected':''}" onclick="selTrCuenta('${lado}','${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
   document.getElementById('trEditFromChips').innerHTML=chips('desde',editTrFrom);
   document.getElementById('trEditToChips').innerHTML=chips('hacia',editTrTo);
+  editTrApEstado='cargando';
+  editTrAp=aportacionDeTransfer(pageId);
+  editTrAp.then(ap=>{if(editTrId===pageId){editTrApEstado=ap;pintarAvisoTr();}},
+                ()=>{if(editTrId===pageId){editTrApEstado='error';pintarAvisoTr();}});
   pintarAvisoTr();
   document.getElementById('trEditOverlay').classList.add('show');
 }
 function selTrCuenta(lado,id,el){
   if(lado==='desde')editTrFrom=id;else editTrTo=id;
   el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',c===el));
-  pintarAvisoTr();
 }
+/* Aviso solo para transferencias antiguas a MyInvestor: su aportación no tiene vínculo y no se sincroniza */
 function pintarAvisoTr(){
-  document.getElementById('trEditAviso').style.display=(editTrToOrig===MYINVESTOR_ACC_ID||editTrTo===MYINVESTOR_ACC_ID)?'':'none';
+  const sinVinculo=editTrApEstado===null||editTrApEstado==='error';
+  document.getElementById('trEditAviso').style.display=(editTrToOrig===MYINVESTOR_ACC_ID&&sinVinculo)?'':'none';
 }
 function closeEditTransfer(){document.getElementById('trEditOverlay').classList.remove('show');}
+function patchPagina(id,properties){
+  return fetch('/api/page?pageId='+id,{
+    method:'PATCH',
+    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+    body:JSON.stringify({properties})
+  }).then(r=>r.json());
+}
 async function saveEditTransfer(){
   const amt=parseAmt(document.getElementById('trEditAmt').value);
   const date=document.getElementById('trEditDate').value;
   if(!amt||amt<=0){showToast(t('toast_importe_valido'),'error');return;}
   if(!date){showToast(t('toast_introduce_fecha'),'error');return;}
   if(!editTrFrom||!editTrTo||editTrFrom===editTrTo){showToast(t('toast_elige_cuentas'),'error');return;}
-  const nombre=id=>CUENTAS.find(c=>c.id===id)?.name||'';
+  const id=editTrId,from=editTrFrom,to=editTrTo,toOrig=editTrToOrig;
+  // Hace falta saber si hay aportación enlazada antes de guardar; si la consulta falló, se reintenta una vez
+  let ap;
+  try{ap=await editTrAp;}catch(e){
+    try{ap=await aportacionDeTransfer(id);}catch(e2){showToast(t('toast_conexion'),'error');return;}
+  }
   try{
-    const res=await fetch('/api/page?pageId='+editTrId,{
-      method:'PATCH',
-      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-      body:JSON.stringify({properties:{
-        Nombre:{title:[{text:{content:nombre(editTrFrom)+' → '+nombre(editTrTo)}}]},
-        Monto:{number:amt},
-        Fecha:{date:{start:date}},
-        'Transferir Desde':{relation:[{id:editTrFrom}]},
-        'Transferir a':{relation:[{id:editTrTo}]},
-      }})
+    const data=await patchPagina(id,{
+      Nombre:{title:[{text:{content:nombreCuenta(from)+' → '+nombreCuenta(to)}}]},
+      Monto:{number:amt},
+      Fecha:{date:{start:date}},
+      'Transferir Desde':{relation:[{id:from}]},
+      'Transferir a':{relation:[{id:to}]},
     });
-    const data=await res.json();
-    if(data.id){closeEditTransfer();showToast(t('toast_transf_actualizada'),'success');loadMovs(true);}
-    else showToast(t('toast_error_guardar'),'error');
-  }catch(e){showToast(t('toast_conexion'),'error');}
+    if(!data.id){showToast(t('toast_error_guardar'),'error');return;}
+  }catch(e){showToast(t('toast_conexion'),'error');return;}
+  closeEditTransfer();
+  loadMovs(true);
+  const aInversion=to===MYINVESTOR_ACC_ID;
+  try{
+    if(ap&&!aInversion){
+      // Ya no va a MyInvestor: su aportación se borra, con «Deshacer» como cualquier borrado
+      return borrarConDeshacer(ap.id,{msg:t('toast_transf_act_ap_eliminada')});
+    }
+    let ok=true;
+    if(ap)ok=!!(await patchPagina(ap.id,{InvImporte:{number:amt},InvFecha:{date:{start:date}}})).id;
+    // Pasa a ir a MyInvestor: se crea su aportación ya enlazada (las antiguas sin vínculo no se duplican)
+    else if(aInversion&&toOrig!==MYINVESTOR_ACC_ID)ok=!!(await crearAportacion('Aportación - '+nombreCuenta(from),amt,date,id)).id;
+    if(ok)showToast(t('toast_transf_actualizada'),'success');
+    else showToast(t('toast_ap_no_sync'),'error');
+  }catch(e){showToast(t('toast_ap_no_sync'),'error');}
 }
-function deleteTransfer(pageId,btn){
+async function deleteTransfer(pageId,btn){
   const p=transfCache[pageId];
   const aInversion=p&&relTr(p,'Transferir a')===MYINVESTOR_ACC_ID;
-  return borrarConDeshacer(pageId,{quitar:()=>quitarFilaMov(btn&&btn.closest('.mov-item')),
-    msg:t(aInversion?'toast_transf_eliminada_inv':'toast_transf_eliminada'),recargar:()=>loadMovs(true)});
+  // Con aportación enlazada se borran las dos, y «Deshacer» restaura las dos
+  let ap=null;
+  try{ap=await aportacionDeTransfer(pageId);}catch(e){showToast(t('toast_conexion'),'error');return;}
+  return borrarConDeshacer(ap?[pageId,ap.id]:pageId,{quitar:()=>quitarFilaMov(btn&&btn.closest('.mov-item')),
+    msg:t(ap?'toast_transf_ap_eliminadas':aInversion?'toast_transf_eliminada_inv':'toast_transf_eliminada'),recargar:()=>loadMovs(true)});
 }
 
 /* ── EDITAR MOVIMIENTO ── */
@@ -3568,7 +3603,7 @@ async function submitTransfer(){
     if(res.id){
       // Una transferencia a MyInvestor cuenta como aportación a la cartera
       if(toId===MYINVESTOR_ACC_ID){
-        const ap=await crearAportacion('Aportación - '+fromName.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim(),amt,today);
+        const ap=await crearAportacion('Aportación - '+fromName.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim(),amt,today,res.id);
         if(!ap.id){showToast('Error: '+(ap.message||t('toast_intentalo')),'error');loadAccounts();return;}
       }
       showSuccessBurst();showToast(t('toast_transferencia_reg'),'success');loadAccounts();
@@ -3594,19 +3629,35 @@ function showToast(msg,type='',accion){
   t.className='toast '+type+' show'+(accion?' con-accion':'');
   toastTimer=setTimeout(ocultar,accion?5000:3000);
 }
-/* Borra (archiva en Notion) al momento y ofrece «Deshacer» 5 s: deshacer desarchiva la misma página, sin recrearla */
+/* Borra (archiva en Notion) al momento y ofrece «Deshacer» 5 s: deshacer desarchiva las mismas páginas, sin recrearlas.
+   pageId puede ser una lista (transferencia + su aportación): se borran todas o ninguna */
+async function archivarPagina(id){
+  const res=await fetch('/api/delete?pageId='+id,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
+  const data=await res.json();
+  return !!(data.archived||data.in_trash);
+}
+async function restaurarPagina(id){
+  const r=await fetch('/api/page?pageId='+id,{method:'PATCH',
+    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({archived:false})});
+  const d=await r.json();
+  return !!(d.id&&!d.archived);
+}
 async function borrarConDeshacer(pageId,{quitar,msg,recargar}){
+  const ids=[].concat(pageId);
   try{
-    const res=await fetch('/api/delete?pageId='+pageId,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
-    const data=await res.json();
-    if(!(data.archived||data.in_trash)){showToast(t('toast_error_eliminar'),'error');return;}
+    const hechas=[];
+    for(const id of ids){
+      if(!(await archivarPagina(id))){
+        await Promise.all(hechas.map(h=>restaurarPagina(h).catch(()=>false)));
+        showToast(t('toast_error_eliminar'),'error');return;
+      }
+      hechas.push(id);
+    }
     if(quitar)quitar();
     showToast(msg,'',{texto:'Deshacer',fn:async()=>{
       try{
-        const r=await fetch('/api/page?pageId='+pageId,{method:'PATCH',
-          headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({archived:false})});
-        const d=await r.json();
-        if(d.id&&!d.archived){showToast('✓ Restaurado','success');if(recargar)recargar();}
+        const ok=await Promise.all(ids.map(restaurarPagina));
+        if(ok.every(Boolean)){showToast('✓ Restaurado','success');if(recargar)recargar();}
         else showToast('No se pudo restaurar','error');
       }catch(e){showToast(t('toast_conexion'),'error');}
     }});
@@ -3842,13 +3893,25 @@ function openEditInv(pageId){
 function deleteInv(pageId,btn){
   return borrarConDeshacer(pageId,{quitar:loadInversion,msg:'Registro eliminado',recargar:loadInversion});
 }
-function crearAportacion(nombre,amt,date){
-  return nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
+/* transferId (opcional): la transferencia a MyInvestor que origina la aportación; se guarda sin guiones en InvTransferId */
+function crearAportacion(nombre,amt,date,transferId){
+  const props={
     Nombre:{title:[{text:{content:nombre}}]},
     InvTipo:{select:{name:'Aportación'}},
     InvImporte:{number:amt},
     InvFecha:{date:{start:date}},
-  }});
+  };
+  if(transferId)props.InvTransferId={rich_text:[{text:{content:transferId.replace(/-/g,'')}}]};
+  return nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:props});
+}
+/* Aportación enlazada a una transferencia (InvTransferId), o null si no hay. Lanza si la consulta falla */
+async function aportacionDeTransfer(transferId){
+  const d=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{and:[
+    {property:'InvTipo',select:{equals:'Aportación'}},
+    {property:'InvTransferId',rich_text:{equals:transferId.replace(/-/g,'')}}
+  ]},page_size:1});
+  if(!d||!d.results)throw new Error('consulta fallida');
+  return d.results[0]||null;
 }
 async function quickAportacionMensual(){
   const today=hoyLocal();
@@ -3862,7 +3925,7 @@ async function quickAportacionMensual(){
       'Transferir a':{relation:[{id:MYINVESTOR_ACC_ID}]},
     }});
     if(!tr.id){showToast('Error: '+(tr.message||t('toast_intentalo')),'error');return;}
-    const res=await crearAportacion('Aportación mensual - '+today,INV_APORTACION_MENSUAL,today);
+    const res=await crearAportacion('Aportación mensual - '+today,INV_APORTACION_MENSUAL,today,tr.id);
     if(res.id){showSuccessBurst();showToast(t('toast_aportacion_de')+' '+INV_APORTACION_MENSUAL+'€ '+t('toast_registrada'),'success');loadInversion();}
     else showToast('Error: '+(res.message||t('toast_intentalo')),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
