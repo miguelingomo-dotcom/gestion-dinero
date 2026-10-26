@@ -149,6 +149,8 @@ input,select,button{font-family:'DM Sans',-apple-system,sans-serif;}
 .mov-amount.gasto{color:var(--red);}
 .mov-amount.ingreso{color:var(--green);}
 .mov-amount.transfer{color:var(--muted);}
+.tr-aviso{margin-top:14px;padding:10px 12px;border-radius:12px;font-size:12.5px;font-weight:600;color:var(--warn-text);
+  background:color-mix(in srgb,var(--yellow) 12%,transparent);border:1px solid color-mix(in srgb,var(--yellow) 26%,transparent);}
 .del-btn{background:none;border:none;color:var(--red);font-size:15px;cursor:pointer;padding:4px 6px;opacity:.5;flex-shrink:0;transition:opacity .15s;}
 .del-btn:active{opacity:1;}
 
@@ -712,10 +714,10 @@ html,body,.app,.section,.chips-wrap,.account-movs-wrap,.modal,.sheet,.overlay{sc
 html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;}
 .section > .header + *{margin-top:0;}
 .quick-accounts-head{margin-top:8px!important;}
-#accountChips .chip,#editAccChips .chip,#transferToChips .chip,#movFilterChips .chip[data-bank]{
+#accountChips .chip,#editAccChips .chip,#transferToChips .chip,#trEditFromChips .chip,#trEditToChips .chip,#movFilterChips .chip[data-bank]{
   border:none!important;border-left:none!important;color:#fff!important;font-weight:600;
   box-shadow:0 6px 16px rgba(0,0,0,.28);opacity:.55;transition:opacity var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease);}
-#accountChips .chip.selected,#editAccChips .chip.selected,#transferToChips .chip.selected,#movFilterChips .chip[data-bank].selected{
+#accountChips .chip.selected,#editAccChips .chip.selected,#transferToChips .chip.selected,#trEditFromChips .chip.selected,#trEditToChips .chip.selected,#movFilterChips .chip[data-bank].selected{
   opacity:1;box-shadow:0 8px 20px rgba(0,0,0,.36),inset 0 0 0 2px rgba(255,255,255,.85);}
 .account-name{display:flex;align-items:center;gap:8px;font-size:13px!important;font-weight:600!important;
   color:rgba(255,255,255,.94)!important;margin-bottom:6px!important;}
@@ -1248,6 +1250,26 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
   </div>
 </div>
 
+<!-- ── EDITAR TRANSFERENCIA ── -->
+<div class="modal-overlay" id="trEditOverlay">
+  <div class="modal">
+    <div class="modal-title" data-i18n="editar_transferencia">Editar Transferencia</div>
+    <div class="modal-field-lbl" data-i18n="lbl_desde">Desde</div>
+    <div class="chips-wrap" id="trEditFromChips"></div>
+    <div class="modal-field-lbl" data-i18n="lbl_hacia">Hacia</div>
+    <div class="chips-wrap" id="trEditToChips"></div>
+    <div class="modal-field-lbl" data-i18n="lbl_importe">Importe</div>
+    <input type="text" id="trEditAmt" class="modal-input" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">
+    <div class="modal-field-lbl" data-i18n="lbl_fecha">Fecha</div>
+    <input type="date" id="trEditDate" class="modal-input">
+    <div class="tr-aviso" id="trEditAviso" data-i18n="aviso_transf_inv" style="display:none;">Si cambias esta transferencia, revisa la aportación en Inversión</div>
+    <div class="modal-btns" style="margin-top:20px;">
+      <button class="modal-cancel" onclick="closeEditTransfer()" data-i18n="btn_cancelar">Cancelar</button>
+      <button class="modal-confirm" onclick="saveEditTransfer()" data-i18n="btn_guardar">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── EDIT MODAL ── -->
 <div class="modal-overlay" id="editOverlay">
   <div class="modal">
@@ -1369,7 +1391,10 @@ const I18N={
     descargar_extracto:'📥 Descargar extracto (CSV)',
     transferencia_automatica:'Transferencia automática',
     modal_mover_dinero:'Mover Dinero',lbl_desde:'Desde',lbl_hacia:'Hacia',btn_transferir:'Transferir',
-    editar_gasto:'Editar Gasto',editar_ingreso:'Editar Ingreso',
+    editar_gasto:'Editar Gasto',editar_ingreso:'Editar Ingreso',editar_transferencia:'Editar Transferencia',
+    aviso_transf_inv:'Si cambias esta transferencia, revisa la aportación en Inversión',toast_transf_actualizada:'✓ Transferencia actualizada',
+    toast_transf_eliminada:'Transferencia eliminada',toast_transf_eliminada_inv:'Transferencia eliminada · revisa la aportación en Inversión',
+    toast_elige_cuentas:'Elige dos cuentas distintas',
     gestionar_presupuestos:'Gestionar Presupuestos',definir_limite:'Define un límite mensual por categoría',
     btn_cerrar:'Cerrar',
     nueva_meta:'Nueva Meta',ejemplo_viaje:'Ej: Viaje a Japón',
@@ -1467,7 +1492,10 @@ const I18N={
     descargar_extracto:'📥 Download statement (CSV)',
     transferencia_automatica:'Automatic transfer',
     modal_mover_dinero:'Transfer Money',lbl_desde:'From',lbl_hacia:'To',btn_transferir:'Transfer',
-    editar_gasto:'Edit Expense',editar_ingreso:'Edit Income',
+    editar_gasto:'Edit Expense',editar_ingreso:'Edit Income',editar_transferencia:'Edit Transfer',
+    aviso_transf_inv:'If you change this transfer, check the contribution in Invest',toast_transf_actualizada:'✓ Transfer updated',
+    toast_transf_eliminada:'Transfer deleted',toast_transf_eliminada_inv:'Transfer deleted · check the contribution in Invest',
+    toast_elige_cuentas:'Choose two different accounts',
     gestionar_presupuestos:'Manage Budgets',definir_limite:'Set a monthly limit per category',
     btn_cerrar:'Close',
     nueva_meta:'New Goal',ejemplo_viaje:'e.g. Trip to Japan',
@@ -2155,7 +2183,7 @@ async function loadResumen(){
 }
 
 /* ── MOVIMIENTOS ── */
-let movsCache={};
+let movsCache={},transfCache={};
 let movsFilterAccId=null;
 function renderMovFilterChips(){
   const accs=CUENTAS.filter(c=>cuentasActivasIds.has(c.id));
@@ -2246,7 +2274,7 @@ async function loadMovs(silencioso){
       const msg=movsFilterAccId?t('msg_sin_movs_cuenta'):t('empty_movs_sub');
       document.getElementById('recentMovs').innerHTML=emptyState('🧾',t('empty_movs_title'),msg);return;
     }
-    movsCache={};
+    movsCache={};transfCache={};
     const fechaDe=p=>p.properties?.Fecha?.date?.start||'';
     const fechaTxt=fecha=>{
       if(!fecha)return t('sin_fecha');
@@ -2259,13 +2287,15 @@ async function loadMovs(silencioso){
     document.getElementById('recentMovs').innerHTML=filas.map(({p,tr})=>{
       const fechaStr=fechaTxt(fechaDe(p));
       if(tr){
-        // Sin data-amt ni acciones: no cuenta en el neto del día y no hay flujo de edición para transferencias
+        // Sin data-amt: no cuenta en el neto del día. Se edita y borra con su propia hoja (openEditTransfer/deleteTransfer)
+        transfCache[p.id]=p;
         const desde=cuentaNombre(p.properties?.['Transferir Desde']?.relation),hacia=cuentaNombre(p.properties?.['Transferir a']?.relation);
         const name=desde&&hacia?desde+' → '+hacia:(p.properties?.Nombre?.title?.[0]?.plain_text||'—');
-        return`<div class="mov-item mov-transfer">
-        <div class="mov-icon">⇄</div>
-        <div class="mov-info"><div class="mov-name">${name}</div><div class="mov-date">${fechaStr}</div></div>
-        <div class="mov-amount transfer">${fmt(p.properties?.Monto?.number||0)} €</div>
+        return`<div class="mov-item mov-transfer" data-swipe-edit="openEditTransfer" data-swipe-del="deleteTransfer">
+        <div class="mov-icon" onclick="openEditTransfer('${p.id}')" style="cursor:pointer;">⇄</div>
+        <div class="mov-info" onclick="openEditTransfer('${p.id}')" style="cursor:pointer;"><div class="mov-name">${name}</div><div class="mov-date">${fechaStr}</div></div>
+        <div class="mov-amount transfer" onclick="openEditTransfer('${p.id}')" style="cursor:pointer;">${fmt(p.properties?.Monto?.number||0)} €</div>
+        <button class="del-btn" onclick="deleteTransfer('${p.id}',this)">🗑️</button>
       </div>`;
       }
       movsCache[p.id]=p;
@@ -2321,6 +2351,66 @@ function quitarFilaMov(fila){
 }
 function deleteMovement(pageId,btn){
   return borrarConDeshacer(pageId,{quitar:()=>quitarFilaMov(btn&&btn.closest('.mov-item')),msg:'Movimiento eliminado',recargar:()=>loadMovs(true)});
+}
+
+/* ── EDITAR / BORRAR TRANSFERENCIA ──
+   La aportación que se crea al transferir a MyInvestor no guarda ningún vínculo con la transferencia,
+   así que no se sincroniza: solo se avisa de que hay que revisarla en Inversión */
+let editTrId='',editTrFrom='',editTrTo='',editTrToOrig='';
+const relTr=(p,k)=>(p.properties?.[k]?.relation?.[0]?.id||'').replace(/-/g,'');
+function openEditTransfer(pageId){
+  const p=transfCache[pageId];
+  if(!p)return;
+  editTrId=pageId;
+  editTrFrom=relTr(p,'Transferir Desde');
+  editTrTo=editTrToOrig=relTr(p,'Transferir a');
+  document.getElementById('trEditAmt').value=p.properties?.Monto?.number||'';
+  document.getElementById('trEditDate').value=p.properties?.Fecha?.date?.start||'';
+  const accs=CUENTAS.filter(c=>cuentasActivasIds.has(c.id)||c.id===editTrFrom||c.id===editTrTo);
+  const chips=(lado,sel)=>accs.map(c=>`<div class="chip${c.id===sel?' selected':''}" onclick="selTrCuenta('${lado}','${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
+  document.getElementById('trEditFromChips').innerHTML=chips('desde',editTrFrom);
+  document.getElementById('trEditToChips').innerHTML=chips('hacia',editTrTo);
+  pintarAvisoTr();
+  document.getElementById('trEditOverlay').classList.add('show');
+}
+function selTrCuenta(lado,id,el){
+  if(lado==='desde')editTrFrom=id;else editTrTo=id;
+  el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',c===el));
+  pintarAvisoTr();
+}
+function pintarAvisoTr(){
+  document.getElementById('trEditAviso').style.display=(editTrToOrig===MYINVESTOR_ACC_ID||editTrTo===MYINVESTOR_ACC_ID)?'':'none';
+}
+function closeEditTransfer(){document.getElementById('trEditOverlay').classList.remove('show');}
+async function saveEditTransfer(){
+  const amt=parseAmt(document.getElementById('trEditAmt').value);
+  const date=document.getElementById('trEditDate').value;
+  if(!amt||amt<=0){showToast(t('toast_importe_valido'),'error');return;}
+  if(!date){showToast(t('toast_introduce_fecha'),'error');return;}
+  if(!editTrFrom||!editTrTo||editTrFrom===editTrTo){showToast(t('toast_elige_cuentas'),'error');return;}
+  const nombre=id=>CUENTAS.find(c=>c.id===id)?.name||'';
+  try{
+    const res=await fetch('/api/page?pageId='+editTrId,{
+      method:'PATCH',
+      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify({properties:{
+        Nombre:{title:[{text:{content:nombre(editTrFrom)+' → '+nombre(editTrTo)}}]},
+        Monto:{number:amt},
+        Fecha:{date:{start:date}},
+        'Transferir Desde':{relation:[{id:editTrFrom}]},
+        'Transferir a':{relation:[{id:editTrTo}]},
+      }})
+    });
+    const data=await res.json();
+    if(data.id){closeEditTransfer();showToast(t('toast_transf_actualizada'),'success');loadMovs(true);}
+    else showToast(t('toast_error_guardar'),'error');
+  }catch(e){showToast(t('toast_conexion'),'error');}
+}
+function deleteTransfer(pageId,btn){
+  const p=transfCache[pageId];
+  const aInversion=p&&relTr(p,'Transferir a')===MYINVESTOR_ACC_ID;
+  return borrarConDeshacer(pageId,{quitar:()=>quitarFilaMov(btn&&btn.closest('.mov-item')),
+    msg:t(aInversion?'toast_transf_eliminada_inv':'toast_transf_eliminada'),recargar:()=>loadMovs(true)});
 }
 
 /* ── EDITAR MOVIMIENTO ── */
@@ -3695,7 +3785,7 @@ function closeInvModal(){document.getElementById('invOverlay').classList.remove(
 /* ── HOJAS MODALES: cerrar tocando fuera o arrastrando el asa hacia abajo ── */
 (function(){
   const CIERRES={goalOverlay:'closeGoalModal',goalAddOverlay:'closeGoalAdd',wishOverlay:'closeWishModal',invOverlay:'closeInvModal',
-    transferOverlay:'closeTransfer',editOverlay:'closeEdit',budgetOverlay:'closeBudgetManager',
+    transferOverlay:'closeTransfer',editOverlay:'closeEdit',trEditOverlay:'closeEditTransfer',budgetOverlay:'closeBudgetManager',
     accionOverlay:'cerrarAccion'};
   function cerrar(ov){const fn=window[CIERRES[ov.id]];if(typeof fn==='function')fn();else ov.classList.remove('show');}
   document.querySelectorAll('.modal-overlay').forEach(ov=>{
@@ -4032,7 +4122,7 @@ async function saveInv(){
 
   /* Chips de cuenta con el color de su banco */
   function pintarChips(){
-    ['accountChips','editAccChips','transferToChips','movFilterChips'].forEach(function(id){
+    ['accountChips','editAccChips','transferToChips','trEditFromChips','trEditToChips','movFilterChips'].forEach(function(id){
       var cont=document.getElementById(id);
       if(!cont)return;
       cont.querySelectorAll('.chip').forEach(function(chip){
@@ -4043,7 +4133,7 @@ async function saveInv(){
       });
     });
   }
-  ['accountChips','editAccChips','transferToChips','movFilterChips'].forEach(function(id){
+  ['accountChips','editAccChips','transferToChips','trEditFromChips','trEditToChips','movFilterChips'].forEach(function(id){
     var cont=document.getElementById(id);
     if(cont)new MutationObserver(pintarChips).observe(cont,{childList:true,subtree:true});
   });
