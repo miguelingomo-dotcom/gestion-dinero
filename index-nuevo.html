@@ -148,6 +148,7 @@ input,select,button{font-family:'DM Sans',-apple-system,sans-serif;}
 .mov-amount{font-size:14px;font-weight:700;flex-shrink:0;}
 .mov-amount.gasto{color:var(--red);}
 .mov-amount.ingreso{color:var(--green);}
+.mov-amount.transfer{color:var(--muted);}
 .del-btn{background:none;border:none;color:var(--red);font-size:15px;cursor:pointer;padding:4px 6px;opacity:.5;flex-shrink:0;transition:opacity .15s;}
 .del-btn:active{opacity:1;}
 
@@ -1321,7 +1322,7 @@ const I18N={
     btn_deactivate:'⏸ Desactivar',btn_reactivate:'▶ Reactivar',btn_actualizar_valor:'📊 Actualizar Valor',
     btn_aportacion:'➕ Aportación',btn_para_mi:'Para mí',btn_regalo:'🎁 Regalo',btn_comprado:'✓ Comprado',
     gastos_fijos:'Pagos recurrentes',ingresos_rapidos:'Ingresos rápidos',
-    transf_recurrentes:'Transferencias recurrentes',metas_ahorro:'Metas de ahorro',
+    transf_recurrentes:'Transferencias recurrentes',filter_transferencias:'Transferencias',metas_ahorro:'Metas de ahorro',
     lista_deseos:'Lista de deseos',historial:'Historial',cuentas_inactivas:'Ver cuentas inactivas',
     aportado:'Aportado',objetivo:'Objetivo',restante:'Restante',
     ver_inactivas:'Ver cuentas inactivas',ocultar_inactivas:'Ocultar cuentas inactivas',
@@ -1419,7 +1420,7 @@ const I18N={
     btn_deactivate:'⏸ Deactivate',btn_reactivate:'▶ Reactivate',btn_actualizar_valor:'📊 Update Value',
     btn_aportacion:'➕ Contribution',btn_para_mi:'For me',btn_regalo:'🎁 Gift',btn_comprado:'✓ Bought',
     gastos_fijos:'Recurring payments',ingresos_rapidos:'Quick income',
-    transf_recurrentes:'Recurring transfers',metas_ahorro:'Savings goals',
+    transf_recurrentes:'Recurring transfers',filter_transferencias:'Transfers',metas_ahorro:'Savings goals',
     lista_deseos:'Wish list',historial:'History',cuentas_inactivas:'Show inactive accounts',
     aportado:'Contributed',objetivo:'Target',restante:'Remaining',
     ver_inactivas:'Show inactive accounts',ocultar_inactivas:'Hide inactive accounts',
@@ -2171,7 +2172,7 @@ let movsFilterTipo=null;
 function renderMovTipoChips(){
   const cont=document.getElementById('movTipoChips');
   if(!cont)return;
-  const tipos=[{id:null,txt:'Todos'},{id:'gasto',txt:'💸 Gastos'},{id:'ingreso',txt:'💰 Ingresos'}];
+  const tipos=[{id:null,txt:'Todos'},{id:'gasto',txt:'💸 Gastos'},{id:'ingreso',txt:'💰 Ingresos'},{id:'transferencia',txt:'⇄ '+t('filter_transferencias')}];
   cont.innerHTML=tipos.map(x=>'<div class="chip'+(movsFilterTipo===x.id?' selected':'')+'" onclick="selMovTipo('+(x.id?"'"+x.id+"'":'null')+',this)">'+x.txt+'</div>').join('');
 }
 function selMovTipo(tipo,el){
@@ -2207,30 +2208,69 @@ async function loadMovs(silencioso){
   // Tras editar se recarga sin esqueleto: la lista se sustituye de golpe en vez de parpadear
   if(silencioso!==true)document.getElementById('recentMovs').innerHTML=skeletonRowsInner(6);
   try{
-    const query={sorts:[{timestamp:'created_time',direction:'descending'}],page_size:30};
-    const conds=[];
-    if(movsFilterTipo==='gasto')conds.push({property:'Gasto',number:{greater_than:0}});
-    if(movsFilterTipo==='ingreso')conds.push({property:'Ingreso',number:{greater_than:0}});
-    if(movsFilterAccId)conds.push({property:'Cuenta',relation:{contains:movsFilterAccId}});
-    if(movsFilterCatId)conds.push({or:[
-      {property:'Fuente de Gasto',relation:{contains:movsFilterCatId}},
-      {property:'Fuente de Ingreso',relation:{contains:movsFilterCatId}}
-    ]});
-    if(conds.length)query.filter=conds.length===1?conds[0]:{and:conds};
-    const data=await nFetch('/databases/'+DB_ID+'/query','POST',query);
-    const pages=(data.results||[]).filter(p=>(p.properties?.Gasto?.number||0)+(p.properties?.Ingreso?.number||0)>0);
-    if(!pages.length){
+    // Las transferencias (otra base de datos) van mezcladas con los movimientos; no tienen categoría ni son gasto/ingreso
+    const verMovs=movsFilterTipo!=='transferencia';
+    const verTransf=(!movsFilterTipo||movsFilterTipo==='transferencia')&&!movsFilterCatId;
+    let pages=[],hayMas=false;
+    if(verMovs){
+      const query={sorts:[{timestamp:'created_time',direction:'descending'}],page_size:30};
+      const conds=[];
+      if(movsFilterTipo==='gasto')conds.push({property:'Gasto',number:{greater_than:0}});
+      if(movsFilterTipo==='ingreso')conds.push({property:'Ingreso',number:{greater_than:0}});
+      if(movsFilterAccId)conds.push({property:'Cuenta',relation:{contains:movsFilterAccId}});
+      if(movsFilterCatId)conds.push({or:[
+        {property:'Fuente de Gasto',relation:{contains:movsFilterCatId}},
+        {property:'Fuente de Ingreso',relation:{contains:movsFilterCatId}}
+      ]});
+      if(conds.length)query.filter=conds.length===1?conds[0]:{and:conds};
+      const data=await nFetch('/databases/'+DB_ID+'/query','POST',query);
+      pages=(data.results||[]).filter(p=>(p.properties?.Gasto?.number||0)+(p.properties?.Ingreso?.number||0)>0);
+      hayMas=!!data.has_more;
+    }
+    let transfs=[];
+    if(verTransf){
+      const tc=[];
+      if(movsFilterAccId)tc.push({or:[
+        {property:'Transferir Desde',relation:{contains:movsFilterAccId}},
+        {property:'Transferir a',relation:{contains:movsFilterAccId}}
+      ]});
+      // Si los movimientos se cortan en 30, solo las transferencias desde la fecha del más antiguo cargado
+      const fechas=pages.map(p=>p.properties?.Fecha?.date?.start).filter(Boolean).sort();
+      if(hayMas&&fechas.length)tc.push({property:'Fecha',date:{on_or_after:fechas[0]}});
+      const body={sorts:[{property:'Fecha',direction:'descending'}],page_size:100};
+      if(tc.length)body.filter=tc.length===1?tc[0]:{and:tc};
+      const td=await nQueryAll(TRANSFER_DB,body);
+      transfs=(td&&td.results)||[];
+    }
+    if(!pages.length&&!transfs.length){
       const msg=movsFilterAccId?t('msg_sin_movs_cuenta'):t('empty_movs_sub');
       document.getElementById('recentMovs').innerHTML=emptyState('🧾',t('empty_movs_title'),msg);return;
     }
     movsCache={};
-    document.getElementById('recentMovs').innerHTML=pages.map(p=>{
+    const fechaDe=p=>p.properties?.Fecha?.date?.start||'';
+    const fechaTxt=fecha=>{
+      if(!fecha)return t('sin_fecha');
+      try{return new Date(fecha+'T12:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short'});}catch(e){return t('sin_fecha');}
+    };
+    // Orden cronológico por Fecha (sin fecha al final); a igual fecha, lo último creado primero
+    const filas=[...pages.map(p=>({p,tr:false})),...transfs.map(p=>({p,tr:true}))]
+      .sort((a,b)=>(fechaDe(b.p)||'').localeCompare(fechaDe(a.p)||'')||(b.p.created_time||'').localeCompare(a.p.created_time||''));
+    const cuentaNombre=rel=>{const id=(rel?.[0]?.id||'').replace(/-/g,'');return CUENTAS.find(c=>c.id===id)?.name;};
+    document.getElementById('recentMovs').innerHTML=filas.map(({p,tr})=>{
+      const fechaStr=fechaTxt(fechaDe(p));
+      if(tr){
+        // Sin data-amt ni acciones: no cuenta en el neto del día y no hay flujo de edición para transferencias
+        const desde=cuentaNombre(p.properties?.['Transferir Desde']?.relation),hacia=cuentaNombre(p.properties?.['Transferir a']?.relation);
+        const name=desde&&hacia?desde+' → '+hacia:(p.properties?.Nombre?.title?.[0]?.plain_text||'—');
+        return`<div class="mov-item mov-transfer">
+        <div class="mov-icon">⇄</div>
+        <div class="mov-info"><div class="mov-name">${name}</div><div class="mov-date">${fechaStr}</div></div>
+        <div class="mov-amount transfer">${fmt(p.properties?.Monto?.number||0)} €</div>
+      </div>`;
+      }
       movsCache[p.id]=p;
       const name=p.properties?.Nombre?.title?.[0]?.plain_text||'—';
       const g=p.properties?.Gasto?.number,i=p.properties?.Ingreso?.number;
-      const fecha=p.properties?.Fecha?.date?.start||'';
-      let fechaStr=t('sin_fecha');
-      if(fecha){try{fechaStr=new Date(fecha+'T12:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short'});}catch(e){}}
       const isG=g&&g>0;const amt=isG?g:(i||0);
       const catRelId=isG?(p.properties?.['Fuente de Gasto']?.relation?.[0]?.id||'').replace(/-/g,''):(p.properties?.['Fuente de Ingreso']?.relation?.[0]?.id||'').replace(/-/g,'');
       const cat=[...GASTOS,...INGRESOS].find(c=>c.id===catRelId);
