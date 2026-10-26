@@ -447,6 +447,11 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .success-burst.show .success-burst-circle{animation:burstCircle .32s var(--ease-out) both;}
 .success-burst-circle svg{width:34px;height:34px;stroke:var(--on-green);stroke-dasharray:24;stroke-dashoffset:24;}
 .success-burst.show .success-burst-circle svg{animation:burstCheck .3s var(--ease-out) .12s forwards;}
+/* Insignia con el emoji de la categoría (oculta salvo que showSuccessBurst la anime) */
+.success-burst-circle{position:relative;}
+.success-burst-badge{position:absolute;right:-10px;bottom:-8px;width:38px;height:38px;border-radius:50%;background:var(--sheet);
+  border:1px solid var(--border);box-shadow:var(--sh-md);display:flex;align-items:center;justify-content:center;font-size:20px;opacity:0;}
+.anim-emo{display:inline-block;line-height:1;}
 </style>
 
 <style id="kashy-skin-ios">
@@ -824,7 +829,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
   <div class="splash-name">GESTIÓN DE DINERO</div>
 </div>
 <div id="ptrIndicator" class="ptr-indicator"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></div>
-<div id="successBurst" class="success-burst"><div class="success-burst-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+<div id="successBurst" class="success-burst"><div class="success-burst-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div class="success-burst-badge" id="successBadge"><span class="anim-emo" id="successBadgeEmo"></span></div></div></div>
 <div class="app">
 
   <!-- ── INICIO ── -->
@@ -1629,16 +1634,16 @@ const INGRESOS=[
 function dispName(item){return (LANG==='en'&&item.nameEn)?item.nameEn:item.name;}
 function catNameTr(n){const c=[...GASTOS,...INGRESOS].find(x=>x.name===n);return c?dispName(c):n;}
 const SUSCRIPCIONES=[
-  {name:'Spotify',emoji:'🎵',amount:20.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:3},
-  {name:'Letra Coche',emoji:'🚗',amount:432.35,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f81689c53c344e9ce8987',dia:5,fechaInicio:'2026-05-05',fechaFin:'2028-01-05',cuotasTotales:24,cuotasIniciales:3,pagadoInicial:1297.05},
-  {name:'iCloud',emoji:'☁️',amount:1.50,cuentaId:'38621c54013f818ead8be5ec81d47356',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:30},
-  {name:'DAZN Basket',emoji:'🏀',amount:4.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:27,fechaInicio:'2026-08-01',fechaFin:'2027-05-27',cuotasTotales:12,cuotasIniciales:4,pagadoInicial:19.96},
-  {name:'Claude Pro',emoji:'🤖',amount:21.78,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:11},
-  {name:'DAZN Fútbol',emoji:'⚽',amount:2.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:28,fechaInicio:'2026-08-28',fechaFin:'2027-08-28',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0},
+  {name:'Spotify',emoji:'🎵',amount:20.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:3,anim:{familia:'balanceo',origen:'50% 100%'}},
+  {name:'Letra Coche',emoji:'🚗',amount:432.35,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f81689c53c344e9ce8987',dia:5,fechaInicio:'2026-05-05',fechaFin:'2028-01-05',cuotasTotales:24,cuotasIniciales:3,pagadoInicial:1297.05,anim:{familia:'avance'}},
+  {name:'iCloud',emoji:'☁️',amount:1.50,cuentaId:'38621c54013f818ead8be5ec81d47356',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:30,anim:{familia:'flote'}},
+  {name:'DAZN Basket',emoji:'🏀',amount:4.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:27,fechaInicio:'2026-08-01',fechaFin:'2027-05-27',cuotasTotales:12,cuotasIniciales:4,pagadoInicial:19.96,anim:{familia:'salto'}},
+  {name:'Claude Pro',emoji:'🤖',amount:21.78,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:11,anim:{familia:'zumbido'}},
+  {name:'DAZN Fútbol',emoji:'⚽',amount:2.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:28,fechaInicio:'2026-08-28',fechaFin:'2027-08-28',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'salto'}},
 ];
 const INGRESOS_RAPIDOS=[
-  {name:'Awela',emoji:'👵',amount:10,cuentaId:'31621c54013f813483ded3bbd77a5e10',catId:'31621c54013f810f800cd4fd01aef4da'},
-  {name:'Mamá',emoji:'👩‍👧',amount:50,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f817f9194cb102e04b7dd'},
+  {name:'Awela',emoji:'👵',amount:10,cuentaId:'31621c54013f813483ded3bbd77a5e10',catId:'31621c54013f810f800cd4fd01aef4da',anim:{familia:'balanceo',origen:'50% 100%'}},
+  {name:'Mamá',emoji:'👩‍👧',amount:50,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f817f9194cb102e04b7dd',anim:{familia:'balanceo',origen:'50% 100%'}},
 ];
 
 /* ── STATE ── */
@@ -1800,12 +1805,161 @@ function animateCounter(el,end,{prefix='',suffix='',decimals=2,duration=700}={})
   requestAnimationFrame(step);
 }
 function setMes(){const m=new Date().toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{month:'long'});document.getElementById('mesActual').textContent=m.charAt(0).toUpperCase()+m.slice(1);}
-function showSuccessBurst(){
+/* ── Animaciones de categoría (las mismas de animaciones-demo.html) ──
+   Siete familias, cada una con versión «chip» (≤ 260 ms, al tocar una categoría en Registrar) y «exito»
+   (≤ 620 ms, en la insignia del aviso de registrado). Web Animations API, solo transform y opacidad, y todas
+   acaban en reposo. Se anima el emoji (un span interior), nunca su círculo, que ya se escala al pulsarlo */
+const ANIM_OUT='cubic-bezier(0.23,1,0.32,1)',ANIM_INOUT='cubic-bezier(0.77,0,0.175,1)',ANIM_LIN='linear';
+const ANIM_FAMILIAS={
+  salto:{origen:'50% 100%',
+    chip:{dur:260,kf:o=>[
+      {transform:'translateY(0) scale(1,1)',easing:ANIM_OUT},
+      {transform:'translateY(-5px) scale(1,1)',offset:.45,easing:ANIM_INOUT},
+      {transform:'translateY(0) scale(1.05,.95)',offset:.8,easing:ANIM_OUT},
+      {transform:'translateY(0) scale(1,1)'}]},
+    exito:{dur:560,kf:o=>[
+      {transform:'translateY(0) scale(1,1)',easing:ANIM_OUT},
+      {transform:'translateY(0) scale(1.06,.94)',offset:.12,easing:ANIM_OUT},
+      {transform:'translateY(-12px) scale(.96,1.04)',offset:.42,easing:ANIM_INOUT},
+      {transform:'translateY(0) scale(1.06,.94)',offset:.66,easing:ANIM_OUT},
+      {transform:'translateY(-4px) scale(1,1)',offset:.82,easing:ANIM_INOUT},
+      {transform:'translateY(0) scale(1,1)'}]}},
+  avance:{origen:'50% 50%',
+    chip:{dur:240,kf:o=>[
+      {transform:'translate(0,0)',easing:ANIM_OUT},
+      {transform:`translate(${4*o.dx}px,${4*o.dy}px)`,offset:.4,easing:ANIM_INOUT},
+      {transform:'translate(0,0)'}]},
+    // Sale por delante y vuelve a entrar por detrás: el vehículo «pasa»
+    exito:{dur:600,kf:o=>[
+      {transform:'translate(0,0)',opacity:1,easing:ANIM_OUT},
+      {transform:`translate(${-3*o.dx}px,${-3*o.dy}px)`,opacity:1,offset:.16,easing:ANIM_INOUT},
+      {transform:`translate(${16*o.dx}px,${16*o.dy}px)`,opacity:0,offset:.48},
+      {transform:`translate(${-16*o.dx}px,${-16*o.dy}px)`,opacity:0,offset:.5,easing:ANIM_OUT},
+      {transform:'translate(0,0)',opacity:1}]}},
+  flote:{origen:'50% 50%',
+    chip:{dur:260,kf:o=>[
+      {transform:'translateY(0)',easing:ANIM_OUT},
+      {transform:'translateY(-4px)',offset:.45,easing:ANIM_INOUT},
+      {transform:'translateY(0)'}]},
+    exito:{dur:620,kf:o=>[
+      {transform:'translateY(0) rotate(0)',easing:ANIM_OUT},
+      {transform:'translateY(-10px) rotate(-4deg)',offset:.45,easing:ANIM_INOUT},
+      {transform:'translateY(-7px) rotate(3deg)',offset:.7,easing:ANIM_INOUT},
+      {transform:'translateY(0) rotate(0)'}]}},
+  balanceo:{origen:'50% 0%',
+    chip:{dur:260,kf:o=>[
+      {transform:'rotate(0)',easing:ANIM_OUT},
+      {transform:'rotate(10deg)',offset:.35,easing:ANIM_INOUT},
+      {transform:'rotate(-5deg)',offset:.7,easing:ANIM_INOUT},
+      {transform:'rotate(0)'}]},
+    exito:{dur:600,kf:o=>[
+      {transform:'rotate(0)',easing:ANIM_OUT},
+      {transform:'rotate(12deg)',offset:.2,easing:ANIM_INOUT},
+      {transform:'rotate(-9deg)',offset:.45,easing:ANIM_INOUT},
+      {transform:'rotate(5deg)',offset:.68,easing:ANIM_INOUT},
+      {transform:'rotate(-2deg)',offset:.85,easing:ANIM_INOUT},
+      {transform:'rotate(0)'}]}},
+  latido:{origen:'50% 50%',
+    chip:{dur:220,kf:o=>[
+      {transform:'scale(1)',easing:ANIM_OUT},
+      {transform:'scale(1.15)',offset:.4,easing:ANIM_INOUT},
+      {transform:'scale(1)'}]},
+    exito:{dur:520,kf:o=>[
+      {transform:'scale(1)',easing:ANIM_OUT},
+      {transform:'scale(1.2)',offset:.18,easing:ANIM_INOUT},
+      {transform:'scale(.95)',offset:.36,easing:ANIM_OUT},
+      {transform:'scale(1.1)',offset:.56,easing:ANIM_INOUT},
+      {transform:'scale(1)'}]}},
+  zumbido:{origen:'50% 50%',
+    chip:{dur:200,kf:o=>[
+      {transform:'translateX(0)',easing:ANIM_LIN},{transform:'translateX(-2px)',easing:ANIM_LIN},
+      {transform:'translateX(2px)',easing:ANIM_LIN},{transform:'translateX(-2px)',easing:ANIM_LIN},
+      {transform:'translateX(0)'}]},
+    exito:{dur:420,kf:o=>[
+      {transform:'translateX(0) rotate(0)',easing:ANIM_LIN},
+      {transform:'translateX(-3px) rotate(-3deg)',easing:ANIM_LIN},{transform:'translateX(3px) rotate(3deg)',easing:ANIM_LIN},
+      {transform:'translateX(-3px) rotate(-3deg)',easing:ANIM_LIN},{transform:'translateX(3px) rotate(3deg)',easing:ANIM_LIN},
+      {transform:'translateX(-2px) rotate(-2deg)',easing:ANIM_LIN},{transform:'translateX(1px) rotate(1deg)',easing:ANIM_OUT},
+      {transform:'translateX(0) rotate(0)'}]}},
+  giro:{origen:'50% 50%',
+    chip:{dur:240,kf:o=>[
+      {transform:'perspective(160px) rotateY(0)',easing:ANIM_OUT},
+      {transform:'perspective(160px) rotateY(35deg)',offset:.4,easing:ANIM_INOUT},
+      {transform:'perspective(160px) rotateY(0)'}]},
+    exito:{dur:600,kf:o=>[
+      {transform:'perspective(160px) rotateY(0)',easing:ANIM_INOUT},
+      {transform:'perspective(160px) rotateY(360deg)'}]}},
+};
+/* Por id de categoría, no por nombre: renombrar en Notion no las rompe. Una categoría sin entrada no se anima.
+   origen sustituye al de la familia; dx/dy es la dirección del Avance (✈️ despega en diagonal) */
+const ANIM_CATEGORIAS={
+  // Gastos
+  '31621c54013f815cbebbf321cd287ac9':{familia:'avance'}, // 🛒 Supermercado
+  '31621c54013f815794d0e6ee1cae8af4':{familia:'salto'}, // 🍽️ Restaurantes
+  '38621c54013f819eb838ff6f8332fbc6':{familia:'flote'}, // ☕ Café
+  '38621c54013f811894e1e406a4349f52':{familia:'balanceo',origen:'50% 100%'}, // 🍦 Helados
+  '38621c54013f8171b7c3d2888b5193af':{familia:'latido'}, // 🍔 Comida Rápida
+  '31621c54013f8119a964c44adbb84017':{familia:'latido'}, // ⛽ Gasolina
+  '31621c54013f81689c53c344e9ce8987':{familia:'avance'}, // 🚗 Coche
+  '31621c54013f816f89cfeb01f1c7e983':{familia:'balanceo'}, // 👕 Ropa
+  '31621c54013f81fd9415cf07f4284b5b':{familia:'zumbido'}, // 🎰 Apuestas
+  '31621c54013f81eaac55f8db00d01add':{familia:'latido'}, // 💊 Farmacia
+  '31621c54013f8196b8d4dc7c51c738b2':{familia:'zumbido'}, // 🎮 Ocio
+  '31621c54013f81ea817fc057c3152193':{familia:'salto'}, // 🎁 Regalos
+  '31621c54013f81f5b95eca89ef6b189b':{familia:'avance'}, // 📲 Bizum
+  '31621c54013f8130bd2cc319b0ce9659':{familia:'avance',dx:1,dy:-.7}, // ✈️ Viajes
+  '31621c54013f816d85afc5277c4e2c08':{familia:'latido'}, // 🏠 Hogar
+  '31621c54013f8130bd7ddbf775f0f1bd':{familia:'zumbido'}, // 📱 Suscripciones
+  '32b21c54013f8134bedff48ee631e24e':{familia:'giro'}, // 💈 Peluquería
+  '32b21c54013f8102b381cf39c6022773':{familia:'latido'}, // 🏥 Salud
+  '32b21c54013f8107a1addf6e2c2988a6':{familia:'salto'}, // 🎓 Educación
+  '32e21c54013f818c8a4ae43c1c240f92':{familia:'giro'}, // 📚 Libros
+  // Ingresos
+  '31621c54013f81d69e4af11bee366830':{familia:'balanceo'}, // 💼 Nómina
+  '3b921c54013f81e08b15c94ad454ce3f':{familia:'salto'}, // 🍽️ Nómina Pluxee
+  '3b921c54013f815e8cd2c4702745df38':{familia:'avance'}, // 📲 Bizum
+  '31621c54013f817f9194cb102e04b7dd':{familia:'balanceo',origen:'50% 100%'}, // 👩‍👧 Transf. Mamá
+  '3fb21c54013f81159fe7cd92dcabe8e7':{familia:'giro'}, // 💶 Remuneración
+  '3fb21c54013f81fab3eecd4bee25ef8c':{familia:'salto'}, // 🏆 Wins
+  '31621c54013f810f800cd4fd01aef4da':{familia:'flote'}, // 💸 Otros Ingresos
+};
+function animDeCategoria(id){
+  const a=ANIM_CATEGORIAS[id],c=[...GASTOS,...INGRESOS].find(x=>x.id===id);
+  return a&&c?{...a,emoji:c.emoji}:null;
+}
+const animReducido=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Anima el emoji; cancela la anterior para que varios toques seguidos no se acumulen.
+   Con «Reducir movimiento» el emoji no se mueve */
+function animarEmoji(el,anim,version,delay){
+  if(!el||!el.animate)return;
+  el.getAnimations().forEach(a=>a.cancel());
+  const f=anim&&ANIM_FAMILIAS[anim.familia];
+  if(!f||animReducido())return;
+  el.style.transformOrigin=anim.origen||f.origen;
+  el.animate(f[version].kf({dx:anim.dx??1,dy:anim.dy??0}),{duration:f[version].dur,delay:delay||0});
+}
+/* Aviso de registrado (~1,25 s): 0–320 ms círculo · 120–420 ms check · se funde de 950 a 1250 ms.
+   Con anim ({emoji,familia,…}) se añade la insignia: entra a los 180 ms y el emoji hace su animación desde los 380 ms */
+let burstTimer=0;
+function showSuccessBurst(anim){
   const el=document.getElementById('successBurst');
+  const badge=document.getElementById('successBadge'),emo=document.getElementById('successBadgeEmo');
+  clearTimeout(burstTimer);
+  badge.getAnimations().forEach(a=>a.cancel());
+  emo.getAnimations().forEach(a=>a.cancel());
   el.classList.remove('show');
   void el.offsetWidth; // reinicia la animación si se dispara varias veces seguidas
+  const conInsignia=!!(anim&&ANIM_FAMILIAS[anim.familia]&&anim.emoji);
+  emo.textContent=conInsignia?anim.emoji:'';
   el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),1300);
+  if(conInsignia){
+    badge.animate(animReducido()
+      ?[{opacity:0},{opacity:1}]
+      :[{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'scale(1)'}],
+      {duration:220,delay:180,easing:ANIM_OUT,fill:'both'});
+    animarEmoji(emo,anim,'exito',380);
+  }
+  burstTimer=setTimeout(()=>{el.classList.remove('show');badge.getAnimations().forEach(a=>a.cancel());},1300);
 }
 /* ── PULL TO REFRESH ── */
 (function(){
@@ -2536,9 +2690,14 @@ function renderCats(typ){
   const ult=leerPref('kashy-ult-cat-'+typ);
   const sel=cats.find(c=>c.id===selectedCatId)||cats.find(c=>c.id===ult)||cats[0];
   selectedCatId=sel.id;
-  document.getElementById('catGrid').innerHTML=cats.map(c=>`<div class="cat-item${c===sel?' selected':''}" data-cat="${c.id}" onclick="selCat('${c.id}',this)"><div class="cat-circle">${c.emoji}</div><div class="cat-lbl">${dispName(c)}</div></div>`).join('');
+  document.getElementById('catGrid').innerHTML=cats.map(c=>`<div class="cat-item${c===sel?' selected':''}" data-cat="${c.id}" onclick="selCat('${c.id}',this)"><div class="cat-circle"><span class="anim-emo">${c.emoji}</span></div><div class="cat-lbl">${dispName(c)}</div></div>`).join('');
 }
-function selCat(id,el){catTocada=true;selectedCatId=id;el.parentElement.querySelectorAll('.cat-item').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
+function selCat(id,el){
+  catTocada=true;selectedCatId=id;
+  el.parentElement.querySelectorAll('.cat-item').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');
+  // Solo al tocar: la elección automática (última usada, sugerencia por el nombre) no pasa por aquí
+  animarEmoji(el.querySelector('.anim-emo'),animDeCategoria(id),'chip');
+}
 /* Propone la categoría según el nombre (el de la categoría o el mismo mapa que getEmoji); no pisa una elegida a mano */
 function sugerirCategoria(){
   if(catTocada)return;
@@ -2603,6 +2762,7 @@ async function submitMovement(){
     Tipo:{select:{name:isG?'Expense':'Income'}},
     Cuenta:{relation:[{id:selectedAccId}]},
   }};
+  const catId=selectedCatId;
   if(isG){body.properties.Gasto={number:amt};body.properties['Fuente de Gasto']={relation:[{id:selectedCatId}]};}
   else{body.properties.Ingreso={number:amt};body.properties['Fuente de Ingreso']={relation:[{id:selectedCatId}]};}
   try{
@@ -2611,7 +2771,7 @@ async function submitMovement(){
       guardarPref('kashy-ult-cuenta',selectedAccId);guardarPref('kashy-ult-cat-'+currentType,selectedCatId);
       const importeTxt=document.getElementById('inputAmt').value;
       const fechaUsada={tipo:fechaTipo,valor:document.getElementById('inputFecha').value};
-      showSuccessBurst();
+      showSuccessBurst(animDeCategoria(catId));
       showToast(isG?t('toast_gasto_ok'):t('toast_ingreso_ok'),'',{texto:'Deshacer',fn:()=>deshacerRegistro(res.id,importeTxt,name,fechaUsada)});
       document.getElementById('inputAmt').value='';document.getElementById('inputName').value='';
       catTocada=false;reiniciarFecha();
@@ -2663,7 +2823,7 @@ function renderSusc(){
     return`
     <div class="sus-card-wrap">
       <div class="sus-card${s.dia===hoy?' hoy':''}${hasProgress?' has-progress':''}">
-        <div class="sus-icon" style="background:${bankColor(accName)}22;border-color:${bankColor(accName)}55;">${s.emoji}</div>
+        <div class="sus-icon" id="suscIcon-${i}" style="background:${bankColor(accName)}22;border-color:${bankColor(accName)}55;"><span class="anim-emo">${s.emoji}</span></div>
         <div class="sus-info"><div class="sus-name">${s.name}${s.dia===hoy?' 🔔':''}</div><div class="sus-meta">${t('dia_lbl')} ${s.dia} · ${accName}</div></div>
         <div class="sus-right"><div class="sus-amount">-${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regSusc(${i})">${t('btn_registrar')}</button></div>
       </div>
@@ -2675,18 +2835,25 @@ function renderSusc(){
     if(s.fechaInicio&&s.fechaFin&&s.cuotasTotales)refreshSuscProgress(i);
   });
 }
-async function refreshSuscProgress(i){
+/* animar: tras registrar un pago, la barra avanza desde su valor anterior (350 ms) y el icono hace su animación corta */
+async function refreshSuscProgress(i,animar){
   const s=SUSCRIPCIONES[i];
   const el=document.getElementById('suscProgress-'+i);
   if(!el)return;
+  const antes=animar?el.querySelector('.res-bar-fill')?.style.transform:'';
   const p=await calcCuotasProgress(s);
   el.innerHTML=`
     <div class="susc-progress-row">
       <span>Pagado ${fmt(p.pagado)} € de ${fmt(p.total)} €</span>
       <span>${p.cuotasPagadas}/${s.cuotasTotales} cuotas</span>
     </div>
-    <div class="res-bar"><div class="res-bar-fill" style="transform:${barScale(p.pct)}"></div></div>
+    <div class="res-bar"><div class="res-bar-fill" style="transform:${antes||barScale(p.pct)}"></div></div>
     <div class="susc-progress-sub">Vence ${p.finStr}</div>`;
+  if(animar){
+    const fill=el.querySelector('.res-bar-fill');
+    if(antes){void fill.offsetWidth;fill.style.transform=barScale(p.pct);}
+    animarEmoji(document.querySelector('#suscIcon-'+i+' .anim-emo'),s.anim,'chip');
+  }
 }
 async function regSusc(i){
   const s=SUSCRIPCIONES[i];
@@ -2700,8 +2867,8 @@ async function regSusc(i){
       'Fuente de Gasto':{relation:[{id:s.catId}]},
     }});
     if(res.id){
-      showSuccessBurst();showToast('✓ '+s.name+' '+t('toast_registrada'),'success');
-      if(s.fechaInicio&&s.fechaFin&&s.cuotasTotales)refreshSuscProgress(i);
+      showSuccessBurst({...s.anim,emoji:s.emoji});showToast('✓ '+s.name+' '+t('toast_registrada'),'success');
+      if(s.fechaInicio&&s.fechaFin&&s.cuotasTotales)refreshSuscProgress(i,true);
     }
     else showToast(t('toast_error_registrar'),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
@@ -2730,7 +2897,7 @@ async function regIngresoRapido(i){
       Cuenta:{relation:[{id:s.cuentaId}]},
       'Fuente de Ingreso':{relation:[{id:s.catId}]},
     }});
-    if(res.id){showSuccessBurst();showToast('✓ '+s.name+' '+t('toast_registrada'),'success');}
+    if(res.id){showSuccessBurst({...s.anim,emoji:s.emoji});showToast('✓ '+s.name+' '+t('toast_registrada'),'success');}
     else showToast(t('toast_error_registrar'),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
 }
