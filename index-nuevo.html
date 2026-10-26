@@ -1549,6 +1549,7 @@ const INV_APORTACION_MENSUAL=150; // Aportación periódica automática desde Ib
 const INV_APORTACION_DIA=26; // Día del mes en que se ejecuta
 const IBERCAJA_ID='31621c54013f811ebd49f65e2776d28e';
 const REVOLUT_PERSONAL_ID='31621c54013f817f9f00fc6acc160c26';
+const MYINVESTOR_REM_ID='3d821c54013f81eab324f5174d95ade2'; // MyInvestor Remunerada: de aquí sale la aportación a los fondos
 const BAR_COLORS=['#7b6ef6','#22c55e','#f97316','#3b82f6','#eab308','#ec4899','#06b6d4'];
 
 const CUENTAS=[
@@ -3722,12 +3723,12 @@ function crearAportacion(nombre,amt,date){
 async function quickAportacionMensual(){
   const today=hoyLocal();
   try{
-    // Primero la transferencia Ibercaja → MyInvestor, para que el dinero salga de Ibercaja
+    // Primero la transferencia MyInvestor Remunerada → MyInvestor, para que el dinero salga de la Remunerada
     const tr=await nFetch('/pages','POST',{parent:{database_id:TRANSFER_DB},properties:{
-      Nombre:{title:[{text:{content:'Ibercaja → MyInvestor'}}]},
+      Nombre:{title:[{text:{content:'MyInvestor Remunerada → MyInvestor'}}]},
       Monto:{number:INV_APORTACION_MENSUAL},
       'Fecha':{date:{start:today}},
-      'Transferir Desde':{relation:[{id:IBERCAJA_ID}]},
+      'Transferir Desde':{relation:[{id:MYINVESTOR_REM_ID}]},
       'Transferir a':{relation:[{id:MYINVESTOR_ACC_ID}]},
     }});
     if(!tr.id){showToast('Error: '+(tr.message||t('toast_intentalo')),'error');return;}
