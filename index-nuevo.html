@@ -625,6 +625,9 @@ input:focus,input:focus-visible,select:focus,textarea:focus{outline:none!importa
 .hero-badges .hero-sub{font-size:12.5px;}
 .hero-card .hero-row{margin-top:18px;}
 .hero-card .hero-mini-val{font-size:15px;}
+.hero-card .hero-row{transition:opacity var(--dur-fast) var(--ease);}
+.hero-card .hero-row.cargando{opacity:.45;}
+.res-periodo{font-size:11px;font-weight:500;color:var(--muted);margin-top:8px;text-align:center;}
 .mov-daygroup{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.6px;
   margin:20px 20px 8px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
 .mov-day-bal{letter-spacing:0;font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -871,6 +874,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
         <div class="hero-mini"><div class="hero-mini-lbl" data-i18n="stat_ingresado">Ingresado</div><div class="hero-mini-val i" id="resIngreso">—</div></div>
         <div class="hero-mini"><div class="hero-mini-lbl" data-i18n="balance_lbl">Balance</div><div class="hero-mini-val" id="resBalance">—</div></div>
       </div>
+      <div class="res-periodo" id="resPeriodoLbl" data-i18n="periodo_1m">Este mes</div>
       <div class="res-bar" style="display:none"><div class="res-bar-fill" id="resBar" style="transform:scaleX(0)"></div></div>
       <div class="pat-breakdown"><div class="pat-breakdown-clip"><div class="pat-breakdown-inner" id="patBreakdown"></div></div></div>
       <span id="mesActual" style="display:none"></span>
@@ -1339,6 +1343,7 @@ const I18N={
     patrimonio_total:'Patrimonio total',patrimonio_hint:'toca para ver el desglose ⌄',
     patrimonio_sub:'Cuentas + inversión (MyInvestor)',
     pat_1m:'en 1 mes',pat_3m:'en 3 meses',pat_6m:'en 6 meses',pat_todo:'desde el inicio',pat_todo_btn:'Todo',
+    periodo_1m:'Este mes',periodo_3m:'Últimos 3 meses',periodo_6m:'Últimos 6 meses',periodo_todo:'Desde el inicio',
     tipo_gasto:'💸 Gasto',tipo_ingreso:'💰 Ingreso',
     lbl_nombre:'Nombre',lbl_fecha:'Fecha',lbl_cuenta:'Cuenta',lbl_categoria:'Categoría',
     lbl_cantidad:'Cantidad',lbl_emoji:'Emoji',lbl_objetivo:'Objetivo (€)',lbl_precio:'Precio (€)',
@@ -1441,6 +1446,7 @@ const I18N={
     patrimonio_total:'Total net worth',patrimonio_hint:'tap for the breakdown ⌄',
     patrimonio_sub:'Accounts + investments (MyInvestor)',
     pat_1m:'in 1 month',pat_3m:'in 3 months',pat_6m:'in 6 months',pat_todo:'since the start',pat_todo_btn:'All',
+    periodo_1m:'This month',periodo_3m:'Last 3 months',periodo_6m:'Last 6 months',periodo_todo:'Since the start',
     tipo_gasto:'💸 Expense',tipo_ingreso:'💰 Income',
     lbl_nombre:'Name',lbl_fecha:'Date',lbl_cuenta:'Account',lbl_categoria:'Category',
     lbl_cantidad:'Amount',lbl_emoji:'Emoji',lbl_objetivo:'Target (€)',lbl_precio:'Price (€)',
@@ -2186,8 +2192,7 @@ async function loadPatVariation(total){
 /* ── CURVA DEL PATRIMONIO (historial reconstruido en /api/history) ── */
 const PAT_PERIODOS={'1M':30,'3M':91,'6M':182,'Todo':0};
 let patHist=null,patTotalHoy=0,patSerie=[],patPts=[],patDibujada=false,patAnim=0;
-let patPeriodo=(()=>{try{return localStorage.getItem('kashy-pat-periodo')||'3M';}catch(e){return '3M';}})();
-if(!(patPeriodo in PAT_PERIODOS))patPeriodo='3M';
+let patPeriodo='1M'; // al abrir la app, siempre 1M
 function hoyLocal(){const n=new Date();return n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());}
 // Valor de la cartera en un día concreto, con la misma lógica que fetchValorCartera
 function valorCarteraDia(inv,day){
@@ -2229,8 +2234,8 @@ async function loadPatHistory(total){
 }
 function setPatPeriodo(p){
   patPeriodo=p;
-  try{localStorage.setItem('kashy-pat-periodo',p);}catch(e){}
   renderPatChart();
+  pintarResumen(); // Gastado / Ingresado / Balance siguen al periodo
 }
 function patBadge(){
   if(patSerie.length<2)return;
@@ -2319,6 +2324,53 @@ function renderPatChart(){
   svg.addEventListener('pointerup',fin);svg.addEventListener('pointercancel',fin);
   let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{patPts=[];renderPatChart();},150);});
 })();
+/* ── Gastado / Ingresado / Balance por periodo ──
+   1M: el mes en curso (del día 1 al último). 3M / 6M: la misma ventana que la curva, de hoy − 91 / − 182 días
+   a hoy. Todo: todos los movimientos hasta hoy. Solo Gasto e Ingreso de la base de movimientos: las
+   transferencias y los registros de inversión viven en otras bases y no cuentan */
+let resumenCache={},resumenDia='',resumenPeticion=0;
+function rangoResumen(p){
+  const hoy=hoyLocal();
+  if(p==='Todo')return{hasta:hoy};
+  const d=new Date(hoy+'T12:00:00');d.setDate(d.getDate()-PAT_PERIODOS[p]);
+  return{desde:fechaLocalDe(d),hasta:hoy};
+}
+async function totalesPeriodo(p){
+  if(resumenDia!==hoyLocal()){resumenCache={};resumenDia=hoyLocal();}
+  if(resumenCache[p])return resumenCache[p];
+  const r=rangoResumen(p),f=[];
+  if(r.desde)f.push({property:'Fecha',date:{on_or_after:r.desde}});
+  f.push({property:'Fecha',date:{on_or_before:r.hasta}});
+  const data=await nQueryAll(DB_ID,{filter:f.length>1?{and:f}:f[0],page_size:100});
+  if(!data||!data.results)throw new Error('consulta fallida');
+  let g=0,i=0;
+  data.results.forEach(x=>{g+=x.properties?.Gasto?.number||0;i+=x.properties?.Ingreso?.number||0;});
+  return resumenCache[p]={g,i};
+}
+function cifraResumen(el,val,prefix){
+  // Contador de siempre, recortado a 300 ms; con «Reducir movimiento», sin animar
+  if(animReducido()){el.textContent=prefix+fmt(val)+' €';el.dataset.rawVal=val;autoFitAmount(el);return;}
+  animateCounter(el,val,{prefix,suffix:' €',duration:300});
+}
+async function pintarResumen(){
+  const p=patPeriodo,pet=++resumenPeticion;
+  const fila=document.querySelector('.hero-card .hero-row');
+  // La primera carga de 3M / 6M / Todo tarda unos segundos: mientras, las cifras anteriores se atenúan
+  if(!resumenCache[p])fila.classList.add('cargando');
+  let tot;
+  try{tot=p==='1M'?resumenCache['1M']:await totalesPeriodo(p);}catch(e){tot=null;}
+  if(pet!==resumenPeticion)return; // otro periodo elegido mientras cargaba
+  fila.classList.remove('cargando');
+  if(!tot)return;
+  const bal=tot.i-tot.g;
+  cifraResumen(document.getElementById('resGasto'),tot.g,'-');
+  cifraResumen(document.getElementById('resIngreso'),tot.i,'+');
+  const balEl=document.getElementById('resBalance');
+  cifraResumen(balEl,Math.abs(bal),bal>=0?'+':'-');
+  balEl.style.color=bal>=0?'var(--green)':'var(--red)';
+  const lbl=document.getElementById('resPeriodoLbl');
+  lbl.dataset.i18n='periodo_'+p.toLowerCase();lbl.textContent=t(lbl.dataset.i18n);
+}
 async function loadResumen(){
   try{
     const now=new Date();
@@ -2341,12 +2393,9 @@ async function loadResumen(){
         catMap[cat.name].total+=g;
       }
     });
-    document.getElementById('resGasto').textContent='-'+fmt(totalG)+' €';
-    document.getElementById('resIngreso').textContent='+'+fmt(totalI)+' €';
-    const bal=totalI-totalG;
-    const balEl=document.getElementById('resBalance');
-    balEl.textContent=(bal>=0?'+':'')+fmt(Math.abs(bal))+' €';
-    balEl.style.color=bal>=0?'var(--green)':'var(--red)';
+    // Cada visita a Inicio vuelve a leer: los demás periodos se recalculan al pedirlos
+    resumenCache={'1M':{g:totalG,i:totalI}};resumenDia=hoyLocal();
+    pintarResumen();
     document.getElementById('resBar').style.transform=barScale(totalI>0?(totalI-totalG)/totalI*100:0);
     const sorted=Object.entries(catMap).sort((a,b)=>b[1].total-a[1].total).slice(0,5);
     const max=sorted[0]?.[1]?.total||1;
