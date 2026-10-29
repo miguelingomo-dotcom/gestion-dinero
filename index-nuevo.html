@@ -1637,9 +1637,11 @@ const SUSCRIPCIONES=[
   {name:'Spotify',emoji:'🎵',amount:20.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:3,anim:{familia:'balanceo',origen:'50% 100%'}},
   {name:'Letra Coche',emoji:'🚗',amount:432.35,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f81689c53c344e9ce8987',dia:5,fechaInicio:'2026-05-05',fechaFin:'2028-01-05',cuotasTotales:24,cuotasIniciales:3,pagadoInicial:1297.05,anim:{familia:'avance'}},
   {name:'iCloud',emoji:'☁️',amount:1.50,cuentaId:'38621c54013f818ead8be5ec81d47356',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:30,anim:{familia:'flote'}},
-  {name:'DAZN Basket',emoji:'🏀',amount:4.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:27,fechaInicio:'2026-08-01',fechaFin:'2027-05-27',cuotasTotales:12,cuotasIniciales:4,pagadoInicial:19.96,anim:{familia:'salto'}},
+  {name:'DAZN Basket',emoji:'🏀',amount:4.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:27,fechaInicio:'2026-08-01',fechaFin:'2027-04-27',cuotasTotales:12,cuotasIniciales:4,pagadoInicial:19.96,anim:{familia:'salto'}},
   {name:'Claude Pro',emoji:'🤖',amount:21.78,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:11,anim:{familia:'zumbido'}},
   {name:'DAZN Fútbol',emoji:'⚽',amount:2.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:28,fechaInicio:'2026-08-28',fechaFin:'2027-08-28',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'salto'}},
+  {name:'Mueble Ikea',emoji:'🛋️',amount:28.93,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f816d85afc5277c4e2c08',dia:27,fechaInicio:'2026-10-27',fechaFin:'2026-12-27',cuotasTotales:3,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'latido'}},
+  {name:'Vinilos',emoji:'💿',amount:28.85,importes:[28.85,28.86,28.85],cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8196b8d4dc7c51c738b2',dia:29,fechaInicio:'2026-10-29',fechaFin:'2026-12-29',cuotasTotales:3,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'giro'}},
 ];
 const INGRESOS_RAPIDOS=[
   {name:'Awela',emoji:'👵',amount:10,cuentaId:'31621c54013f813483ded3bbd77a5e10',catId:'31621c54013f810f800cd4fd01aef4da',anim:{familia:'balanceo',origen:'50% 100%'}},
@@ -2000,14 +2002,34 @@ function showSuccessBurst(anim){
     triggered=false;
   },{passive:true});
 })();
-function checkAlerts(){
+/* Pagos de hoy en Inicio. Se omiten los que ya están registrados este mes (mismo nombre que crea «Registrar»)
+   y los pagos a plazos terminados; en los plazos se avisa del importe de la próxima cuota, como en su tarjeta */
+async function checkAlerts(){
   const hoy=new Date().getDate();
-  const sus=SUSCRIPCIONES.filter(s=>s.dia===hoy);
-  if(sus.length){
-    document.getElementById('alertBanner').classList.add('show');
-    const total=sus.reduce((s,x)=>s+x.amount,0);
-    document.getElementById('alertItems').textContent=sus.map(s=>s.emoji+' '+s.name).join(', ')+' · -'+total.toFixed(2)+' €';
-  }
+  const candidatos=SUSCRIPCIONES.filter(s=>s.dia===hoy);
+  if(!candidatos.length)return;
+  const pendientes=(await Promise.all(candidatos.map(async s=>{
+    if(await registradoEsteMes(s))return null;
+    if(!s.cuotasTotales)return{s,importe:s.amount};
+    const p=await calcCuotasProgress(s);
+    return p.terminado?null:{s,importe:importeCuota(s,p.cuotasPagadas)};
+  }))).filter(Boolean);
+  if(!pendientes.length)return;
+  document.getElementById('alertBanner').classList.add('show');
+  const total=pendientes.reduce((t,x)=>t+x.importe,0);
+  document.getElementById('alertItems').textContent=pendientes.map(x=>x.s.emoji+' '+x.s.name).join(', ')+' · -'+total.toFixed(2)+' €';
+}
+/* ¿Hay ya un movimiento de este pago en el mes en curso? Si Notion no responde, se avisa igualmente */
+async function registradoEsteMes(s){
+  const n=new Date(),ini=fechaLocalDe(new Date(n.getFullYear(),n.getMonth(),1)),fin=fechaLocalDe(new Date(n.getFullYear(),n.getMonth()+1,0));
+  try{
+    const d=await nFetch('/databases/'+DB_ID+'/query','POST',{filter:{and:[
+      {property:'Nombre',title:{equals:s.emoji+' '+s.name}},
+      {property:'Fecha',date:{on_or_after:ini}},
+      {property:'Fecha',date:{on_or_before:fin}}
+    ]},page_size:1});
+    return !!(d&&d.results&&d.results.length);
+  }catch(e){return false;}
 }
 const PALABRAS_EMOJI=[['mercadona','🛒'],['supermercado','🛒'],['restaurante','🍽️'],['gasolina','⛽'],['spotify','🎵'],['gym','💪'],['coche','🚗'],['letra','🚗'],['icloud','☁️'],['farmacia','💊'],['nómina','💼'],['nomina','💼'],['mamá','👩‍👧'],['bizum','📲'],['transferencia','⇄']];
 function emojiPorPalabra(n){
@@ -2808,24 +2830,29 @@ async function calcCuotasProgress(s){
     const rows=data.results||[];
     const cuotasPagadas=Math.min(s.cuotasTotales,baseCuotas+rows.length);
     const pagado=basePagado+rows.reduce((sum,r)=>sum+(r.properties?.Gasto?.number||0),0);
-    const total=s.cuotasTotales*s.amount;
+    const total=totalCuotas(s);
     const pct=Math.min(100,(pagado/total)*100);
-    return{cuotasPagadas,pagado,total,pct,finStr};
+    return{cuotasPagadas,pagado,total,pct,finStr,terminado:cuotasPagadas>=s.cuotasTotales};
   }catch(e){
-    return{cuotasPagadas:baseCuotas,pagado:basePagado,total:s.cuotasTotales*s.amount,pct:0,finStr};
+    // Sin datos de Notion no se da por terminado: la tarjeta sigue visible
+    return{cuotasPagadas:baseCuotas,pagado:basePagado,total:totalCuotas(s),pct:0,finStr,terminado:false};
   }
 }
+/* Total e importe de cada cuota: con importes (cuotas distintas, p. ej. Vinilos) se usa la lista; si no, amount */
+function totalCuotas(s){return s.importes?Math.round(s.importes.reduce((a,b)=>a+b,0)*100)/100:s.cuotasTotales*s.amount;}
+function importeCuota(s,cuotasPagadas){return s.importes?(s.importes[cuotasPagadas]??s.amount):s.amount;}
+const suscProgreso={}; // último progreso leído de Notion por índice de SUSCRIPCIONES
 function renderSusc(){
   const hoy=new Date().getDate();
   document.getElementById('suscripList').innerHTML=SUSCRIPCIONES.map((s,i)=>{
     const accName=CUENTAS.find(c=>c.id===s.cuentaId)?.name||'';
     const hasProgress=!!(s.fechaInicio&&s.fechaFin&&s.cuotasTotales);
     return`
-    <div class="sus-card-wrap">
+    <div class="sus-card-wrap" id="suscWrap-${i}">
       <div class="sus-card${s.dia===hoy?' hoy':''}${hasProgress?' has-progress':''}">
         <div class="sus-icon" id="suscIcon-${i}" style="background:${bankColor(accName)}22;border-color:${bankColor(accName)}55;"><span class="anim-emo">${s.emoji}</span></div>
         <div class="sus-info"><div class="sus-name">${s.name}${s.dia===hoy?' 🔔':''}</div><div class="sus-meta">${t('dia_lbl')} ${s.dia} · ${accName}</div></div>
-        <div class="sus-right"><div class="sus-amount">-${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regSusc(${i})">${t('btn_registrar')}</button></div>
+        <div class="sus-right"><div class="sus-amount" id="suscAmt-${i}">-${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regSusc(${i})">${t('btn_registrar')}</button></div>
       </div>
       ${hasProgress?`<div class="susc-progress" id="suscProgress-${i}"><div class="loading" style="padding:10px 0;font-size:12px;">${t('cargando_progreso')}</div></div>`:''}
     </div>`;
@@ -2842,6 +2869,12 @@ async function refreshSuscProgress(i,animar){
   if(!el)return;
   const antes=animar?el.querySelector('.res-bar-fill')?.style.transform:'';
   const p=await calcCuotasProgress(s);
+  suscProgreso[i]=p;
+  const wrap=document.getElementById('suscWrap-'+i);
+  // Todas las cuotas pagadas (contadas en Notion): la tarjeta desaparece; sus movimientos se quedan donde están
+  if(p.terminado&&!animar){if(wrap)wrap.remove();return;}
+  const amtEl=document.getElementById('suscAmt-'+i);
+  if(amtEl)amtEl.textContent='-'+importeCuota(s,p.cuotasPagadas).toFixed(2)+' €';
   el.innerHTML=`
     <div class="susc-progress-row">
       <span>Pagado ${fmt(p.pagado)} € de ${fmt(p.total)} €</span>
@@ -2853,15 +2886,23 @@ async function refreshSuscProgress(i,animar){
     const fill=el.querySelector('.res-bar-fill');
     if(antes){void fill.offsetWidth;fill.style.transform=barScale(p.pct);}
     animarEmoji(document.querySelector('#suscIcon-'+i+' .anim-emo'),s.anim,'chip');
+    // Era la última cuota: tras ver avanzar la barra, la tarjeta se funde y desaparece
+    if(p.terminado&&wrap)setTimeout(()=>{
+      const quitar=()=>wrap.remove();
+      if(!wrap.animate||animReducido()){quitar();return;}
+      wrap.animate([{opacity:1},{opacity:0}],{duration:200,easing:ANIM_OUT,fill:'forwards'}).finished.then(quitar,quitar);
+    },700);
   }
 }
 async function regSusc(i){
   const s=SUSCRIPCIONES[i];
   const today=hoyLocal();
   try{
+    // Con cuotas de importe distinto, se registra el de la próxima cuota según lo pagado en Notion
+    const importe=s.importes?importeCuota(s,(suscProgreso[i]||await calcCuotasProgress(s)).cuotasPagadas):s.amount;
     const res=await nFetch('/pages','POST',{parent:{database_id:DB_ID},properties:{
       Nombre:{title:[{text:{content:s.emoji+' '+s.name}}]},
-      Gasto:{number:s.amount},Fecha:{date:{start:today}},
+      Gasto:{number:importe},Fecha:{date:{start:today}},
       Tipo:{select:{name:'Expense'}},
       Cuenta:{relation:[{id:s.cuentaId}]},
       'Fuente de Gasto':{relation:[{id:s.catId}]},
