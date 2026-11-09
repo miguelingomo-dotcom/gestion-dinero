@@ -1407,6 +1407,8 @@ const I18N={
     toast_transf_eliminada:'Transferencia eliminada',toast_transf_eliminada_inv:'Transferencia eliminada · revisa la aportación en Inversión',
     toast_elige_cuentas:'Elige dos cuentas distintas',toast_transf_ap_eliminadas:'Transferencia y aportación eliminadas',
     toast_transf_act_ap_eliminada:'Transferencia actualizada · aportación eliminada',toast_ap_no_sync:'Transferencia guardada, pero no se pudo actualizar la aportación',
+    toast_ap_transf_eliminadas:'Aportación y transferencia eliminadas',toast_ap_sin_transf:'Aportación eliminada. Revisa la transferencia en Movimientos',
+    toast_ap_eliminada:'Aportación eliminada',toast_tr_no_sync:'Aportación guardada, pero no se pudo actualizar la transferencia',
     proximo_pago:'Próximo pago',
     gestionar_presupuestos:'Gestionar Presupuestos',definir_limite:'Define un límite mensual por categoría',
     btn_cerrar:'Cerrar',
@@ -1511,6 +1513,8 @@ const I18N={
     toast_transf_eliminada:'Transfer deleted',toast_transf_eliminada_inv:'Transfer deleted · check the contribution in Invest',
     toast_elige_cuentas:'Choose two different accounts',toast_transf_ap_eliminadas:'Transfer and contribution deleted',
     toast_transf_act_ap_eliminada:'Transfer updated · contribution deleted',toast_ap_no_sync:'Transfer saved, but the contribution couldn\'t be updated',
+    toast_ap_transf_eliminadas:'Contribution and transfer deleted',toast_ap_sin_transf:'Contribution deleted. Check the transfer in Movements',
+    toast_ap_eliminada:'Contribution deleted',toast_tr_no_sync:'Contribution saved, but the transfer couldn\'t be updated',
     proximo_pago:'Next payment',
     gestionar_presupuestos:'Manage Budgets',definir_limite:'Set a monthly limit per category',
     btn_cerrar:'Close',
@@ -3898,7 +3902,9 @@ function showToast(msg,type='',accion){
 async function archivarPagina(id){
   const res=await fetch('/api/delete?pageId='+id,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
   const data=await res.json();
-  return !!(data.archived||data.in_trash);
+  if(data.archived||data.in_trash)return true;
+  // null: Notion dice que la página ya estaba archivada o no existe; false: otro fallo
+  return data.code==='validation_error'||data.code==='object_not_found'?null:false;
 }
 async function restaurarPagina(id){
   const r=await fetch('/api/page?pageId='+id,{method:'PATCH',
@@ -3906,21 +3912,24 @@ async function restaurarPagina(id){
   const d=await r.json();
   return !!(d.id&&!d.archived);
 }
-async function borrarConDeshacer(pageId,{quitar,msg,recargar}){
+/* opcional/msgSinOpcional: página enlazada que quizá ya se borró en Notion; si es así no bloquea el borrado ni se restaura al deshacer */
+async function borrarConDeshacer(pageId,{quitar,msg,recargar,opcional,msgSinOpcional}){
   const ids=[].concat(pageId);
   try{
     const hechas=[];
     for(const id of ids){
-      if(!(await archivarPagina(id))){
+      const r=await archivarPagina(id);
+      if(r===null&&id===opcional)continue;
+      if(!r){
         await Promise.all(hechas.map(h=>restaurarPagina(h).catch(()=>false)));
         showToast(t('toast_error_eliminar'),'error');return;
       }
       hechas.push(id);
     }
     if(quitar)quitar();
-    showToast(msg,'',{texto:'Deshacer',fn:async()=>{
+    showToast(hechas.length<ids.length?msgSinOpcional:msg,'',{texto:'Deshacer',fn:async()=>{
       try{
-        const ok=await Promise.all(ids.map(restaurarPagina));
+        const ok=await Promise.all(hechas.map(restaurarPagina));
         if(ok.every(Boolean)){showToast('✓ Restaurado','success');if(recargar)recargar();}
         else showToast('No se pudo restaurar','error');
       }catch(e){showToast(t('toast_conexion'),'error');}
@@ -4154,8 +4163,18 @@ function openEditInv(pageId){
   document.getElementById('invDate').value=r.properties?.InvFecha?.date?.start||'';
   document.getElementById('invOverlay').classList.add('show');
 }
+/* Id de la transferencia enlazada a una aportación (InvTransferId), o '' en las antiguas y en los valores de cartera */
+function transferDeAportacion(r){
+  if(r?.properties?.InvTipo?.select?.name!=='Aportación')return'';
+  return (r.properties?.InvTransferId?.rich_text||[]).map(x=>x.plain_text).join('').trim();
+}
 function deleteInv(pageId,btn){
-  return borrarConDeshacer(pageId,{quitar:loadInversion,msg:'Registro eliminado',recargar:loadInversion});
+  const r=invCache[pageId],trId=transferDeAportacion(r);
+  const comun={quitar:loadInversion,recargar:loadInversion};
+  // Con transferencia enlazada se borran las dos, y «Deshacer» restaura las dos
+  if(trId)return borrarConDeshacer([pageId,trId],{...comun,msg:t('toast_ap_transf_eliminadas'),opcional:trId,msgSinOpcional:t('toast_ap_eliminada')});
+  const esAporte=r?.properties?.InvTipo?.select?.name==='Aportación';
+  return borrarConDeshacer(pageId,{...comun,msg:esAporte?t('toast_ap_sin_transf'):'Registro eliminado'});
 }
 /* transferId (opcional): la transferencia a MyInvestor que origina la aportación; se guarda sin guiones en InvTransferId */
 function crearAportacion(nombre,amt,date,transferId){
@@ -4235,7 +4254,18 @@ async function saveInv(){
         }})
       });
       const data=await res.json();
-      if(data.id){editingInvId=null;showToast(t('toast_inv_actualizado'),'success');loadInversion();}
+      if(data.id){
+        // La transferencia enlazada sigue a la aportación (mismo importe y fecha)
+        const trId=transferDeAportacion(invCache[editingInvId]);
+        editingInvId=null;
+        let trOk=true;
+        if(trId){
+          try{trOk=!!(await patchPagina(trId,{Monto:{number:amt},Fecha:{date:{start:date}}})).id;}catch(e){trOk=false;}
+        }
+        if(trOk)showToast(t('toast_inv_actualizado'),'success');
+        else showToast(t('toast_tr_no_sync'),'error');
+        loadInversion();
+      }
       else showToast(t('toast_error_guardar'),'error');
     }catch(e){showToast(t('toast_conexion'),'error');}
     return;
