@@ -1952,20 +1952,33 @@ function conSwipe(fila,fnEdit,fnDel,id){
     `<button class="swipe-act swipe-edit" onclick="swipeEditar(this,'${fnEdit}','${id}')">${ICO_EDIT}${t('btn_editar')}</button>`+
     `<button class="swipe-act swipe-del" onclick="swipeBorrar(this,'${fnDel}','${id}')">${ICO_DEL}${t('btn_eliminar')}</button></div></div>`;
 }
-function swipeEditar(btn,fn,id){btn.closest('.swipe').scrollTo({left:0,behavior:'smooth'});window[fn](id);}
+function swipeEditar(btn,fn,id){cerrarSwipe(btn.closest('.swipe'));window[fn](id);}
 function swipeBorrar(btn,fn,id){window[fn](id,btn.closest('.swipe').querySelector('.del-btn'));}
-/* scroll no burbujea, pero se puede capturar: al deslizar una fila se cierran las demás */
+/* scroll no burbujea, pero se puede capturar: al deslizar una fila se cierran las demás. Una fila que se está
+   cerrando sigue emitiendo scroll mientras vuelve: esos eventos no cuentan, o cerrarían la fila que se acaba de abrir */
+const swipesCerrando=new WeakSet();
+function cerrarSwipe(sw){
+  swipesCerrando.add(sw);
+  sw.scrollTo({left:0,behavior:'smooth'});
+}
 document.addEventListener('scroll',e=>{
   const sw=e.target;
-  if(!sw.classList||!sw.classList.contains('swipe')||sw.scrollLeft<=4)return;
-  document.querySelectorAll('.swipe').forEach(o=>{if(o!==sw&&o.scrollLeft>0)o.scrollTo({left:0,behavior:'smooth'});});
+  if(!sw.classList||!sw.classList.contains('swipe'))return;
+  if(swipesCerrando.has(sw)){if(sw.scrollLeft===0)swipesCerrando.delete(sw);return;}
+  if(sw.scrollLeft<=4)return;
+  document.querySelectorAll('.swipe').forEach(o=>{if(o!==sw&&o.scrollLeft>0)cerrarSwipe(o);});
+},{capture:true,passive:true});
+/* Si el dedo vuelve a abrir una fila que se estaba cerrando, deja de contar como «cerrándose» */
+document.addEventListener('touchstart',e=>{
+  const sw=e.target.closest&&e.target.closest('.swipe');
+  if(sw)swipesCerrando.delete(sw);
 },{capture:true,passive:true});
 /* Con la fila deslizada, tocarla solo la cierra (como en iOS); cerrada, el toque abre la edición */
 document.addEventListener('click',e=>{
   const sw=e.target.closest&&e.target.closest('.swipe');
   if(sw&&sw.scrollLeft>4&&!e.target.closest('.swipe-actions')){
     e.stopPropagation();e.preventDefault();
-    sw.scrollTo({left:0,behavior:'smooth'});
+    cerrarSwipe(sw);
   }
 },true);
 // Skeletons

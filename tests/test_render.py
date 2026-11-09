@@ -132,8 +132,21 @@ def test_deslizar_una_fila_cierra_la_otra(app):
     r = p.evaluate("""async()=>{const [a,b]=document.querySelectorAll('.swipe');
       a.scrollLeft=168;await new Promise(r=>setTimeout(r,120));
       b.scrollLeft=168;await new Promise(r=>setTimeout(r,700));
-      return a.scrollLeft}""")
-    assert r == 0
+      return [a.scrollLeft,b.scrollLeft]}""")
+    # Se cierra la que estaba abierta y queda abierta la nueva
+    assert r == [0, 168]
+
+
+def test_una_fila_cerrada_se_puede_volver_a_abrir(app):
+    p = app.page
+    app.ir("movimientos")
+    expect(app.fila_mov("Mercadona")).to_be_visible()
+    r = p.evaluate("""async()=>{const [a,b]=document.querySelectorAll('.swipe');
+      a.scrollLeft=168;await new Promise(r=>setTimeout(r,120));
+      b.scrollLeft=168;await new Promise(r=>setTimeout(r,700));
+      a.scrollLeft=168;await new Promise(r=>setTimeout(r,700));
+      return [a.scrollLeft,b.scrollLeft]}""")
+    assert r == [168, 0]
 
 
 def test_editar_desde_el_carril(app):
