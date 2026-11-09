@@ -2085,7 +2085,11 @@ function getEmoji(n){return emojiPorPalabra(n)||'💶';}
 /* ── API ── */
 async function nFetch(path,method='GET',body=null){
   let url,opts;
-  if(path.includes('/query')){
+  if(method==='GET'){
+    // Leer una página: /pages/{id}
+    url='/api/page?pageId='+path.replace('/pages/','');
+    opts={method:'GET',headers:{'Authorization':'Bearer '+TOKEN}};
+  }else if(path.includes('/query')){
     const dbId=path.replace('/databases/','').replace('/query','');
     url='/api/query?dbId='+dbId;
     opts={method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(body||{})};
@@ -2095,7 +2099,7 @@ async function nFetch(path,method='GET',body=null){
   }
   // Notion admite ~3 peticiones/s: ante un 429 se reintenta con espera creciente. Las consultas (solo lectura)
   // también ante un 5xx del proxy; las escrituras no, porque podrían haberse guardado y se duplicarían
-  const esLectura=path.includes('/query');
+  const esLectura=method==='GET'||path.includes('/query');
   for(let intento=0;;intento++){
     const res=await fetch(url,opts);
     const reintentar=res.status===429||(esLectura&&res.status>=500);
@@ -2768,7 +2772,12 @@ async function saveEdit(){
       body:JSON.stringify({properties:props})
     });
     const data=await res.json();
-    if(data.id){closeEdit();showToast(t('toast_mov_actualizado'),'success');loadMovs(true);}
+    if(data.id){
+      closeEdit();showToast(t('toast_mov_actualizado'),'success');loadMovs(true);
+      // Editado desde Cuentas: se recargan saldos y filas, con la misma cuenta desplegada
+      const abierta=document.querySelector('#sec-cuentas.active .account-card.expanded .account-movs-wrap');
+      if(abierta){cuentaPendiente=abierta.id.replace('movs-','');loadAccounts();}
+    }
     else showToast(t('toast_error_guardar'),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
 }
@@ -4475,7 +4484,8 @@ async function saveInv(){
       if(typeof movsCache==='object'&&!movsCache[pageId]){
         try{
           var p=await nFetch('/pages/'+pageId,'GET');
-          if(p&&p.id)movsCache[pageId]=p;
+          if(!p||!p.id||p.archived){showToast(t('toast_no_abrir_mov'),'error');return;}
+          movsCache[pageId]=p;
         }catch(e){ if(typeof showToast==='function')showToast(t('toast_no_abrir_mov'),'error'); return; }
       }
       return original(pageId);

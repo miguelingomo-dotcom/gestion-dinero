@@ -180,6 +180,15 @@ class FakeNotion:
             return 400, {"object": "error", "code": "validation_error", "message": "body.parent should be defined"}
         return 200, self.anadir(db, cuerpo.get("properties") or {})
 
+    def _leer(self, id):
+        forzado = self._error_de(id)
+        if forzado:
+            return forzado
+        p = self.pagina(id)
+        if not p:
+            return 404, {"object": "error", "code": "object_not_found"}
+        return 200, self._con_balance(p)
+
     def _editar(self, id, cuerpo):
         self.escrituras.append({"metodo": "PATCH", "id": id, "cuerpo": cuerpo})
         forzado = self._error_de(id)
@@ -233,6 +242,8 @@ class FakeNotion:
         consulta = parse_qs(u.query)
         if u.path == "/api/query" and metodo == "POST":
             return self._consulta(consulta["dbId"][0], cuerpo or {})
+        if u.path == "/api/page" and metodo == "GET":
+            return self._leer(consulta["pageId"][0])
         if u.path == "/api/page" and metodo == "POST":
             return self._crear(cuerpo or {})
         if u.path == "/api/page" and metodo == "PATCH":
