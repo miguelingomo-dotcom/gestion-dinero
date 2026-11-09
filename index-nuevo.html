@@ -1570,7 +1570,7 @@ const I18N={
     csv_header:'Fecha;Nombre;Tipo;Categoria;Cuenta;Importe',csv_gasto:'Gasto',csv_ingreso:'Ingreso',csv_otros:'Otros',
     actualizado_lbl:'Actualizado',sin_datos_registra:'Sin datos aún — registra el primer valor',inv_reminder_none:'Aún no has registrado el valor de tu cartera. Entra a MyInvestor y actualízalo.',
     inv_reminder_days:'Llevas {d} días sin actualizar el valor de la cartera. Si ya se ha hecho la transferencia mensual, regístrala abajo, y actualiza el valor con lo que veas en MyInvestor.',
-    tus_cuentas:'Tus cuentas',ver_todas:'Ver todas',este_mes:'este mes',mov_mes_uno:'movimiento este mes',mov_mes_varios:'movimientos este mes',
+    tus_cuentas:'Tus cuentas',ver_todas:'Ver todas',este_mes:'este mes',
     btn_editar:'Editar',sin_gastos_mes:'Sin gastos este mes',sin_ingresos:'Sin ingresos',sin_fecha:'Sin fecha',
     toast_no_abrir_mov:'No se pudo abrir el movimiento',aria_ocultar_saldos:'Ocultar saldos',aria_mostrar_saldos:'Mostrar saldos',
     aria_recargar:'Recargar',aria_tema:'Cambiar tema',
@@ -1676,7 +1676,7 @@ const I18N={
     csv_header:'Date;Name;Type;Category;Account;Amount',csv_gasto:'Expense',csv_ingreso:'Income',csv_otros:'Other',
     actualizado_lbl:'Updated',sin_datos_registra:'No data yet — log the first value',inv_reminder_none:'You haven\'t logged your portfolio value yet. Open MyInvestor and update it.',
     inv_reminder_days:'It\'s been {d} days since you updated the portfolio value. If the monthly transfer already happened, log it below, and update the value with what you see in MyInvestor.',
-    tus_cuentas:'Your accounts',ver_todas:'See all',este_mes:'this month',mov_mes_uno:'transaction this month',mov_mes_varios:'transactions this month',
+    tus_cuentas:'Your accounts',ver_todas:'See all',este_mes:'this month',
     btn_editar:'Edit',sin_gastos_mes:'No expenses this month',sin_ingresos:'No income',sin_fecha:'No date',
     toast_no_abrir_mov:'Couldn\'t open the transaction',aria_ocultar_saldos:'Hide balances',aria_mostrar_saldos:'Show balances',
     aria_recargar:'Reload',aria_tema:'Toggle theme',
@@ -1826,7 +1826,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('invAportMensualLbl').textContent=INV_APORTACION_MENSUAL;
   document.getElementById('invAportDiaLbl').textContent=INV_APORTACION_DIA;
   // Sin tiempo mínimo: el splash se va en cuanto Inicio tiene datos que pintar (tope de 1,2 s si la red va lenta)
-  Promise.race([loadInicio().catch(()=>{}),new Promise(r=>setTimeout(r,1200))])
+  Promise.race([Promise.all([loadInicio().catch(()=>{}),loadAccounts()]),new Promise(r=>setTimeout(r,1200))])
     .then(()=>{document.getElementById('splashScreen').classList.add('hide');});
   loadCuentasActivas();
   loadInversion();
@@ -1910,6 +1910,64 @@ function bankColor(name){
   const key=Object.keys(BANK_COLORS).find(k=>name&&name.includes(k));
   return key?BANK_COLORS[key]:'var(--accent)';
 }
+function encajar(name){
+  if(!name)return null;
+  var claves=(typeof BANK_COLORS==='object')?Object.keys(BANK_COLORS):[];
+  var exacta=claves.filter(function(k){return k.toLowerCase()===name.toLowerCase();})[0];
+  if(exacta)return exacta;
+  var contiene=claves.filter(function(k){return name.toLowerCase().indexOf(k.toLowerCase())>=0;})
+    .sort(function(a,b){return b.length-a.length;})[0];
+  if(contiene)return contiene;
+  return claves.filter(function(k){return k.toLowerCase().indexOf(name.toLowerCase())>=0;})
+    .sort(function(a,b){return a.length-b.length;})[0]||null;
+}
+function colorDe(name){
+  var k=encajar(name);
+  return k?BANK_COLORS[k]:null;
+}
+function emojiDe(name){
+  if(typeof CUENTAS!=='object')return '';
+  var k=encajar(name)||name;
+  var c=CUENTAS.filter(function(x){return x.name===k;})[0]
+    ||CUENTAS.filter(function(x){return k&&x.name.indexOf(k)>=0;})[0];
+  return c?c.emoji:'';
+}
+/* Atributos de un chip de cuenta: su color de banco, ya en el HTML. extra: otros estilos en línea */
+function attrsChipBanco(name,extra=''){
+  const c=colorDe(name),estilo=extra+(c?`background:${c};`:'');
+  return (estilo?` style="${estilo}"`:'')+(c?' data-bank="1"':'');
+}
+/* Carrusel «Tus cuentas» de Inicio: cuentas = [{pageId,name,bal}] */
+function pintarCarrusel(cuentas){
+  document.getElementById('quickAccounts').innerHTML=cuentas.map(c=>
+    `<div class="qa-card" style="background:${colorDe(c.name)||'var(--accent)'}" onclick="abrirCuentaDesdeInicio('${c.pageId}')">`+
+    `<div class="qa-name"><span class="acc-ico">${emojiDe(c.name)}</span> ${c.name}</div>`+
+    `<div class="qa-bal">${fmt(c.bal)} €</div></div>`).join('');
+}
+/* Deslizar una fila: carril con desplazamiento nativo. fila: su HTML; fnEdit y fnDel: funciones globales que reciben el id */
+const ICO_EDIT='<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+const ICO_DEL='<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></svg>';
+function conSwipe(fila,fnEdit,fnDel,id){
+  return `<div class="swipe">${fila}<div class="swipe-actions">`+
+    `<button class="swipe-act swipe-edit" onclick="swipeEditar(this,'${fnEdit}','${id}')">${ICO_EDIT}${t('btn_editar')}</button>`+
+    `<button class="swipe-act swipe-del" onclick="swipeBorrar(this,'${fnDel}','${id}')">${ICO_DEL}${t('btn_eliminar')}</button></div></div>`;
+}
+function swipeEditar(btn,fn,id){btn.closest('.swipe').scrollTo({left:0,behavior:'smooth'});window[fn](id);}
+function swipeBorrar(btn,fn,id){window[fn](id,btn.closest('.swipe').querySelector('.del-btn'));}
+/* scroll no burbujea, pero se puede capturar: al deslizar una fila se cierran las demás */
+document.addEventListener('scroll',e=>{
+  const sw=e.target;
+  if(!sw.classList||!sw.classList.contains('swipe')||sw.scrollLeft<=4)return;
+  document.querySelectorAll('.swipe').forEach(o=>{if(o!==sw&&o.scrollLeft>0)o.scrollTo({left:0,behavior:'smooth'});});
+},{capture:true,passive:true});
+/* Con la fila deslizada, tocarla solo la cierra (como en iOS); cerrada, el toque abre la edición */
+document.addEventListener('click',e=>{
+  const sw=e.target.closest&&e.target.closest('.swipe');
+  if(sw&&sw.scrollLeft>4&&!e.target.closest('.swipe-actions')){
+    e.stopPropagation();e.preventDefault();
+    sw.scrollTo({left:0,behavior:'smooth'});
+  }
+},true);
 // Skeletons
 function skeletonHero(){return'<div class="skeleton skel-hero"></div>';}
 // Barra de progreso: porcentaje (0–100) → scaleX, limitado y a prueba de NaN
@@ -2268,7 +2326,11 @@ function loadInicio(){return Promise.all([loadPatrimonio(),loadResumen()]);}
 /* Valor estimado de MyInvestor. Si los tres fondos tienen valor registrado (InvFondo), el total es la suma de
    cada fondo: su último valor + su parte (pct) de las aportaciones posteriores. Si no, se usa el último
    'Valor Cartera' total + aportaciones posteriores. Devuelve {valor:null} si no hay registros. */
-async function fetchValorCartera(){
+let carteraEnCurso=null;
+function fetchValorCartera(){
+  return carteraEnCurso||(carteraEnCurso=leerValorCartera().finally(()=>{carteraEnCurso=null;}));
+}
+async function leerValorCartera(){
   const q=body=>nFetch('/databases/'+CUENTAS_DB+'/query','POST',body);
   const orden=[{property:'InvFecha',direction:'descending'},{timestamp:'created_time',direction:'descending'}];
   const filtroVal={property:'InvTipo',select:{equals:'Valor Cartera'}};
@@ -2602,7 +2664,7 @@ function renderMovFilterChips(){
   document.getElementById('movFilterChips').innerHTML=chips.map(c=>{
     const sel=movsFilterAccId===c.id;
     const borderStyle=c.id?`border-left:3px solid ${bankColor(c.name)};`:'';
-    return`<div class="chip${sel?' selected':''}" style="${borderStyle}" onclick="selMovFilter(${c.id?"'"+c.id+"'":'null'},this)">${c.emoji} ${c.name}</div>`;
+    return`<div class="chip${sel?' selected':''}"${attrsChipBanco(c.name,borderStyle)} onclick="selMovFilter(${c.id?"'"+c.id+"'":'null'},this)">${c.emoji} ${c.name}</div>`;
   }).join('');
 }
 let movsFilterCatId=null;
@@ -2695,19 +2757,19 @@ async function loadMovs(silencioso){
     const filas=[...pages.map(p=>({p,tr:false})),...transfs.map(p=>({p,tr:true}))]
       .sort((a,b)=>(fechaDe(b.p)||'').localeCompare(fechaDe(a.p)||'')||(b.p.created_time||'').localeCompare(a.p.created_time||''));
     const cuentaNombre=rel=>{const id=(rel?.[0]?.id||'').replace(/-/g,'');return CUENTAS.find(c=>c.id===id)?.name;};
-    document.getElementById('recentMovs').innerHTML=filas.map(({p,tr})=>{
+    const htmlFilas=filas.map(({p,tr})=>{
       const fechaStr=fechaTxt(fechaDe(p));
       if(tr){
         // Sin data-amt: no cuenta en el neto del día. Se edita y borra con su propia hoja (openEditTransfer/deleteTransfer)
         transfCache[p.id]=p;
         const desde=cuentaNombre(p.properties?.['Transferir Desde']?.relation),hacia=cuentaNombre(p.properties?.['Transferir a']?.relation);
         const name=desde&&hacia?desde+' → '+hacia:(p.properties?.Nombre?.title?.[0]?.plain_text||'—');
-        return`<div class="mov-item mov-transfer" data-swipe-edit="openEditTransfer" data-swipe-del="deleteTransfer">
+        return conSwipe(`<div class="mov-item mov-transfer">
         <div class="mov-icon" onclick="openEditTransfer('${p.id}')" style="cursor:pointer;">⇄</div>
         <div class="mov-info" onclick="openEditTransfer('${p.id}')" style="cursor:pointer;"><div class="mov-name">${name}</div><div class="mov-date">${fechaStr}</div></div>
         <div class="mov-amount transfer" onclick="openEditTransfer('${p.id}')" style="cursor:pointer;">${fmt(p.properties?.Monto?.number||0)} €</div>
         <button class="del-btn" onclick="deleteTransfer('${p.id}',this)">🗑️</button>
-      </div>`;
+      </div>`,'openEditTransfer','deleteTransfer',p.id);
       }
       movsCache[p.id]=p;
       const name=p.properties?.Nombre?.title?.[0]?.plain_text||'—';
@@ -2716,13 +2778,27 @@ async function loadMovs(silencioso){
       const catRelId=isG?(p.properties?.['Fuente de Gasto']?.relation?.[0]?.id||'').replace(/-/g,''):(p.properties?.['Fuente de Ingreso']?.relation?.[0]?.id||'').replace(/-/g,'');
       const cat=[...GASTOS,...INGRESOS].find(c=>c.id===catRelId);
       const emoji=cat?cat.emoji:getEmoji(name);
-      return`<div class="mov-item" data-amt="${isG?-amt:amt}">
+      return conSwipe(`<div class="mov-item" data-amt="${isG?-amt:amt}">
         <div class="mov-icon" onclick="openEditMovement('${p.id}')" style="cursor:pointer;">${emoji}</div>
         <div class="mov-info" onclick="openEditMovement('${p.id}')" style="cursor:pointer;"><div class="mov-name">${name}</div><div class="mov-date">${fechaStr}</div></div>
         <div class="mov-amount ${isG?'gasto':'ingreso'}" onclick="openEditMovement('${p.id}')" style="cursor:pointer;">${isG?'-':'+'}${fmt(amt)} €</div>
         <button class="del-btn" onclick="deleteMovement('${p.id}',this)">🗑️</button>
-      </div>`;
-    }).join('');
+      </div>`,'openEditMovement','deleteMovement',p.id);
+    });
+    // Filas agrupadas por día desde el primer pintado: moverlas después reiniciaría su animación de entrada
+    let dia=null,html='';
+    filas.forEach(({p},i)=>{
+      const d=fechaTxt(fechaDe(p));
+      if(d!==dia){
+        if(dia!==null)html+='</div>';
+        dia=d;
+        html+=`<div class="mov-daygroup"><span>${d}</span></div><div class="mov-group">`;
+      }
+      html+=htmlFilas[i];
+    });
+    const lista=document.getElementById('recentMovs');
+    lista.innerHTML=html+'</div>';
+    lista.querySelectorAll('.mov-daygroup').forEach(pintarBalanceDia);
   }catch(e){document.getElementById('recentMovs').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
 }
 /* Balance del día en su cabecera: ingresos − gastos de las filas del grupo que le sigue */
@@ -2782,7 +2858,7 @@ function openEditTransfer(pageId){
   document.getElementById('trEditAmt').value=p.properties?.Monto?.number||'';
   document.getElementById('trEditDate').value=p.properties?.Fecha?.date?.start||'';
   const accs=CUENTAS.filter(c=>cuentasActivasIds.has(c.id)||c.id===editTrFrom||c.id===editTrTo);
-  const chips=(lado,sel)=>accs.map(c=>`<div class="chip${c.id===sel?' selected':''}" onclick="selTrCuenta('${lado}','${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
+  const chips=(lado,sel)=>accs.map(c=>`<div class="chip${c.id===sel?' selected':''}"${attrsChipBanco(c.name)} onclick="selTrCuenta('${lado}','${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
   document.getElementById('trEditFromChips').innerHTML=chips('desde',editTrFrom);
   document.getElementById('trEditToChips').innerHTML=chips('hacia',editTrTo);
   editTrApEstado='cargando';
@@ -2879,7 +2955,7 @@ function openEditMovement(pageId){
   document.getElementById('editTitle').textContent=editingIsG?t('editar_gasto'):t('editar_ingreso');
 
   const accs=CUENTAS.filter(c=>cuentasActivasIds.has(c.id)||c.id===editingAccId);
-  document.getElementById('editAccChips').innerHTML=accs.map(c=>`<div class="chip${c.id===editingAccId?' selected':''}" onclick="selEditAcc('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
+  document.getElementById('editAccChips').innerHTML=accs.map(c=>`<div class="chip${c.id===editingAccId?' selected':''}"${attrsChipBanco(c.name)} onclick="selEditAcc('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
 
   const cats=editingIsG?GASTOS:INGRESOS;
   document.getElementById('editCatGrid').innerHTML=cats.map(c=>`<div class="cat-item${c.id===editingCatId?' selected':''}" onclick="selEditCat('${c.id}',this)"><div class="cat-circle">${c.emoji}</div><div class="cat-lbl">${c.name}</div></div>`).join('');
@@ -2940,7 +3016,7 @@ function setType(typ){
 function renderChips(){
   const accs=CUENTAS.filter(c=>cuentasActivasIds.has(c.id));
   const sel=accs.find(c=>c.id===selectedAccId)||accs[0];
-  document.getElementById('accountChips').innerHTML=accs.map(c=>`<div class="chip${c===sel?' selected':''}" style="border-left:3px solid ${bankColor(c.name)};" onclick="selAcc('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
+  document.getElementById('accountChips').innerHTML=accs.map(c=>`<div class="chip${c===sel?' selected':''}"${attrsChipBanco(c.name,`border-left:3px solid ${bankColor(c.name)};`)} onclick="selAcc('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
   if(sel)selectedAccId=sel.id;
 }
 function selAcc(id,el){selectedAccId=id;el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
@@ -3644,16 +3720,18 @@ async function loadAccounts(){
       return order.findIndex(x=>na.includes(x))-order.findIndex(x=>nb.includes(x));
     });
     if(!pages.length){document.getElementById('accountCards').innerHTML=emptyState('💳',t('empty_cuentas_title'),t('empty_cuentas_sub'));return;}
+    const carrusel=[];
     document.getElementById('accountCards').innerHTML=pages.map(p=>{
       const fullName=p.properties?.Nombre?.title?.[0]?.plain_text||'—';
       const name=fullName.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
       const pageId=p.id.replace(/-/g,'');
       const bal=(pageId===MYINVESTOR_ACC_ID&&typeof valorCartera==='number')?valorCartera:(p.properties?.['Balance']?.formula?.number||0);
-      const color=bankColor(name);
-      return`<div class="account-card" style="border-left:3px solid ${color};">
+      const color=bankColor(name),fondo=colorDe(name);
+      carrusel.push({pageId,name,bal});
+      return`<div class="account-card" style="border-left:3px solid ${color};${fondo?`background:${fondo};`:''}">
         <div class="account-card-head" onclick="toggleAccountMovs('${pageId}',this)">
           <div style="flex:1;">
-            <div class="account-name">${name}</div>
+            <div class="account-name" data-plain="${name}"><span class="acc-ico">${emojiDe(name)}</span>${name}</div>
             <div class="account-balance" data-bal="${bal}">${fmt(bal)} €</div>
           </div>
           <div class="account-chevron">⌄</div>
@@ -3667,6 +3745,7 @@ async function loadAccounts(){
         <div class="account-movs-wrap" id="movs-${pageId}"><div class="account-movs-clip"><div class="account-movs-inner"></div></div></div>
       </div>`;
     }).join('');
+    pintarCarrusel(carrusel);
     document.querySelectorAll('.account-balance[data-bal]').forEach(el=>{
       const target=parseFloat(el.dataset.bal);
       el.textContent='0,00 €';el.dataset.rawVal='0';
@@ -4019,7 +4098,7 @@ function showTransfer(accountId,accountName,destinoId,importe){
   // Destino con chips de cuenta (como en Registrar) en lugar de un <select>
   const destinos=CUENTAS.filter(c=>c.id!==accountId&&(cuentasActivasIds.has(c.id)||c.id===destinoId));
   transferToId=(destinos.find(c=>c.id===destinoId)||destinos[0]||{}).id||'';
-  document.getElementById('transferToChips').innerHTML=destinos.map(c=>`<div class="chip${c.id===transferToId?' selected':''}" onclick="selDestino('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
+  document.getElementById('transferToChips').innerHTML=destinos.map(c=>`<div class="chip${c.id===transferToId?' selected':''}"${attrsChipBanco(c.name)} onclick="selDestino('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
   const inputAmt=document.getElementById('transferAmt');
   inputAmt.value=importe?importe.toFixed(2).replace('.',','):'';
   document.getElementById('transferOverlay').classList.add('show');
@@ -4224,12 +4303,12 @@ async function loadInversion(){
       const fecha=r.properties?.InvFecha?.date?.start;
       const fechaStr=fecha?new Date(fecha+'T00:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short',year:'numeric'}):'';
       const isAporte=tipo==='Aportación';
-      return`<div class="mov-item" data-swipe-edit="openEditInv" data-swipe-del="deleteInv">
+      return conSwipe(`<div class="mov-item">
         <div class="mov-icon">${isAporte?'➕':'📊'}</div>
         <div class="mov-info"><div class="mov-name">${tipo}${fondo?' · '+fondo:''}</div><div class="mov-date">${fechaStr}</div></div>
         <div class="mov-amount ${isAporte?'ingreso':''}">${isAporte?'+':''}${fmt(importe)} €</div>
         <button class="del-btn" onclick="deleteInv('${r.id}',this)">🗑️</button>
-      </div>`;
+      </div>`,'openEditInv','deleteInv',r.id);
     }).join('')||emptyState('📈',t('empty_inv_title'),t('empty_inv_sub'));
   }catch(e){document.getElementById('invHistList').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
 }
@@ -4478,67 +4557,7 @@ async function saveInv(){
 </script>
 
 <script>
-/* ── Ka$hy · color por banco. Añadido, no modifica nada existente. ── */
 (function(){
-  /* Cada tarjeta de cuenta toma el color de BANK_COLORS */
-  function paintAccounts(){
-    document.querySelectorAll('#accountCards .account-card').forEach(function(card){
-      var el=card.querySelector('.account-name');
-      if(!el)return;
-      var name=(el.dataset.plain||el.textContent).replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
-      el.dataset.plain=name;
-      var c=colorDe(name);
-      if(c)card.style.background=c;
-      var em=emojiDe(name);
-      if(!el.querySelector('.acc-ico'))el.innerHTML='<span class="acc-ico">'+(em||'')+'</span>'+name;
-      pintarConteo();
-    });
-  }
-  /* Agrupa las filas de movimientos por fecha */
-  function agruparMovs(){
-    var lista=document.getElementById('recentMovs');
-    if(!lista||lista.dataset.agrupado==='si')return;
-    var filas=Array.prototype.slice.call(lista.querySelectorAll(':scope > .mov-item'));
-    if(!filas.length)return;
-    var frag=document.createDocumentFragment(),grupo=null,dia=null;
-    filas.forEach(function(fila){
-      var d=fila.querySelector('.mov-date');
-      var texto=d?d.textContent.split('·')[0].trim():'';
-      if(texto!==dia){
-        dia=texto;
-        var cab=document.createElement('div');
-        cab.className='mov-daygroup';
-        var lbl=document.createElement('span');lbl.textContent=texto;cab.appendChild(lbl);
-        frag.appendChild(cab);
-        grupo=document.createElement('div');grupo.className='mov-group';
-        frag.appendChild(grupo);
-      }
-      grupo.appendChild(fila);
-    });
-    Array.prototype.forEach.call(frag.querySelectorAll('.mov-daygroup'),pintarBalanceDia);
-    lista.innerHTML='';lista.appendChild(frag);
-    lista.dataset.agrupado='si';
-  }
-  var listaMovs=document.getElementById('recentMovs');
-  if(listaMovs)new MutationObserver(function(){
-    if(listaMovs.querySelector(':scope > .mov-item')){listaMovs.dataset.agrupado='';agruparMovs();}
-  }).observe(listaMovs,{childList:true});
-
-  function encajar(name){
-    if(!name)return null;
-    var claves=(typeof BANK_COLORS==='object')?Object.keys(BANK_COLORS):[];
-    var exacta=claves.filter(function(k){return k.toLowerCase()===name.toLowerCase();})[0];
-    if(exacta)return exacta;
-    var contiene=claves.filter(function(k){return name.toLowerCase().indexOf(k.toLowerCase())>=0;})
-      .sort(function(a,b){return b.length-a.length;})[0];
-    if(contiene)return contiene;
-    return claves.filter(function(k){return k.toLowerCase().indexOf(name.toLowerCase())>=0;})
-      .sort(function(a,b){return a.length-b.length;})[0]||null;
-  }
-  function colorDe(name){
-    var k=encajar(name);
-    return k?BANK_COLORS[k]:null;
-  }
   var ICONOS={
     plane:'<path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l3.9 4.2-2.6 2.6-1.9-.4a.5.5 0 0 0-.5.8L5 16.5l1.3 2a.5.5 0 0 0 .8-.1l-.4-1.9 2.6-2.6 4.2 3.9a.5.5 0 0 0 .8-.5z"/>',
     bank:'<path d="M3 10h18"/><path d="M5 10v8M10 10v8M14 10v8M19 10v8"/><path d="M2 18h20"/><path d="M12 3 3 8h18z"/>',
@@ -4556,66 +4575,6 @@ async function saveInv(){
     var k=encajar(name)||name;
     var id=ICONO_CUENTA[k]||'bank';
     return '<svg viewBox="0 0 24 24" aria-hidden="true">'+ICONOS[id]+'</svg>';
-  }
-
-  /* Movimientos de este mes por cuenta, en una sola consulta */
-  var conteoMes=null;
-  async function cargarConteo(){
-    if(typeof nFetch!=='function'||typeof DB_ID==='undefined')return;
-    var n=new Date(),p=function(x){return String(x).padStart(2,'0');};
-    var ini=n.getFullYear()+'-'+p(n.getMonth()+1)+'-01';
-    var fin=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(new Date(n.getFullYear(),n.getMonth()+1,0).getDate());
-    try{
-      var d=await nQueryAll(DB_ID,{
-        filter:{and:[{property:'Fecha',date:{on_or_after:ini}},{property:'Fecha',date:{on_or_before:fin}}]},
-        page_size:100});
-      conteoMes={};
-      (d.results||[]).forEach(function(pg){
-        var g=(pg.properties&&pg.properties.Gasto&&pg.properties.Gasto.number)||0;
-        var i=(pg.properties&&pg.properties.Ingreso&&pg.properties.Ingreso.number)||0;
-        if(g+i<=0)return;
-        var rel=(pg.properties&&pg.properties.Cuenta&&pg.properties.Cuenta.relation&&pg.properties.Cuenta.relation[0]||{}).id||'';
-        rel=rel.replace(/-/g,'');
-        if(rel)conteoMes[rel]=(conteoMes[rel]||0)+1;
-      });
-      pintarConteo();
-    }catch(e){}
-  }
-  function pintarConteo(){
-    if(!conteoMes)return;
-    document.querySelectorAll('[data-acc-sub]').forEach(function(el){
-      var n=conteoMes[el.dataset.accSub]||0;
-      el.textContent=n+' '+(n===1?t('mov_mes_uno'):t('mov_mes_varios'));
-    });
-  }
-  function emojiDe(name){
-    if(typeof CUENTAS!=='object')return '';
-    var k=encajar(name)||name;
-    var c=CUENTAS.filter(function(x){return x.name===k;})[0]
-      ||CUENTAS.filter(function(x){return k&&x.name.indexOf(k)>=0;})[0];
-    return c?c.emoji:'';
-  }
-
-  /* Carrusel de cuentas en Inicio, construido desde las tarjetas ya cargadas */
-  function pintarCarrusel(){
-    var destino=document.getElementById('quickAccounts');
-    var origen=document.querySelectorAll('#accountCards .account-card');
-    if(!destino||!origen.length)return;
-    destino.innerHTML=Array.prototype.map.call(origen,function(card){
-      var n=card.querySelector('.account-name'),b=card.querySelector('.account-balance');
-      if(!n||!b)return '';
-      var nombre=(n.dataset.plain||n.textContent).replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
-      var color=colorDe(nombre)||'var(--accent)';
-      var em=emojiDe(nombre);
-      var saldo=(b.dataset.bal!==undefined&&typeof fmt==='function')
-        ? fmt(parseFloat(b.dataset.bal))+' €' : b.textContent;
-      // El id sale de la propia tarjeta (movs-<id>), no del nombre: «Revolut» o «MyInvestor Remunerada (2,50%)» no casaban con CUENTAS
-      var wrapMovs=card.querySelector('.account-movs-wrap');
-      var idCuenta=wrapMovs?wrapMovs.id.replace('movs-',''):'';
-      return '<div class="qa-card" style="background:'+color+'" onclick="abrirCuentaDesdeInicio(\''+idCuenta+'\')">'+
-        '<div class="qa-name"><span class="acc-ico">'+em+'</span> '+nombre+'</div>'+
-        '<div class="qa-bal">'+saldo+'</div></div>';
-    }).join('');
   }
 
   /* Editar un movimiento desde el desplegable de una cuenta */
@@ -4663,87 +4622,6 @@ async function saveInv(){
     pintarOjo(activo);
   };
   pintarOjo(localStorage.getItem(PRIV_KEY)==='1');
-
-  var host=document.getElementById('accountCards');
-  if(host)new MutationObserver(paintAccounts).observe(host,{childList:true,subtree:true});
-  document.addEventListener('DOMContentLoaded',paintAccounts);
-  setTimeout(function(){paintAccounts();pintarCarrusel();},1200);
-  if(host)new MutationObserver(function(){
-    paintAccounts();pintarCarrusel();setTimeout(pintarCarrusel,750);
-  }).observe(host,{childList:true});
-
-  /* Chips de cuenta con el color de su banco */
-  function pintarChips(){
-    ['accountChips','editAccChips','transferToChips','trEditFromChips','trEditToChips','movFilterChips'].forEach(function(id){
-      var cont=document.getElementById(id);
-      if(!cont)return;
-      cont.querySelectorAll('.chip').forEach(function(chip){
-        var texto=(chip.dataset.plain||chip.textContent).replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
-        chip.dataset.plain=texto;
-        var c=colorDe(texto);
-        if(c){chip.style.background=c;chip.dataset.bank='1';}
-      });
-    });
-  }
-  ['accountChips','editAccChips','transferToChips','trEditFromChips','trEditToChips','movFilterChips'].forEach(function(id){
-    var cont=document.getElementById(id);
-    if(cont)new MutationObserver(pintarChips).observe(cont,{childList:true,subtree:true});
-  });
-  setTimeout(pintarChips,700);
-  setTimeout(cargarConteo,1400);
-
-  /* Deslizar un movimiento: carril con desplazamiento nativo */
-  var ICO_EDIT='<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
-  var ICO_DEL='<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></svg>';
-  function cerrarOtros(actual){
-    document.querySelectorAll('.swipe').forEach(function(s){
-      if(s!==actual&&s.scrollLeft>0)s.scrollTo({left:0,behavior:'smooth'});
-    });
-  }
-  function prepararSwipe(fila){
-    if(fila.parentNode&&fila.parentNode.classList.contains('swipe'))return;
-    var fnEdit=fila.dataset.swipeEdit||'openEditMovement';
-    var fnDel=fila.dataset.swipeDel||'deleteMovement';
-    var del=fila.querySelector('.del-btn');
-    var fuente=del||fila.querySelector('[onclick*="'+fnEdit+'"]');
-    if(!fuente)return;
-    var id=((fuente.getAttribute('onclick')||'').match(/'([^']+)'/)||[])[1];
-    if(!id)return;
-    var objetivo=del||fila;
-
-
-    var sw=document.createElement('div');
-    sw.className='swipe';
-    fila.parentNode.insertBefore(sw,fila);
-    sw.appendChild(fila);
-    var acciones=document.createElement('div');
-    acciones.className='swipe-actions';
-    acciones.innerHTML='<button class="swipe-act swipe-edit">'+ICO_EDIT+t('btn_editar')+'</button>'+
-                       '<button class="swipe-act swipe-del">'+ICO_DEL+t('btn_eliminar')+'</button>';
-    sw.appendChild(acciones);
-    acciones.querySelector('.swipe-edit').onclick=function(){sw.scrollTo({left:0,behavior:'smooth'});window[fnEdit](id);};
-    acciones.querySelector('.swipe-del').onclick=function(){window[fnDel](id,objetivo);};
-    sw.addEventListener('scroll',function(){ if(sw.scrollLeft>4)cerrarOtros(sw); },{passive:true});
-    /* Con la fila deslizada, tocarla solo la cierra (como en iOS); cerrada, el toque abre la edición */
-    sw.addEventListener('click',function(e){
-      if(sw.scrollLeft>4&&!e.target.closest('.swipe-actions')){
-        e.stopPropagation();e.preventDefault();
-        sw.scrollTo({left:0,behavior:'smooth'});
-      }
-    },true);
-  }
-  function prepararTodos(){
-    document.querySelectorAll('#recentMovs .mov-item, #invHistList .mov-item').forEach(prepararSwipe);
-  }
-  ['recentMovs','invHistList'].forEach(function(id){
-    var c=document.getElementById(id);
-    if(c)new MutationObserver(prepararTodos).observe(c,{childList:true,subtree:true});
-  });
-  setInterval(prepararTodos,1000);
-  var recargar=window.loadAccounts;
-  if(typeof recargar==='function')window.loadAccounts=function(){var r=recargar.apply(this,arguments);setTimeout(cargarConteo,300);return r;};
-  /* Las cuentas se cargan al arrancar para que el carrusel tenga datos */
-  setTimeout(function(){ if(typeof loadAccounts==='function'&&!document.querySelector('#accountCards .account-card'))loadAccounts(); },900);
 
   /* El bloqueo con Face ID se ha quitado: limpia lo que dejó guardado en este dispositivo */
   try{localStorage.removeItem('kashy-lock-enabled');localStorage.removeItem('kashy-cred-id');}catch(e){}
