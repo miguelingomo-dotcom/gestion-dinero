@@ -202,6 +202,7 @@ input,select,button{font-family:'DM Sans',-apple-system,sans-serif;}
 .sus-amount.ing{color:var(--green);}
 .sus-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;}
 .sus-btn:active{opacity:.7;}
+.sus-btn:disabled{opacity:.4;cursor:default;}
 
 /* ── STATS ── */
 .stat-hero{margin:0 20px 14px;background:linear-gradient(135deg,rgba(123,110,246,.18),rgba(34,197,94,.08));border:1px solid rgba(123,110,246,.3);border-radius:24px;padding:24px;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(123,110,246,.15);}
@@ -1406,6 +1407,7 @@ const I18N={
     toast_transf_eliminada:'Transferencia eliminada',toast_transf_eliminada_inv:'Transferencia eliminada · revisa la aportación en Inversión',
     toast_elige_cuentas:'Elige dos cuentas distintas',toast_transf_ap_eliminadas:'Transferencia y aportación eliminadas',
     toast_transf_act_ap_eliminada:'Transferencia actualizada · aportación eliminada',toast_ap_no_sync:'Transferencia guardada, pero no se pudo actualizar la aportación',
+    proximo_pago:'Próximo pago',
     gestionar_presupuestos:'Gestionar Presupuestos',definir_limite:'Define un límite mensual por categoría',
     btn_cerrar:'Cerrar',
     nueva_meta:'Nueva Meta',ejemplo_viaje:'Ej: Viaje a Japón',
@@ -1509,6 +1511,7 @@ const I18N={
     toast_transf_eliminada:'Transfer deleted',toast_transf_eliminada_inv:'Transfer deleted · check the contribution in Invest',
     toast_elige_cuentas:'Choose two different accounts',toast_transf_ap_eliminadas:'Transfer and contribution deleted',
     toast_transf_act_ap_eliminada:'Transfer updated · contribution deleted',toast_ap_no_sync:'Transfer saved, but the contribution couldn\'t be updated',
+    proximo_pago:'Next payment',
     gestionar_presupuestos:'Manage Budgets',definir_limite:'Set a monthly limit per category',
     btn_cerrar:'Close',
     nueva_meta:'New Goal',ejemplo_viaje:'e.g. Trip to Japan',
@@ -1648,6 +1651,7 @@ const SUSCRIPCIONES=[
   {name:'DAZN Fútbol',emoji:'⚽',amount:2.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:28,fechaInicio:'2026-08-28',fechaFin:'2027-08-28',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'salto'}},
   {name:'Mueble Ikea',emoji:'🛋️',amount:28.93,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f816d85afc5277c4e2c08',dia:27,fechaInicio:'2026-10-27',fechaFin:'2026-12-27',cuotasTotales:3,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'latido'}},
   {name:'Vinilos',emoji:'💿',amount:28.85,importes:[28.85,28.86,28.85],cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8196b8d4dc7c51c738b2',dia:29,fechaInicio:'2026-10-29',fechaFin:'2026-12-29',cuotasTotales:3,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'giro'}},
+  {name:'Revisiones Coche',emoji:'🔧',amount:55,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f81689c53c344e9ce8987',dia:5,fechaInicio:'2026-12-05',fechaFin:'2027-11-05',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'giro'}},
 ];
 const INGRESOS_RAPIDOS=[
   {name:'Awela',emoji:'👵',amount:10,cuentaId:'31621c54013f813483ded3bbd77a5e10',catId:'31621c54013f810f800cd4fd01aef4da',anim:{familia:'balanceo',origen:'50% 100%'}},
@@ -2012,7 +2016,7 @@ function showSuccessBurst(anim){
    y los pagos a plazos terminados; en los plazos se avisa del importe de la próxima cuota, como en su tarjeta */
 async function checkAlerts(){
   const hoy=new Date().getDate();
-  const candidatos=SUSCRIPCIONES.filter(s=>s.dia===hoy);
+  const candidatos=SUSCRIPCIONES.filter(s=>s.dia===hoy&&!pagoPorEmpezar(s));
   if(!candidatos.length)return;
   const pendientes=(await Promise.all(candidatos.map(async s=>{
     if(await registradoEsteMes(s))return null;
@@ -2025,6 +2029,8 @@ async function checkAlerts(){
   const total=pendientes.reduce((t,x)=>t+x.importe,0);
   document.getElementById('alertItems').textContent=pendientes.map(x=>x.s.emoji+' '+x.s.name).join(', ')+' · -'+total.toFixed(2)+' €';
 }
+/* Pago a plazos cuya primera cuota aún no ha llegado: sin aviso y sin «Registrar», que crearía un gasto que no cuenta como cuota */
+function pagoPorEmpezar(s){return !!s.fechaInicio&&hoyLocal()<s.fechaInicio;}
 /* ¿Hay ya un movimiento de este pago en el mes en curso? Si Notion no responde, se avisa igualmente */
 async function registradoEsteMes(s){
   const n=new Date(),ini=fechaLocalDe(new Date(n.getFullYear(),n.getMonth(),1)),fin=fechaLocalDe(new Date(n.getFullYear(),n.getMonth()+1,0));
@@ -2896,12 +2902,13 @@ function renderSusc(){
   document.getElementById('suscripList').innerHTML=SUSCRIPCIONES.map((s,i)=>{
     const accName=CUENTAS.find(c=>c.id===s.cuentaId)?.name||'';
     const hasProgress=!!(s.fechaInicio&&s.fechaFin&&s.cuotasTotales);
+    const porEmpezar=pagoPorEmpezar(s),esHoy=s.dia===hoy&&!porEmpezar;
     return`
     <div class="sus-card-wrap" id="suscWrap-${i}">
-      <div class="sus-card${s.dia===hoy?' hoy':''}${hasProgress?' has-progress':''}">
+      <div class="sus-card${esHoy?' hoy':''}${hasProgress?' has-progress':''}">
         <div class="sus-icon" id="suscIcon-${i}" style="background:${bankColor(accName)}22;border-color:${bankColor(accName)}55;"><span class="anim-emo">${s.emoji}</span></div>
-        <div class="sus-info"><div class="sus-name">${s.name}${s.dia===hoy?' 🔔':''}</div><div class="sus-meta">${t('dia_lbl')} ${s.dia} · ${accName}</div></div>
-        <div class="sus-right"><div class="sus-amount" id="suscAmt-${i}">-${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regSusc(${i})">${t('btn_registrar')}</button></div>
+        <div class="sus-info"><div class="sus-name">${s.name}${esHoy?' 🔔':''}</div><div class="sus-meta">${t('dia_lbl')} ${s.dia} · ${accName}</div></div>
+        <div class="sus-right"><div class="sus-amount" id="suscAmt-${i}">-${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regSusc(${i})"${porEmpezar?' disabled':''}>${t('btn_registrar')}</button></div>
       </div>
       ${hasProgress?`<div class="susc-progress" id="suscProgress-${i}"><div class="loading" style="padding:10px 0;font-size:12px;">${t('cargando_progreso')}</div></div>`:''}
     </div>`;
@@ -2930,7 +2937,7 @@ async function refreshSuscProgress(i,animar){
       <span>${p.cuotasPagadas}/${s.cuotasTotales} cuotas</span>
     </div>
     <div class="res-bar"><div class="res-bar-fill" style="transform:${antes||barScale(p.pct)}"></div></div>
-    <div class="susc-progress-sub">Vence ${p.finStr}</div>`;
+    <div class="susc-progress-sub">${pagoPorEmpezar(s)?t('proximo_pago')+' '+new Date(s.fechaInicio+'T00:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'})+' · ':''}Vence ${p.finStr}</div>`;
   if(animar){
     const fill=el.querySelector('.res-bar-fill');
     if(antes){void fill.offsetWidth;fill.style.transform=barScale(p.pct);}
