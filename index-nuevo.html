@@ -200,6 +200,7 @@ input,select,button{font-family:'DM Sans',-apple-system,sans-serif;}
 .sus-right{text-align:right;}
 .sus-amount{font-size:16px;font-weight:800;color:var(--red);margin-bottom:6px;}
 .sus-amount.ing{color:var(--green);}
+.sus-amount.tr{color:var(--accent);}
 .sus-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;}
 .sus-btn:active{opacity:.7;}
 .sus-btn:disabled{opacity:.4;cursor:default;}
@@ -1082,13 +1083,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     </div>
     <div id="accountCardsInactive" style="display:none;"></div>
     <div class="card-title" style="margin:20px 20px 10px;" data-i18n="transf_recurrentes">Transferencias recurrentes</div>
-    <div class="reg-wrap" style="margin-bottom:10px;">
-      <div class="sus-card" style="margin:0;">
-        <div class="sus-icon">🔁</div>
-        <div class="sus-info"><div class="sus-name" data-i18n="ibercaja_revolut">Ibercaja → Revolut Personal</div><div class="sus-meta"><span data-i18n="transferencia_automatica">Transferencia automática</span> · importe a elegir</div></div>
-        <div class="sus-right"><button class="sus-btn" onclick="quickTransferMensual()" data-i18n="btn_registrar">Registrar</button></div>
-      </div>
-    </div>
+    <div class="reg-wrap" style="margin-bottom:10px;"><div id="transfRecList"></div></div>
 
     <div class="sec-header" style="display:flex;justify-content:space-between;align-items:center;">
       <h2 data-i18n="metas_ahorro">Metas de ahorro</h2>
@@ -1418,7 +1413,7 @@ const I18N={
     valor_actual_cartera:'Valor Actual de la Cartera',sin_datos_aun:'Sin datos aún',
     rendimiento_lbl:'Rendimiento',aportacion_mensual:'Aportación mensual',
     nueva_aportacion:'Nueva Aportación',actualizar_valor_cartera:'Actualizar Valor de Cartera',fondos_lbl:'Fondos',fondos_hint:'Pulsa «Actualizar Valor» e introduce el valor de cada fondo para ver cómo va cada uno.',isin_copiado:'ISIN copiado',editar_aportacion:'Editar Aportación',editar_valor_cartera:'Editar Valor de Cartera',toast_inv_actualizado:'✓ Registro actualizado',cambiar_fecha:'Hoy · Cambiar fecha',inv_total:'Total',inv_vs_ultimo:'vs. último total',inv_sin_cambios:'Sin cambios, no se ha guardado nada',
-    dia_lbl:'Día',ingreso_rapido:'Ingreso rápido',cobros_hoy:'⚠️ Cobros hoy',
+    dia_lbl:'Día',ingreso_rapido:'Ingreso rápido',cobros_hoy:'⚠️ Cobros hoy',transf_hoy:'⇄ Transferencias hoy',importe_a_elegir:'importe a elegir',
     ahorrando_bien:'Estás ahorrando bien 💪',cuidado_gastos:'Cuidado con los gastos ⚠️',
     tasa_excelente:'De cada 100€ que ingresas, ahorras {t}€ — excelente 🎯',
     tasa_moderada:'Tasa de ahorro moderada, puedes mejorar 📈',
@@ -1433,7 +1428,6 @@ const I18N={
     csv_header:'Fecha;Nombre;Tipo;Categoria;Cuenta;Importe',csv_gasto:'Gasto',csv_ingreso:'Ingreso',csv_otros:'Otros',
     actualizado_lbl:'Actualizado',sin_datos_registra:'Sin datos aún — registra el primer valor',inv_reminder_none:'Aún no has registrado el valor de tu cartera. Entra a MyInvestor y actualízalo.',
     inv_reminder_days:'Llevas {d} días sin actualizar el valor de la cartera. Si ya se ha hecho la transferencia mensual, regístrala abajo, y actualiza el valor con lo que veas en MyInvestor.',
-    ibercaja_revolut:'Ibercaja → Revolut Personal',
     tus_cuentas:'Tus cuentas',ver_todas:'Ver todas',este_mes:'este mes',mov_mes_uno:'movimiento este mes',mov_mes_varios:'movimientos este mes',
     btn_editar:'Editar',sin_gastos_mes:'Sin gastos este mes',sin_ingresos:'Sin ingresos',sin_fecha:'Sin fecha',
     toast_no_abrir_mov:'No se pudo abrir el movimiento',aria_ocultar_saldos:'Ocultar saldos',aria_mostrar_saldos:'Mostrar saldos',
@@ -1524,7 +1518,7 @@ const I18N={
     valor_actual_cartera:'Current Portfolio Value',sin_datos_aun:'No data yet',
     rendimiento_lbl:'Return',aportacion_mensual:'Monthly contribution',
     nueva_aportacion:'New Contribution',actualizar_valor_cartera:'Update Portfolio Value',fondos_lbl:'Funds',fondos_hint:'Tap “Update Value” and enter each fund’s value to see how each one is doing.',isin_copiado:'ISIN copied',editar_aportacion:'Edit Contribution',editar_valor_cartera:'Edit Portfolio Value',toast_inv_actualizado:'✓ Entry updated',cambiar_fecha:'Today · Change date',inv_total:'Total',inv_vs_ultimo:'vs. last total',inv_sin_cambios:'No changes, nothing saved',
-    dia_lbl:'Day',ingreso_rapido:'Quick income',cobros_hoy:'⚠️ Due today',
+    dia_lbl:'Day',ingreso_rapido:'Quick income',cobros_hoy:'⚠️ Due today',transf_hoy:'⇄ Transfers today',importe_a_elegir:'choose amount',
     ahorrando_bien:'You\'re saving well 💪',cuidado_gastos:'Watch your spending ⚠️',
     tasa_excelente:'For every €100 you earn, you save €{t} — excellent 🎯',
     tasa_moderada:'Moderate savings rate, room to improve 📈',
@@ -1539,7 +1533,6 @@ const I18N={
     csv_header:'Date;Name;Type;Category;Account;Amount',csv_gasto:'Expense',csv_ingreso:'Income',csv_otros:'Other',
     actualizado_lbl:'Updated',sin_datos_registra:'No data yet — log the first value',inv_reminder_none:'You haven\'t logged your portfolio value yet. Open MyInvestor and update it.',
     inv_reminder_days:'It\'s been {d} days since you updated the portfolio value. If the monthly transfer already happened, log it below, and update the value with what you see in MyInvestor.',
-    ibercaja_revolut:'Ibercaja → Revolut Personal',
     tus_cuentas:'Your accounts',ver_todas:'See all',este_mes:'this month',mov_mes_uno:'transaction this month',mov_mes_varios:'transactions this month',
     btn_editar:'Edit',sin_gastos_mes:'No expenses this month',sin_ingresos:'No income',sin_fecha:'No date',
     toast_no_abrir_mov:'Couldn\'t open the transaction',aria_ocultar_saldos:'Hide balances',aria_mostrar_saldos:'Show balances',
@@ -1557,7 +1550,7 @@ function setLang(lang){
   try{localStorage.setItem('kashy-lang',lang);}catch(e){}
   applyI18n();
   setMes();
-  renderCats(currentType);renderChips();renderSusc();renderIngresosRapidos();
+  renderCats(currentType);renderChips();renderSusc();renderIngresosRapidos();renderTransfRec();
   const active=document.querySelector('.section.active');
   if(active){
     const name=active.id.replace('sec-','');
@@ -1657,6 +1650,11 @@ const SUSCRIPCIONES=[
   {name:'Vinilos',emoji:'💿',amount:28.85,importes:[28.85,28.86,28.85],cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8196b8d4dc7c51c738b2',dia:29,fechaInicio:'2026-10-29',fechaFin:'2026-12-29',cuotasTotales:3,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'giro'}},
   {name:'Revisiones Coche',emoji:'🔧',amount:55,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f81689c53c344e9ce8987',dia:5,fechaInicio:'2026-12-05',fechaFin:'2027-11-05',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'giro'}},
 ];
+/* Sin amount: la hoja se abre con el importe vacío y cualquier importe cuenta como «ya registrada» este mes */
+const TRANSF_RECURRENTES=[
+  {fromId:IBERCAJA_ID,toId:MYINVESTOR_REM_ID,amount:150,dia:23},
+  {fromId:IBERCAJA_ID,toId:REVOLUT_PERSONAL_ID,dia:26},
+];
 const INGRESOS_RAPIDOS=[
   {name:'Awela',emoji:'👵',amount:10,cuentaId:'31621c54013f813483ded3bbd77a5e10',catId:'31621c54013f810f800cd4fd01aef4da',anim:{familia:'balanceo',origen:'50% 100%'}},
   {name:'Mamá',emoji:'👩‍👧',amount:50,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f817f9194cb102e04b7dd',anim:{familia:'balanceo',origen:'50% 100%'}},
@@ -1680,7 +1678,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   applyI18n();
   setMes();checkAlerts();
-  renderChips();renderCats('gasto');renderSusc();renderIngresosRapidos();
+  renderChips();renderCats('gasto');renderSusc();renderIngresosRapidos();renderTransfRec();
   renderMonthChips();
   document.getElementById('invAportMensualLbl').textContent=INV_APORTACION_MENSUAL;
   document.getElementById('invAportDiaLbl').textContent=INV_APORTACION_DIA;
@@ -2016,22 +2014,36 @@ function showSuccessBurst(anim){
     triggered=false;
   },{passive:true});
 })();
-/* Pagos de hoy en Inicio. Se omiten los que ya están registrados este mes (mismo nombre que crea «Registrar»)
-   y los pagos a plazos terminados; en los plazos se avisa del importe de la próxima cuota, como en su tarjeta */
+/* Pagos y transferencias recurrentes de hoy en Inicio. Se omiten los ya registrados este mes (mismo nombre que crea
+   «Registrar», o misma transferencia) y los pagos a plazos terminados; en los plazos se avisa del importe de la próxima
+   cuota, como en su tarjeta. Se vuelve a llamar al registrar una transferencia, para retirar el aviso */
 async function checkAlerts(){
   const hoy=new Date().getDate();
   const candidatos=SUSCRIPCIONES.filter(s=>s.dia===hoy&&!pagoPorEmpezar(s));
-  if(!candidatos.length)return;
-  const pendientes=(await Promise.all(candidatos.map(async s=>{
-    if(await registradoEsteMes(s))return null;
-    if(!s.cuotasTotales)return{s,importe:s.amount};
-    const p=await calcCuotasProgress(s);
-    return p.terminado?null:{s,importe:importeCuota(s,p.cuotasPagadas)};
-  }))).filter(Boolean);
-  if(!pendientes.length)return;
-  document.getElementById('alertBanner').classList.add('show');
-  const total=pendientes.reduce((t,x)=>t+x.importe,0);
-  document.getElementById('alertItems').textContent=pendientes.map(x=>x.s.emoji+' '+x.s.name).join(', ')+' · -'+total.toFixed(2)+' €';
+  const transf=TRANSF_RECURRENTES.filter(x=>x.dia===hoy);
+  if(!candidatos.length&&!transf.length)return;
+  const [pendientes,transfPend]=await Promise.all([
+    Promise.all(candidatos.map(async s=>{
+      if(await registradoEsteMes(s))return null;
+      if(!s.cuotasTotales)return{s,importe:s.amount};
+      const p=await calcCuotasProgress(s);
+      return p.terminado?null:{s,importe:importeCuota(s,p.cuotasPagadas)};
+    })),
+    Promise.all(transf.map(async x=>await transferRegistradaEsteMes(x)?null:x))
+  ]).then(r=>r.map(l=>l.filter(Boolean)));
+  const banner=document.getElementById('alertBanner');
+  banner.classList.toggle('show',pendientes.length+transfPend.length>0);
+  if(!banner.classList.contains('show'))return;
+  const partes=[];
+  if(pendientes.length){
+    const total=pendientes.reduce((t,x)=>t+x.importe,0);
+    partes.push(pendientes.map(x=>x.s.emoji+' '+x.s.name).join(', ')+' · -'+total.toFixed(2)+' €');
+  }
+  // El banner es estrecho: basta el destino, sin el interés entre paréntesis
+  transfPend.forEach(x=>partes.push(nombreCuenta(x.toId).replace(/\s*\(.*\)$/,'')+(x.amount?' · '+x.amount.toFixed(2)+' €':'')));
+  const titulo=banner.querySelector('.alert-title'),clave=pendientes.length?'cobros_hoy':'transf_hoy';
+  titulo.setAttribute('data-i18n',clave);titulo.textContent=t(clave);
+  document.getElementById('alertItems').textContent=partes.join(', ');
 }
 /* Pago a plazos cuya primera cuota aún no ha llegado: sin aviso y sin «Registrar», que crearía un gasto que no cuenta como cuota */
 function pagoPorEmpezar(s){return !!s.fechaInicio&&hoyLocal()<s.fechaInicio;}
@@ -2044,6 +2056,21 @@ async function registradoEsteMes(s){
       {property:'Fecha',date:{on_or_after:ini}},
       {property:'Fecha',date:{on_or_before:fin}}
     ]},page_size:1});
+    return !!(d&&d.results&&d.results.length);
+  }catch(e){return false;}
+}
+/* ¿Hay ya esta transferencia en el mes en curso? Con amount, solo si coincide el importe. Si Notion no responde, se avisa igualmente */
+async function transferRegistradaEsteMes(x){
+  const n=new Date(),ini=fechaLocalDe(new Date(n.getFullYear(),n.getMonth(),1)),fin=fechaLocalDe(new Date(n.getFullYear(),n.getMonth()+1,0));
+  const conds=[
+    {property:'Transferir Desde',relation:{contains:x.fromId}},
+    {property:'Transferir a',relation:{contains:x.toId}},
+    {property:'Fecha',date:{on_or_after:ini}},
+    {property:'Fecha',date:{on_or_before:fin}}
+  ];
+  if(x.amount)conds.push({property:'Monto',number:{equals:x.amount}});
+  try{
+    const d=await nFetch('/databases/'+TRANSFER_DB+'/query','POST',{filter:{and:conds},page_size:1});
     return !!(d&&d.results&&d.results.length);
   }catch(e){return false;}
 }
@@ -3833,23 +3860,38 @@ async function reactivateAccount(pageId,name){
 
 /* ── METAS DE AHORRO ── */
 /* ── TRANSFERENCIA ── */
-function showTransfer(accountId,accountName,destinoId){
+/* destinoId e importe (opcionales) para las recurrentes: el destino pedido siempre está entre las opciones */
+function showTransfer(accountId,accountName,destinoId,importe){
   transferFromId=accountId;
   document.getElementById('transferFrom').textContent=accountName;
   // Destino con chips de cuenta (como en Registrar) en lugar de un <select>
-  const destinos=CUENTAS.filter(c=>c.id!==accountId&&cuentasActivasIds.has(c.id));
+  const destinos=CUENTAS.filter(c=>c.id!==accountId&&(cuentasActivasIds.has(c.id)||c.id===destinoId));
   transferToId=(destinos.find(c=>c.id===destinoId)||destinos[0]||{}).id||'';
   document.getElementById('transferToChips').innerHTML=destinos.map(c=>`<div class="chip${c.id===transferToId?' selected':''}" onclick="selDestino('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
-  document.getElementById('transferAmt').value='';
+  const inputAmt=document.getElementById('transferAmt');
+  inputAmt.value=importe?importe.toFixed(2).replace('.',','):'';
   document.getElementById('transferOverlay').classList.add('show');
   // Foco directo en el importe, dentro del toque para que iOS abra el teclado
-  document.getElementById('transferAmt').focus({preventScroll:true});
+  inputAmt.focus({preventScroll:true});
+  if(importe)selTodoInv(inputAmt); // importe precargado: escribir encima lo sustituye
 }
 function selDestino(id,el){transferToId=id;el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',c===el));}
 function closeTransfer(){document.getElementById('transferOverlay').classList.remove('show');}
-/* Transferencia Ibercaja → Revolut Personal: sin importe fijo; abre la hoja con origen y destino ya puestos */
-function quickTransferMensual(){
-  showTransfer(IBERCAJA_ID,'Ibercaja',REVOLUT_PERSONAL_ID);
+function renderTransfRec(){
+  const hoy=new Date().getDate();
+  document.getElementById('transfRecList').innerHTML=TRANSF_RECURRENTES.map((x,i)=>{
+    const desde=nombreCuenta(x.fromId),esHoy=x.dia===hoy;
+    return`
+    <div class="sus-card${esHoy?' hoy':''}">
+      <div class="sus-icon" style="background:${bankColor(desde)}22;border-color:${bankColor(desde)}55;">⇄</div>
+      <div class="sus-info"><div class="sus-name">${desde} → ${nombreCuenta(x.toId)}</div><div class="sus-meta">${t('dia_lbl')} ${x.dia}${x.amount?'':' · '+t('importe_a_elegir')}${esHoy?' 🔔':''}</div></div>
+      <div class="sus-right">${x.amount?`<div class="sus-amount tr">${x.amount.toFixed(2)} €</div>`:''}<button class="sus-btn" onclick="regTransfRec(${i})">${t('btn_registrar')}</button></div>
+    </div>`;
+  }).join('');
+}
+function regTransfRec(i){
+  const x=TRANSF_RECURRENTES[i];
+  showTransfer(x.fromId,nombreCuenta(x.fromId),x.toId,x.amount);
 }
 async function submitTransfer(){
   const amt=parseAmt(document.getElementById('transferAmt').value);
@@ -3874,7 +3916,7 @@ async function submitTransfer(){
         const ap=await crearAportacion('Aportación - '+fromName.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim(),amt,today,res.id);
         if(!ap.id){showToast('Error: '+(ap.message||t('toast_intentalo')),'error');loadAccounts();return;}
       }
-      showSuccessBurst();showToast(t('toast_transferencia_reg'),'success');loadAccounts();
+      showSuccessBurst();showToast(t('toast_transferencia_reg'),'success');loadAccounts();checkAlerts();
     }
     else showToast('Error: '+(res.message||t('toast_intentalo')),'error');
   }catch(e){showToast(t('toast_error_transferir'),'error');}
