@@ -7,10 +7,14 @@ import assert from 'node:assert/strict';
 const dir = process.argv[2];
 const CLAVE = 'clave-de-prueba-larga';
 const METODOS = ['GET', 'POST', 'PATCH', 'DELETE'];
+const TOKEN_PRUEBA = 'token-de-prueba';
+process.env.NOTION_TOKEN = TOKEN_PRUEBA;
 let llamadas = [];
+let estadoNotion = 200;
 globalThis.fetch = async (url, opts = {}) => {
   llamadas.push({ url: String(url), headers: opts.headers || {} });
-  return { status: 200, json: async () => ({ results: [], has_more: false, id: 'x' }) };
+  const status = String(url).includes('api.notion.com') ? estadoNotion : 200;
+  return { status, json: async () => ({ results: [], has_more: false, id: 'x', code: status === 401 ? 'unauthorized' : undefined }) };
 };
 
 function respuesta() {
@@ -65,6 +69,25 @@ for (const archivo of archivos) {
     assert.equal(llamadas.length, 0, `${archivo} sin KASHY_KEY`);
   }
   process.env.KASHY_KEY = CLAVE;
+}
+
+// Proxies a Notion: usan NOTION_TOKEN, y un fallo del token nunca es un 401 (la app pediría otra vez la clave)
+for (const [archivo, metodo] of [['query.js', 'POST'], ['page.js', 'GET'], ['page.js', 'POST'], ['page.js', 'PATCH'], ['delete.js', 'DELETE']]) {
+  const h = (await import(pathToFileURL(join(dir, archivo)).href)).default;
+  const ok = await llamar(h, metodo, CLAVE);
+  assert.equal(ok.codigo, 200, `${archivo} ${metodo}`);
+  assert.equal(llamadas.length, 1, `${archivo} ${metodo}`);
+  assert.ok(llamadas[0].url.startsWith('https://api.notion.com/v1/'), `${archivo} ${metodo}`);
+  assert.equal(llamadas[0].headers.Authorization, 'Bearer ' + TOKEN_PRUEBA, `${archivo} ${metodo}`);
+  estadoNotion = 401;
+  const rechazado = await llamar(h, metodo, CLAVE);
+  assert.equal(rechazado.codigo, 502, `${archivo} ${metodo} con el token rechazado por Notion`);
+  estadoNotion = 200;
+  delete process.env.NOTION_TOKEN;
+  const sinToken = await llamar(h, metodo, CLAVE);
+  assert.equal(sinToken.codigo, 500, `${archivo} ${metodo} sin NOTION_TOKEN`);
+  assert.equal(llamadas.length, 0, `${archivo} ${metodo} sin NOTION_TOKEN no llama a Notion`);
+  process.env.NOTION_TOKEN = TOKEN_PRUEBA;
 }
 
 // /api/gasto: la lista guardada en la instancia no se entrega sin clave y evita repetir las consultas

@@ -1,4 +1,5 @@
 import { autorizado } from './_auth.js';
+import { responderDeNotion } from './_notion.js';
 
 export const config = { api: { bodyParser: true } };
 
@@ -9,46 +10,14 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   if (!autorizado(req, res)) return;
 
-  const token = 'ntn_w906520198397Z9fr4EdBkfvlWSik21KhCgr83hG2gw51n';
-
+  const { pageId } = req.query;
   if (req.method === 'GET') {
-    const { pageId } = req.query;
-    const response = await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Notion-Version': '2022-06-28',
-      },
-    });
-    const data = await response.json();
-    res.status(response.status).json(data);
+    await responderDeNotion(res, `pages/${pageId}`);
     return;
   }
-
   if (req.method === 'PATCH') {
-    const { pageId } = req.query;
-    const response = await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Notion-Version': '2022-06-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(req.body || {}),
-    });
-    const data = await response.json();
-    res.status(response.status).json(data);
+    await responderDeNotion(res, `pages/${pageId}`, { method: 'PATCH', body: req.body || {} });
     return;
   }
-
-  const response = await fetch('https://api.notion.com/v1/pages', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + token,
-      'Notion-Version': '2022-06-28',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(req.body || {}),
-  });
-  const data = await response.json();
-  res.status(response.status).json(data);
+  await responderDeNotion(res, 'pages', { method: 'POST', body: req.body || {} });
 }

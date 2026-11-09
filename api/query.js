@@ -1,4 +1,5 @@
 import { autorizado } from './_auth.js';
+import { responderDeNotion } from './_notion.js';
 
 export const config = { api: { bodyParser: true } };
 
@@ -10,15 +11,5 @@ export default async function handler(req, res) {
   if (!autorizado(req, res)) return;
 
   const { dbId } = req.query;
-  const response = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ntn_w906520198397Z9fr4EdBkfvlWSik21KhCgr83hG2gw51n',
-      'Notion-Version': '2022-06-28',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(req.body || {}),
-  });
-  const data = await response.json();
-  res.status(response.status).json(data);
+  await responderDeNotion(res, `databases/${dbId}/query`, { method: 'POST', body: req.body || {} });
 }

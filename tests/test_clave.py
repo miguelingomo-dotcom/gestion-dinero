@@ -98,6 +98,9 @@ def test_la_clave_no_viaja_en_la_url(app):
     assert CLAVE not in app.page.url
 
 
-def test_el_html_ya_no_incluye_el_token_de_notion():
-    from datos import HTML
-    assert not re.search(r"ntn_[A-Za-z0-9]{10,}", HTML)
+def test_ningun_archivo_incluye_un_token_de_notion():
+    from datos import RAIZ
+    patron = re.compile(r"(ntn|secret)_[A-Za-z0-9]{20,}")
+    archivos = list(RAIZ.glob("*.html")) + list((RAIZ / "api").glob("*.js"))
+    assert len(archivos) >= 6
+    assert not [str(f) for f in archivos if patron.search(f.read_text(encoding="utf-8"))]
