@@ -4558,25 +4558,6 @@ async function saveInv(){
 
 <script>
 (function(){
-  var ICONOS={
-    plane:'<path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l3.9 4.2-2.6 2.6-1.9-.4a.5.5 0 0 0-.5.8L5 16.5l1.3 2a.5.5 0 0 0 .8-.1l-.4-1.9 2.6-2.6 4.2 3.9a.5.5 0 0 0 .8-.5z"/>',
-    bank:'<path d="M3 10h18"/><path d="M5 10v8M10 10v8M14 10v8M19 10v8"/><path d="M2 18h20"/><path d="M12 3 3 8h18z"/>',
-    chart:'<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>',
-    card:'<rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/>',
-    pig:'<path d="M4 11a6 6 0 0 1 6-6h3a6 6 0 0 1 5.6 3.8L21 10v3l-2 1v3h-3v-2h-4v2H9v-2.3A6 6 0 0 1 4 13z"/><circle cx="16" cy="11" r=".8" fill="currentColor" stroke="none"/>',
-    food:'<path d="M6 3v8a2 2 0 0 0 4 0V3"/><path d="M8 11v10"/><path d="M17 3c-1.7 1-2.5 3-2.5 5.5S15.5 13 17 13v8"/>',
-    users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16.5 5.6a3.2 3.2 0 0 1 0 6"/><path d="M17 14.6A6 6 0 0 1 21 20"/>',
-    cash:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/>'
-  };
-  var ICONO_CUENTA={'Revolut Personal':'plane','Revolut Compartida':'users','Ibercaja':'card',
-    'Sabadell':'bank','MyInvestor Remunerada':'pig','MyInvestor':'chart','Openbank Corriente':'bank','Openbank Ahorro':'pig',
-    'Pluxee':'food','Efectivo':'cash'};
-  function iconoDe(name){
-    var k=encajar(name)||name;
-    var id=ICONO_CUENTA[k]||'bank';
-    return '<svg viewBox="0 0 24 24" aria-hidden="true">'+ICONOS[id]+'</svg>';
-  }
-
   /* Editar un movimiento desde el desplegable de una cuenta */
   function parchearEdicion(){
     if(typeof openEditMovement!=='function'||window.__kashyEditParcheado)return;
