@@ -16,3 +16,15 @@ tests/.venv/bin/pytest tests -k capturas --update-baseline   # acepta un cambio 
 - **Fecha:** el reloj está fijo (15/11/2026 salvo que la prueba indique otra), así que los resultados no dependen del día.
 - **Capturas:** referencia en `screenshots/baseline/`; las últimas y las diferencias (`-diff.png`), en `screenshots/current/`. Son propias de este Mac (Chromium y emojis del sistema) y sin la fuente Inter, porque no se descarga.
 - **`xfail`:** fallos conocidos de la app. Cuando se arreglen, la prueba avisará: entonces se quita la marca.
+
+## Refactorizar CSS
+
+`comparar_estilos.py` es una comprobación opcional, fuera de pytest, para cambios de CSS que no deben alterar nada. Compara los estilos calculados de todos los elementos con los de una versión de git, en muchos estados que las capturas no ven: modales, `:active`, modo privado, movimiento normal y reducido.
+
+```
+tests/.venv/bin/python tests/comparar_estilos.py            # HEAD contra tu index-nuevo.html (~5 min)
+tests/.venv/bin/python tests/comparar_estilos.py --rapido   # solo 2 de las 6 combinaciones (~2 min)
+tests/.venv/bin/python tests/comparar_estilos.py main~3     # contra otra versión
+```
+
+Sale con código 0 si no hay diferencias y 1 si las hay. No compara `@keyframes` ni barras de desplazamiento, y usa Chromium, no Safari.
