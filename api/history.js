@@ -1,10 +1,13 @@
 // Historial diario del patrimonio en cuentas, reconstruido a partir de los movimientos y transferencias.
-// Usa /api/query de este mismo despliegue (con paginación), así que no necesita su propio token.
+// Usa /api/query de este mismo despliegue (con paginación), así que no necesita su propio token; le reenvía la clave.
+import { autorizado, CABECERA } from './_auth.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Kashy-Key');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
+  if (!autorizado(req, res)) return;
 
   const { movs, cuentas, transfers, excluir = '', hasta } = req.query;
   if (!movs || !cuentas || !transfers || !/^\d{4}-\d{2}-\d{2}$/.test(hasta || '')) {
@@ -20,7 +23,7 @@ export default async function handler(req, res) {
     do {
       const r = await fetch(`${origin}/api/query?dbId=${dbId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', [CABECERA]: req.headers[CABECERA] },
         body: JSON.stringify({ page_size: 100, ...(filter ? { filter } : {}), ...(cursor ? { start_cursor: cursor } : {}) }),
       });
       const j = await r.json();

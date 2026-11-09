@@ -20,3 +20,11 @@ def test_capturas(app, seccion, tema, request):
     png = p.screenshot(animations="disabled", caret="hide")
     error = comparar("%s-%s" % (seccion, "claro" if tema == "light" else "oscuro"), png, request.config.getoption("--update-baseline"))
     assert error is None, error
+
+
+def test_capturas_pantalla_de_clave(abrir, tema, request):
+    p = abrir(clave=None).page
+    p.wait_for_timeout(300)
+    png = p.screenshot(animations="disabled", caret="hide")
+    error = comparar("clave-%s" % ("claro" if tema == "light" else "oscuro"), png, request.config.getoption("--update-baseline"))
+    assert error is None, error

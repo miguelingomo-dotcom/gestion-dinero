@@ -17,6 +17,7 @@ from notion_mock import APP_ORIGIN, FakeNotion  # noqa: E402
 expect.set_options(timeout=5000)
 # Las únicas peticiones externas que la app intenta son las fuentes de Google: se bloquean, y cualquier otra hace fallar la prueba
 EXTERNOS_ESPERADOS = ("https://fonts.googleapis.com/", "https://fonts.gstatic.com/")
+CLAVE = "clave-de-prueba"  # inventada: la real solo está en Vercel y en el dispositivo
 
 
 def pytest_addoption(parser):
@@ -34,6 +35,9 @@ class App:
         self.errores_js = []
         self.externos = []
         self.rutas_desconocidas = []
+        self.clave_valida = CLAVE  # la que acepta el servidor simulado
+        self.rechazos = []  # peticiones respondidas con 401
+        self.peticiones_api = []  # cabeceras de cada llamada a /api/
 
     def ir(self, seccion):
         if seccion in self.NAV:
@@ -97,7 +101,7 @@ def abrir(navegador, tema):
     contextos = []
     apps = []
 
-    def _abrir(hoy=datos.HOY, sembrar=datos.sembrar, antes=None, mas=None, reducir=True):
+    def _abrir(hoy=datos.HOY, sembrar=datos.sembrar, antes=None, mas=None, reducir=True, clave=CLAVE):
         ctx = navegador.new_context(
             viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True,
             locale="es-ES", timezone_id="Europe/Madrid", service_workers="block",
@@ -126,6 +130,11 @@ def abrir(navegador, tema):
             if ruta == "/icon.png":
                 return route.fulfill(status=200, content_type="image/png", path=str(datos.RAIZ / "icon.png"))
             if ruta.startswith("/api/"):
+                # Como el servidor real: sin la clave correcta no se ejecuta nada
+                app.peticiones_api.append(req.headers)
+                if req.headers.get("x-kashy-key") != app.clave_valida:
+                    app.rechazos.append(req.method + " " + req.url)
+                    return route.fulfill(status=401, content_type="application/json", body='{"error":"No autorizado"}')
                 cuerpo = json.loads(req.post_data) if req.post_data else None
                 r = notion.responder(req.method, req.url, cuerpo)
                 if r is None:
@@ -141,6 +150,10 @@ def abrir(navegador, tema):
         page.clock.set_fixed_time(hoy + "T12:00:00+01:00")
         page.add_init_script(
             "try{localStorage.setItem('kashy-theme',%s);localStorage.setItem('kashy-lang','es')}catch(e){}" % json.dumps(tema))
+        if clave:
+            # Solo si aún no hay ninguna: una recarga no debe pisar la que haya guardado la app
+            page.add_init_script(
+                "try{if(!localStorage.getItem('kashy-key')&&!sessionStorage.getItem('sin-sembrar')){localStorage.setItem('kashy-key',%s);sessionStorage.setItem('sin-sembrar','1')}}catch(e){}" % json.dumps(clave))
         if antes:
             antes(page)
         page.goto(APP_ORIGIN + "/")

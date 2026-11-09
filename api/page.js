@@ -1,10 +1,13 @@
+import { autorizado } from './_auth.js';
+
 export const config = { api: { bodyParser: true } };
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Notion-Version, Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Notion-Version, Content-Type, X-Kashy-Key');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
+  if (!autorizado(req, res)) return;
 
   const token = 'ntn_w906520198397Z9fr4EdBkfvlWSik21KhCgr83hG2gw51n';
 

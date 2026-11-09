@@ -12,6 +12,7 @@ tests/.venv/bin/pytest tests -k capturas --update-baseline   # acepta un cambio 
 ```
 
 - **Datos:** `notion_mock.py` simula Notion en memoria y `datos.py` trae datos inventados. Toda petición se intercepta en el navegador; si la app intenta salir a la red, salvo las fuentes de Google (que se bloquean), la prueba falla.
+- **Clave:** el servidor simulado exige `X-Kashy-Key` como el real, con una clave de prueba inventada. `test_api_clave.py` ejecuta el código real de `api/` con Node y `fetch` simulado.
 - **Fecha:** el reloj está fijo (15/11/2026 salvo que la prueba indique otra), así que los resultados no dependen del día.
 - **Capturas:** referencia en `screenshots/baseline/`; las últimas y las diferencias (`-diff.png`), en `screenshots/current/`. Son propias de este Mac (Chromium y emojis del sistema) y sin la fuente Inter, porque no se descarga.
 - **`xfail`:** fallos conocidos de la app. Cuando se arreglen, la prueba avisará: entonces se quita la marca.

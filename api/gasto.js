@@ -3,7 +3,9 @@
 //          en los últimos 90 días; Revolut la primera cuenta).
 //   POST { importe, concepto, categoria?, cuenta? } → crea el gasto con la fecha de hoy (hora de España)
 //        y responde un texto corto para mostrarlo como notificación.
-// Usa /api/query y /api/page de este mismo despliegue, así que no necesita su propio token.
+// Usa /api/query y /api/page de este mismo despliegue, así que no necesita su propio token; les reenvía la clave.
+import { autorizado, CABECERA } from './_auth.js';
+
 const DB_MOVS = '25e21c54013f817481d6cd37b0daa2b5';
 const DB_CUENTAS = '25e21c54013f817e959ee75351072a94';
 const DB_CATEGORIAS = '25e21c54013f811abbffea0726c1d250';
@@ -16,6 +18,9 @@ const PALABRAS = [
   ['mercadona', 'supermercado'], ['restaurante', 'restaurantes'], ['gasolina', 'gasolina'],
   ['coche', 'coche'], ['letra', 'coche'], ['farmacia', 'farmacia'], ['bizum', 'bizum'],
 ];
+
+const LISTAS_MS = 10 * 60 * 1000;
+let listasGuardadas = null;
 
 const sinGuiones = x => x.replace(/-/g, '');
 const sinEmoji = s => (s || '').replace(/[\p{Extended_Pictographic}️‍]/gu, '').trim();
@@ -40,8 +45,9 @@ function texto(res, msg) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Kashy-Key');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
+  if (!autorizado(req, res)) return;
 
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const origin = `${proto}://${req.headers.host}`;
@@ -55,7 +61,7 @@ export default async function handler(req, res) {
       for (let intento = 0; intento < 3; intento++) {
         const r = await fetch(`${origin}/api/query?dbId=${dbId}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', [CABECERA]: req.headers[CABECERA] },
           body: JSON.stringify({ page_size: 100, filter, ...(cursor ? { start_cursor: cursor } : {}) }),
         });
         j = await r.json();
@@ -103,10 +109,16 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const l = await listas(true);
-      // La CDN de Vercel guarda la lista 10 min y la renueva en segundo plano: el atajo la recibe al momento
-      res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
-      res.status(200).json({ categorias: l.categorias.map(c => c.nombre), cuentas: l.cuentas.map(c => c.nombre) });
+      // Nunca en la CDN: serviría la lista sin pasar por la comprobación de la clave. Se guarda en esta instancia
+      // de la función, ya comprobada la clave: mientras siga activa, el atajo la recibe al momento
+      if (!listasGuardadas || Date.now() > listasGuardadas.hasta) {
+        const l = await listas(true);
+        listasGuardadas = {
+          hasta: Date.now() + LISTAS_MS,
+          datos: { categorias: l.categorias.map(c => c.nombre), cuentas: l.cuentas.map(c => c.nombre) },
+        };
+      }
+      res.status(200).json(listasGuardadas.datos);
       return;
     }
     if (req.method !== 'POST') { res.status(405).json({ error: 'Usa GET o POST' }); return; }
@@ -155,7 +167,7 @@ export default async function handler(req, res) {
     const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
     const r = await fetch(`${origin}/api/page`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', [CABECERA]: req.headers[CABECERA] },
       body: JSON.stringify({ parent: { database_id: DB_MOVS }, properties: {
         Nombre: { title: [{ text: { content: concepto } }] },
         Fecha: { date: { start: hoy } },

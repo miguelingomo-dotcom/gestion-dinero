@@ -201,6 +201,16 @@ input,select,button{font-family:'DM Sans',-apple-system,sans-serif;}
 .sus-amount{font-size:16px;font-weight:800;color:var(--red);margin-bottom:6px;}
 .sus-amount.ing{color:var(--green);}
 .sus-amount.tr{color:var(--accent);}
+.clave-screen{position:fixed;inset:0;z-index:10001;display:none;align-items:center;justify-content:center;background:var(--page);
+  padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));}
+.clave-screen.show{display:flex;}
+.clave-form{width:100%;max-width:382px;}
+.clave-titulo{font-size:28px;font-weight:800;letter-spacing:-.6px;color:var(--text);}
+.clave-sub{font-size:14px;line-height:1.4;color:var(--muted);margin:6px 0 24px;}
+.clave-lbl{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;}
+.clave-input{width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;outline:none;}
+.clave-input:focus{border-color:var(--accent);}
+.clave-error{min-height:20px;font-size:13px;font-weight:600;color:var(--red);margin:8px 0 12px;}
 .sus-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;}
 .sus-btn:active{opacity:.7;}
 .sus-btn:disabled{opacity:.4;cursor:default;}
@@ -1190,6 +1200,18 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
 
 </div>
 
+<!-- ── CLAVE DE ACCESO ── -->
+<div class="clave-screen" id="claveScreen" role="dialog" aria-modal="true" aria-labelledby="claveTitulo">
+  <form class="clave-form" id="claveForm" novalidate>
+    <h1 class="clave-titulo" id="claveTitulo" data-i18n="clave_titulo">Introduce tu clave</h1>
+    <p class="clave-sub" data-i18n="clave_sub">Se guarda en este dispositivo y solo se pide una vez.</p>
+    <label class="clave-lbl" for="claveInput" data-i18n="clave_lbl">Clave de acceso</label>
+    <input class="clave-input" id="claveInput" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
+    <div class="clave-error" id="claveError" role="alert"></div>
+    <button class="submit-btn" type="submit" data-i18n="clave_btn">Entrar</button>
+  </form>
+</div>
+
 <!-- ── INVERSIÓN MODAL ── -->
 <div class="modal-overlay" id="invOverlay">
   <div class="modal">
@@ -1324,7 +1346,56 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
 
 <script>
 /* ── CONFIG ── */
-const TOKEN='ntn_w906520198397Z9fr4EdBkfvlWSik21KhCgr83hG2gw51n';
+/* Clave de la API (X-Kashy-Key): se pide una vez, se guarda en el dispositivo y va en todas las llamadas a /api/.
+   Un 401 borra la guardada, vuelve a pedirla y repite la petición, que no se llegó a ejecutar en el servidor */
+const CLAVE_PREF='kashy-key';
+let claveMemoria=null,claveEspera=null;
+function leerClave(){
+  if(claveMemoria)return claveMemoria;
+  try{return localStorage.getItem(CLAVE_PREF)||'';}catch(e){return '';}
+}
+function guardarClave(v){
+  claveMemoria=v||null;
+  try{if(v)localStorage.setItem(CLAVE_PREF,v);else localStorage.removeItem(CLAVE_PREF);}catch(e){}
+}
+/* Varias peticiones a la vez comparten la misma pantalla */
+function pedirClave(incorrecta){
+  if(claveEspera)return claveEspera;
+  const pantalla=document.getElementById('claveScreen'),input=document.getElementById('claveInput');
+  document.getElementById('claveError').textContent=incorrecta?t('clave_error'):'';
+  input.value='';
+  pantalla.classList.add('show');
+  input.focus({preventScroll:true});
+  claveEspera=new Promise(resolver=>{
+    document.getElementById('claveForm').onsubmit=e=>{
+      e.preventDefault();
+      const v=input.value.trim();
+      if(!v){input.focus();return;}
+      guardarClave(v);
+      input.blur();
+      pantalla.classList.remove('show');
+      claveEspera=null;
+      resolver(v);
+    };
+  });
+  return claveEspera;
+}
+const fetchSinClave=window.fetch.bind(window);
+window.fetch=async function(url,opts){
+  if(typeof url!=='string'||!url.startsWith('/api/'))return fetchSinClave(url,opts);
+  let clave=leerClave()||await pedirClave(false);
+  for(;;){
+    const headers=new Headers(opts&&opts.headers);
+    headers.set('X-Kashy-Key',clave);
+    const res=await fetchSinClave(url,{...opts,headers});
+    if(res.status!==401)return res;
+    // Otra petición ya la cambió mientras esta iba de camino: se repite con la nueva sin volver a preguntar
+    const actual=leerClave();
+    if(actual&&actual!==clave){clave=actual;continue;}
+    guardarClave('');
+    clave=await pedirClave(true);
+  }
+};
 
 /* ── IDIOMA (ES/EN) ── */
 const I18N={
@@ -1413,7 +1484,8 @@ const I18N={
     valor_actual_cartera:'Valor Actual de la Cartera',sin_datos_aun:'Sin datos aún',
     rendimiento_lbl:'Rendimiento',aportacion_mensual:'Aportación mensual',
     nueva_aportacion:'Nueva Aportación',actualizar_valor_cartera:'Actualizar Valor de Cartera',fondos_lbl:'Fondos',fondos_hint:'Pulsa «Actualizar Valor» e introduce el valor de cada fondo para ver cómo va cada uno.',isin_copiado:'ISIN copiado',editar_aportacion:'Editar Aportación',editar_valor_cartera:'Editar Valor de Cartera',toast_inv_actualizado:'✓ Registro actualizado',cambiar_fecha:'Hoy · Cambiar fecha',inv_total:'Total',inv_vs_ultimo:'vs. último total',inv_sin_cambios:'Sin cambios, no se ha guardado nada',
-    dia_lbl:'Día',ingreso_rapido:'Ingreso rápido',cobros_hoy:'⚠️ Cobros hoy',transf_hoy:'⇄ Transferencias hoy',importe_a_elegir:'importe a elegir',
+    dia_lbl:'Día',ingreso_rapido:'Ingreso rápido',clave_titulo:'Introduce tu clave',clave_sub:'Se guarda en este dispositivo y solo se pide una vez.',clave_lbl:'Clave de acceso',clave_btn:'Entrar',clave_error:'Clave incorrecta. Vuelve a introducirla.',
+    cobros_hoy:'⚠️ Cobros hoy',transf_hoy:'⇄ Transferencias hoy',importe_a_elegir:'importe a elegir',
     ahorrando_bien:'Estás ahorrando bien 💪',cuidado_gastos:'Cuidado con los gastos ⚠️',
     tasa_excelente:'De cada 100€ que ingresas, ahorras {t}€ — excelente 🎯',
     tasa_moderada:'Tasa de ahorro moderada, puedes mejorar 📈',
@@ -1518,7 +1590,8 @@ const I18N={
     valor_actual_cartera:'Current Portfolio Value',sin_datos_aun:'No data yet',
     rendimiento_lbl:'Return',aportacion_mensual:'Monthly contribution',
     nueva_aportacion:'New Contribution',actualizar_valor_cartera:'Update Portfolio Value',fondos_lbl:'Funds',fondos_hint:'Tap “Update Value” and enter each fund’s value to see how each one is doing.',isin_copiado:'ISIN copied',editar_aportacion:'Edit Contribution',editar_valor_cartera:'Edit Portfolio Value',toast_inv_actualizado:'✓ Entry updated',cambiar_fecha:'Today · Change date',inv_total:'Total',inv_vs_ultimo:'vs. last total',inv_sin_cambios:'No changes, nothing saved',
-    dia_lbl:'Day',ingreso_rapido:'Quick income',cobros_hoy:'⚠️ Due today',transf_hoy:'⇄ Transfers today',importe_a_elegir:'choose amount',
+    dia_lbl:'Day',ingreso_rapido:'Quick income',clave_titulo:'Enter your key',clave_sub:'It stays on this device and is only asked for once.',clave_lbl:'Access key',clave_btn:'Enter',clave_error:'Wrong key. Please enter it again.',
+    cobros_hoy:'⚠️ Due today',transf_hoy:'⇄ Transfers today',importe_a_elegir:'choose amount',
     ahorrando_bien:'You\'re saving well 💪',cuidado_gastos:'Watch your spending ⚠️',
     tasa_excelente:'For every €100 you earn, you save €{t} — excellent 🎯',
     tasa_moderada:'Moderate savings rate, room to improve 📈',
@@ -2088,14 +2161,14 @@ async function nFetch(path,method='GET',body=null){
   if(method==='GET'){
     // Leer una página: /pages/{id}
     url='/api/page?pageId='+path.replace('/pages/','');
-    opts={method:'GET',headers:{'Authorization':'Bearer '+TOKEN}};
+    opts={method:'GET'};
   }else if(path.includes('/query')){
     const dbId=path.replace('/databases/','').replace('/query','');
     url='/api/query?dbId='+dbId;
-    opts={method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(body||{})};
+    opts={method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})};
   }else{
     url='/api/page';
-    opts={method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(body||{})};
+    opts={method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})};
   }
   // Notion admite ~3 peticiones/s: ante un 429 se reintenta con espera creciente. Las consultas (solo lectura)
   // también ante un 5xx del proxy; las escrituras no, porque podrían haberse guardado y se duplicarían
@@ -2662,7 +2735,7 @@ function closeEditTransfer(){document.getElementById('trEditOverlay').classList.
 function patchPagina(id,properties){
   return fetch('/api/page?pageId='+id,{
     method:'PATCH',
-    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+    headers:{'Content-Type':'application/json'},
     body:JSON.stringify({properties})
   }).then(r=>r.json());
 }
@@ -2768,7 +2841,7 @@ async function saveEdit(){
   try{
     const res=await fetch('/api/page?pageId='+editingPageId,{
       method:'PATCH',
-      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({properties:props})
     });
     const data=await res.json();
@@ -2900,7 +2973,7 @@ async function submitMovement(){
 /* Deshacer un registro recién hecho: archiva la página creada y devuelve importe y nombre al formulario */
 async function deshacerRegistro(pageId,importeTxt,nombre,fechaUsada){
   try{
-    const res=await fetch('/api/delete?pageId='+pageId,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
+    const res=await fetch('/api/delete?pageId='+pageId,{method:'DELETE'});
     const data=await res.json();
     if(!(data.archived||data.in_trash)){showToast('No se pudo deshacer','error');return;}
     const amt=document.getElementById('inputAmt'),nom=document.getElementById('inputName');
@@ -3255,7 +3328,7 @@ async function saveBudgetInput(catId,catName,value){
   try{
     if(!limite||limite<=0){
       if(existing){
-        await fetch('/api/delete?pageId='+existing.pageId,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
+        await fetch('/api/delete?pageId='+existing.pageId,{method:'DELETE'});
         budgetsCache=budgetsCache.filter(b=>b.categoriaId!==catId);
         showToast(t('toast_presupuesto_eliminado'),'success');
       }
@@ -3264,7 +3337,7 @@ async function saveBudgetInput(catId,catName,value){
     if(existing){
       await fetch('/api/page?pageId='+existing.pageId,{
         method:'PATCH',
-        headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({properties:{Limite:{number:limite}}})
       });
       existing.limite=limite;
@@ -3704,7 +3777,7 @@ async function confirmGoalAdd(){
   try{
     const res=await fetch('/api/page?pageId='+editingGoalId,{
       method:'PATCH',
-      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({properties:{AhorradoActual:{number:nuevoAhorrado}}})
     });
     const data=await res.json();
@@ -3800,7 +3873,7 @@ async function markPurchased(id){
   try{
     const res=await fetch('/api/page?pageId='+id,{
       method:'PATCH',
-      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({properties:{DeseoEstado:{select:{name:'Comprado'}}}})
     });
     const data=await res.json();
@@ -3814,7 +3887,7 @@ async function deactivateAccount(pageId,name){
   try{
     const res=await fetch('/api/page?pageId='+pageId,{
       method:'PATCH',
-      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({properties:{Estado:{select:{name:'🔴 Inactivo'}}}})
     });
     const data=await res.json();
@@ -3858,7 +3931,7 @@ async function reactivateAccount(pageId,name){
   try{
     const res=await fetch('/api/page?pageId='+pageId,{
       method:'PATCH',
-      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({properties:{Estado:{select:{name:'🟢 Activo'}}}})
     });
     const data=await res.json();
@@ -3951,7 +4024,7 @@ function showToast(msg,type='',accion){
 /* Borra (archiva en Notion) al momento y ofrece «Deshacer» 5 s: deshacer desarchiva las mismas páginas, sin recrearlas.
    pageId puede ser una lista (transferencia + su aportación): se borran todas o ninguna */
 async function archivarPagina(id){
-  const res=await fetch('/api/delete?pageId='+id,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}});
+  const res=await fetch('/api/delete?pageId='+id,{method:'DELETE'});
   const data=await res.json();
   if(data.archived||data.in_trash)return true;
   // null: Notion dice que la página ya estaba archivada o no existe; false: otro fallo
@@ -3959,7 +4032,7 @@ async function archivarPagina(id){
 }
 async function restaurarPagina(id){
   const r=await fetch('/api/page?pageId='+id,{method:'PATCH',
-    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({archived:false})});
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({archived:false})});
   const d=await r.json();
   return !!(d.id&&!d.archived);
 }
@@ -4297,7 +4370,7 @@ async function saveInv(){
     try{
       const res=await fetch('/api/page?pageId='+editingInvId,{
         method:'PATCH',
-        headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({properties:{
           Nombre:{title:[{text:{content:invPendingTipo+(editingInvFondo?' - '+editingInvFondo:'')+' - '+date}}]},
           InvImporte:{number:amt},
