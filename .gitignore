@@ -1,1 +1,9 @@
 .impeccable/
+.DS_Store
+
+# Tests: entorno local, navegador y resultados
+tests/.venv/
+tests/.browsers/
+tests/screenshots/current/
+__pycache__/
+.pytest_cache/

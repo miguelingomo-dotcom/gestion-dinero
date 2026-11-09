@@ -4,11 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-**Ka$hy** is a single-user personal finance PWA (Spanish-first, with English i18n) deployed on Vercel at `gestion-dinero-dusky.vercel.app`. It uses **Notion databases as its backend**. The project has no build step, package.json, linter, or tests. The frontend is a single self-contained HTML file, and a few Vercel serverless functions proxy requests to the Notion API.
+**Ka$hy** is a single-user personal finance PWA (Spanish-first, with English i18n) deployed on Vercel at `gestion-dinero-dusky.vercel.app`. It uses **Notion databases as its backend**. The project has no build step, package.json, or linter; it has a regression test suite in `tests/`. The frontend is a single self-contained HTML file, and a few Vercel serverless functions proxy requests to the Notion API.
 
 ## Running locally
 
-There are no build or test commands. The `/api/*` routes need a Vercel runtime, so serve the project with `vercel dev` (the Vercel CLI) instead of a static file server. A static server will load the UI, but every data call will fail.
+There is no build command. The `/api/*` routes need a Vercel runtime, so serve the project with `vercel dev` (the Vercel CLI) instead of a static file server. A static server will load the UI, but every data call will fail.
+
+## Tests
+
+Run the suite before every commit: `tests/.venv/bin/pytest tests` from the project root (first time: `tests/setup.sh`). It uses Python Playwright at iPhone size in both themes, with Notion mocked inside the browser, so it never touches real data. When changing CSS, compare the screenshots: the same command fails on any visual difference and leaves `-diff.png` images in `tests/screenshots/current/`; after a deliberate change, review them and run `tests/.venv/bin/pytest tests -k capturas --update-baseline`. Tests marked `xfail` document known bugs and fail once fixed, so remove the mark then.
 
 ## Files
 
