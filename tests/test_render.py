@@ -59,7 +59,7 @@ def test_movimientos_agrupados_y_con_carril_al_terminar_el_render(app):
 
 
 FILAS_MOVIDAS = """async(id)=>{
-  const l=document.getElementById(id);l.innerHTML='';
+  const l=document.getElementById(id);l.innerHTML='';delete l.dataset.clave;
   let movidas=0;
   const o=new MutationObserver(ms=>ms.forEach(m=>m.removedNodes.forEach(n=>{
     if(n.nodeType===1&&(n.matches('.mov-item')||n.querySelector('.mov-item')))movidas++;})));
@@ -88,7 +88,7 @@ def test_inversion_con_carril_al_terminar_el_render(app):
 
 
 def test_cuentas_con_color_icono_y_carrusel_al_terminar_el_render(app):
-    r = app.page.evaluate("""async()=>{document.getElementById('quickAccounts').innerHTML='';await loadAccounts();
+    r = app.page.evaluate("""async()=>{const q=document.getElementById('quickAccounts');q.innerHTML='';delete q.dataset.clave;await loadAccounts();
       const c=document.querySelector('#accountCards .account-card'),n=c.querySelector('.account-name');
       return {fondo:c.style.background,ico:n.querySelector('.acc-ico').textContent.length>0,plain:n.dataset.plain,
               carrusel:document.querySelectorAll('#quickAccounts .qa-card').length}}""")

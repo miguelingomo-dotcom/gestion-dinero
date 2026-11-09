@@ -1451,14 +1451,28 @@ function pedirClave(incorrecta){
   return claveEspera;
 }
 const fetchSinClave=window.fetch.bind(window);
+/* Notion admite unas 3 peticiones por segundo: como mucho 4 a la vez hacia /api/, el resto espera en orden */
+const MAX_PETICIONES=4;let peticionesEnCurso=0;const colaPeticiones=[];
+function turnoPeticion(){
+  if(peticionesEnCurso<MAX_PETICIONES){peticionesEnCurso++;return Promise.resolve();}
+  return new Promise(r=>colaPeticiones.push(r));
+}
+function liberarPeticion(){const sig=colaPeticiones.shift();if(sig)sig();else peticionesEnCurso--;}
 window.fetch=async function(url,opts){
   if(typeof url!=='string'||!url.startsWith('/api/'))return fetchSinClave(url,opts);
   let clave=leerClave()||await pedirClave(false);
   for(;;){
     const headers=new Headers(opts&&opts.headers);
     headers.set('X-Kashy-Key',clave);
-    const res=await fetchSinClave(url,{...opts,headers});
-    if(res.status!==401)return res;
+    await turnoPeticion();
+    let res;
+    try{res=await fetchSinClave(url,{...opts,headers});}finally{liberarPeticion();}
+    if(res.status!==401){
+      // Cualquier escritura (crear, editar, archivar o restaurar) refresca lo que ya se ha mostrado
+      const metodo=((opts&&opts.method)||'GET').toUpperCase();
+      if(res.ok&&((url.startsWith('/api/page')&&metodo!=='GET')||url.startsWith('/api/delete')))programarRefresco();
+      return res;
+    }
     // Otra petición ya la cambió mientras esta iba de camino: se repite con la nueva sin volver a preguntar
     const actual=leerClave();
     if(actual&&actual!==clave){clave=actual;continue;}
@@ -1826,7 +1840,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('invAportMensualLbl').textContent=INV_APORTACION_MENSUAL;
   document.getElementById('invAportDiaLbl').textContent=INV_APORTACION_DIA;
   // Sin tiempo mínimo: el splash se va en cuanto Inicio tiene datos que pintar (tope de 1,2 s si la red va lenta)
-  Promise.race([Promise.all([loadInicio().catch(()=>{}),loadAccounts()]),new Promise(r=>setTimeout(r,1200))])
+  const carga=Promise.all([loadInicio().catch(()=>{}),loadAccounts()]);
+  Promise.race([cachePantalla['v|total']!=null?Promise.resolve():carga,new Promise(r=>setTimeout(r,1200))])
     .then(()=>{document.getElementById('splashScreen').classList.add('hide');});
   loadCuentasActivas();
   loadInversion();
@@ -1939,10 +1954,10 @@ function attrsChipBanco(name,extra=''){
 }
 /* Carrusel «Tus cuentas» de Inicio: cuentas = [{pageId,name,bal}] */
 function pintarCarrusel(cuentas){
-  document.getElementById('quickAccounts').innerHTML=cuentas.map(c=>
+  pintar('quickAccounts','carrusel',cuentas.map(c=>
     `<div class="qa-card" style="background:${colorDe(c.name)||'var(--accent)'}" onclick="abrirCuentaDesdeInicio('${c.pageId}')">`+
     `<div class="qa-name"><span class="acc-ico">${emojiDe(c.name)}</span> ${c.name}</div>`+
-    `<div class="qa-bal">${fmt(c.bal)} €</div></div>`).join('');
+    `<div class="qa-bal">${fmt(c.bal)} €</div></div>`).join(''));
 }
 /* Deslizar una fila: carril con desplazamiento nativo. fila: su HTML; fnEdit y fnDel: funciones globales que reciben el id */
 const ICO_EDIT='<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
@@ -1981,6 +1996,79 @@ document.addEventListener('click',e=>{
     cerrarSwipe(sw);
   }
 },true);
+/* ── CACHÉ DE PANTALLA ──
+   Cada lista recuerda el último HTML pintado (en memoria y en localStorage): al volver a una pestaña, o al abrir la
+   app, se ve al instante y Notion se consulta en segundo plano; solo se repinta si llega algo distinto, así que no
+   parpadea ni pierde el scroll. El esqueleto, solo si no hay nada guardado. Los valores sueltos (patrimonio,
+   resumen, cabecera de Inversión) se guardan con la clave «v|…» */
+const CACHE_PREF='kashy-cache-v1';
+let cachePantalla={};
+try{cachePantalla=JSON.parse(localStorage.getItem(CACHE_PREF)||'{}')||{};}catch(e){cachePantalla={};}
+let cacheTimer=0;
+function guardarCachePantalla(){
+  clearTimeout(cacheTimer);
+  cacheTimer=setTimeout(()=>{
+    try{localStorage.setItem(CACHE_PREF,JSON.stringify(cachePantalla));}
+    catch(e){try{localStorage.removeItem(CACHE_PREF);}catch(e2){}}
+  },400);
+}
+// Como mucho 12 entradas por tipo (movs|…, ctamovs|…): las más antiguas se olvidan
+function cacheGuardar(clave,valor){
+  delete cachePantalla[clave];cachePantalla[clave]=valor;
+  const tipo=clave.split('|')[0],mismas=Object.keys(cachePantalla).filter(k=>k.split('|')[0]===tipo);
+  if(mismas.length>12)delete cachePantalla[mismas[0]];
+  guardarCachePantalla();
+}
+/* Si dos cargas de lo mismo se cruzan, solo pinta la última que se pidió (la antigua puede responder después) */
+const ultimaPeticion={};
+function nuevaPeticion(k){return ultimaPeticion[k]=(ultimaPeticion[k]||0)+1;}
+const vigente=(k,n)=>ultimaPeticion[k]===n;
+const elDe=x=>typeof x==='string'?document.getElementById(x):x;
+const muestra=(el,clave)=>el.dataset.clave===clave||el.dataset.clave==='~'+clave;
+/* Deja a la vista lo de esa clave (lo que ya hay o lo guardado); si no hay nada, el esqueleto. true si hay datos */
+function mostrarGuardado(x,clave,esqueleto){
+  const el=elDe(x);
+  if(muestra(el,clave))return true;
+  if(clave in cachePantalla){el.innerHTML=cachePantalla[clave];el.dataset.clave=clave;return true;}
+  if(esqueleto!=null){el.innerHTML=esqueleto;delete el.dataset.clave;}
+  return false;
+}
+/* Pinta solo si cambia; true si ha repintado */
+function pintar(x,clave,html){
+  const el=elDe(x);
+  if(el.dataset.clave===clave&&cachePantalla[clave]===html)return false;
+  el.innerHTML=html;el.dataset.clave=clave;cacheGuardar(clave,html);
+  return true;
+}
+/* Fallo al refrescar: si ya se ven datos se dejan; si no, el aviso */
+function pintarError(x,clave,html){
+  const el=elDe(x);
+  if(muestra(el,clave))return;
+  el.innerHTML=html;delete el.dataset.clave;
+}
+/* El DOM se ha tocado a mano (una fila quitada): lo siguiente que llegue repinta aunque coincida con lo guardado */
+function marcarTocadas(){
+  document.querySelectorAll('[data-clave]').forEach(e=>{if(!e.dataset.clave.startsWith('~'))e.dataset.clave='~'+e.dataset.clave;});
+}
+/* Tras escribir en Notion: se refresca enseguida lo ya mostrado. Varias escrituras seguidas (transferencia y su
+   aportación, borrar y deshacer) se juntan en un solo refresco */
+let refrescoTimer=0,statsVista=false;
+function programarRefresco(){clearTimeout(refrescoTimer);refrescoTimer=setTimeout(refrescarTrasEscritura,350);}
+function refrescarTrasEscritura(){
+  resumenPrevio={...resumenPrevio,...resumenCache};resumenCache={};
+  const vista=id=>document.getElementById(id).dataset.clave!==undefined;
+  const activa=((document.querySelector('.section.active')||{}).id||'').replace('sec-','');
+  const tareas={
+    inicio:()=>loadInicio(),
+    cuentas:()=>{loadAccounts();if(vista('goalsList'))loadGoals();if(vista('wishList'))loadWishes();},
+    movimientos:()=>{if(vista('recentMovs'))loadMovs(true);},
+    inversion:()=>{if(vista('invHistList'))loadInversion();},
+    stats:()=>{if(statsVista)loadStats();},
+  };
+  // Primero la pestaña visible; el limitador ordena el resto. Cuentas siempre: de ahí sale el carrusel de Inicio
+  if(tareas[activa])tareas[activa]();
+  Object.keys(tareas).forEach(k=>{if(k!==activa)tareas[k]();});
+}
 // Skeletons
 function skeletonHero(){return'<div class="skeleton skel-hero"></div>';}
 // Barra de progreso: porcentaje (0–100) → scaleX, limitado y a prueba de NaN
@@ -2017,6 +2105,8 @@ function autoFitAmount(el){
 }
 function animateCounter(el,end,{prefix='',suffix='',decimals=2,duration=700}={}){
   if(!el)return;
+  // Sin mostrarse (pestaña oculta): directamente el valor final. Nadie vería la animación, y un navegador puede congelarla
+  if(!el.getClientRects().length){el.textContent=prefix+fmt(end)+suffix;el.dataset.rawVal=end;return;}
   const startVal=parseFloat((el.dataset.rawVal||'0').replace(',','.'))||0;
   if(Math.abs(startVal-end)<0.005){el.textContent=prefix+fmt(end)+suffix;el.dataset.rawVal=end;autoFitAmount(el);return;}
   // El tamaño se ajusta una sola vez con la cifra final; durante la cuenta solo cambia el texto
@@ -2344,7 +2434,11 @@ function fetchValorCartera(){
   return carteraEnCurso||(carteraEnCurso=leerValorCartera().finally(()=>{carteraEnCurso=null;}));
 }
 async function leerValorCartera(){
-  const q=body=>nFetch('/databases/'+CUENTAS_DB+'/query','POST',body);
+  const q=async body=>{
+    const r=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',body);
+    if(!r||!r.results)throw new Error('consulta fallida');
+    return r;
+  };
   const orden=[{property:'InvFecha',direction:'descending'},{timestamp:'created_time',direction:'descending'}];
   const filtroVal={property:'InvTipo',select:{equals:'Valor Cartera'}};
   const filtroAp={property:'InvTipo',select:{equals:'Aportación'}};
@@ -2366,14 +2460,26 @@ async function leerValorCartera(){
   }
 
   // Sin valores por fondo: último total (sin InvFondo) + aportaciones posteriores
-  let ult=await q({filter:{and:[filtroVal,{property:'InvFondo',select:{is_empty:true}}]},sorts:orden,page_size:1});
-  if(!ult.results)ult=await q({filter:filtroVal,sorts:orden,page_size:1}); // la columna InvFondo aún no existe
+  let ult;
+  try{ult=await q({filter:{and:[filtroVal,{property:'InvFondo',select:{is_empty:true}}]},sorts:orden,page_size:1});}
+  catch(e){ult=await q({filter:filtroVal,sorts:orden,page_size:1});} // la columna InvFondo aún no existe
   const base=ult.results?.[0]||null;
   const posteriores=((await aportDesde(base?fechaDe(base):null)).results||[]).filter(a=>posterior(a,base));
   if(!base&&!posteriores.length)return{valor:null,fecha:null,fondos:null};
   return{valor:imp(base)+posteriores.reduce((s,a)=>s+imp(a),0),fecha:fechaDe(base)||null,fondos:null};
 }
 async function loadPatrimonio(){
+  const pet=nuevaPeticion('patrimonio');
+  // Al abrir la app: el último total y su curva, mientras llega el nuevo
+  const totalEl=document.getElementById('totalAmount');
+  if(cachePantalla['v|total']!=null&&!totalEl.dataset.pintado){
+    const prev=cachePantalla['v|total'];
+    totalEl.textContent=fmt(prev)+' €';totalEl.dataset.rawVal=prev;totalEl.dataset.pintado='1';
+    patrimonioBreakdown=cachePantalla['v|desglose']||patrimonioBreakdown;
+    patTotalHoy=prev;
+    if(!patHist){try{patHist=JSON.parse(localStorage.getItem('kashy-pat-hist')||'null');}catch(e){}}
+    if(patHist)renderPatChart();
+  }
   try{
     const [cuentasData,inv]=await Promise.all([
       nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'Cuenta o Meta',select:{equals:'Cuenta'}}}),
@@ -2381,7 +2487,9 @@ async function loadPatrimonio(){
     ]);
     // Excluimos el balance "en bruto" de la cuenta MyInvestor y usamos el valor de cartera (último registrado + aportaciones posteriores)
     const breakdown=[];
-    const totalCuentas=(cuentasData.results||[]).reduce((s,p)=>{
+    if(!vigente('patrimonio',pet))return;
+    if(!cuentasData||!cuentasData.results)throw new Error('consulta fallida'); // un error de Notion no es «sin datos»: se conserva lo que se ve
+    const totalCuentas=cuentasData.results.reduce((s,p)=>{
       const pid=p.id.replace(/-/g,'');
       if(pid===MYINVESTOR_ACC_ID)return s;
       const bal=p.properties?.['Balance']?.formula?.number||0;
@@ -2395,10 +2503,11 @@ async function loadPatrimonio(){
     const total=totalCuentas+valorCartera;
     breakdown.sort((a,b)=>b.val-a.val);
     patrimonioBreakdown={items:breakdown,total};
+    totalEl.dataset.pintado='1';cacheGuardar('v|total',total);cacheGuardar('v|desglose',patrimonioBreakdown);
     if(patHeroCardOpen)renderPatBreakdown();
     animateCounter(document.getElementById('totalAmount'),total,{suffix:' €'});
     loadPatHistory(total);
-  }catch(e){document.getElementById('totalAmount').textContent='Error';}
+  }catch(e){if(!totalEl.dataset.pintado)totalEl.textContent='Error';}
 }
 let patrimonioBreakdown={items:[],total:0};
 let patHeroCardOpen=false;
@@ -2588,6 +2697,9 @@ function renderPatChart(){
    a hoy. Todo: todos los movimientos hasta hoy. Solo Gasto e Ingreso de la base de movimientos: las
    transferencias y los registros de inversión viven en otras bases y no cuentan */
 let resumenCache={},resumenDia='',resumenPeticion=0;
+/* Cifras ya vistas de cada periodo: se enseñan al momento mientras se recalculan (tras escribir o al abrir la app) */
+let resumenPrevio=(cachePantalla['v|resumen']||{});
+function guardarResumen(){cacheGuardar('v|resumen',{...resumenPrevio,...resumenCache});}
 function rangoResumen(p){
   const hoy=hoyLocal();
   if(p==='Todo')return{hasta:hoy};
@@ -2604,7 +2716,8 @@ async function totalesPeriodo(p){
   if(!data||!data.results)throw new Error('consulta fallida');
   let g=0,i=0;
   data.results.forEach(x=>{g+=x.properties?.Gasto?.number||0;i+=x.properties?.Ingreso?.number||0;});
-  return resumenCache[p]={g,i};
+  resumenCache[p]={g,i};guardarResumen();
+  return resumenCache[p];
 }
 function cifraResumen(el,val,prefix){
   // Contador de siempre, recortado a 300 ms; con «Reducir movimiento», sin animar
@@ -2614,13 +2727,17 @@ function cifraResumen(el,val,prefix){
 async function pintarResumen(){
   const p=patPeriodo,pet=++resumenPeticion;
   const fila=document.querySelector('.hero-card .hero-row');
-  // La primera carga de 3M / 6M / Todo tarda unos segundos: mientras, las cifras anteriores se atenúan
-  if(!resumenCache[p])fila.classList.add('cargando');
+  // Si ese periodo ya se vio, sus cifras salen al momento; si no, mientras carga (3M / 6M / Todo tardan) se atenúan las anteriores
+  const previo=resumenCache[p]||resumenPrevio[p];
+  if(previo)pintarCifrasResumen(previo,p);
+  else fila.classList.add('cargando');
   let tot;
   try{tot=p==='1M'?resumenCache['1M']:await totalesPeriodo(p);}catch(e){tot=null;}
   if(pet!==resumenPeticion)return; // otro periodo elegido mientras cargaba
   fila.classList.remove('cargando');
-  if(!tot)return;
+  if(tot)pintarCifrasResumen(tot,p);
+}
+function pintarCifrasResumen(tot,p){
   const bal=tot.i-tot.g;
   cifraResumen(document.getElementById('resGasto'),tot.g,'-');
   cifraResumen(document.getElementById('resIngreso'),tot.i,'+');
@@ -2631,6 +2748,10 @@ async function pintarResumen(){
   lbl.dataset.i18n='periodo_'+p.toLowerCase();lbl.textContent=t(lbl.dataset.i18n);
 }
 async function loadResumen(){
+  const pet=nuevaPeticion('resumen');
+  // Al abrir la app o al volver: el gráfico y las cifras ya vistas, mientras se consulta
+  mostrarGuardado('chartWrap','graf|mes',null);
+  if(resumenPrevio[patPeriodo]&&!resumenCache[patPeriodo])pintarCifrasResumen(resumenPrevio[patPeriodo],patPeriodo);
   try{
     const now=new Date();
     const start=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
@@ -2641,7 +2762,9 @@ async function loadResumen(){
       page_size:100
     });
     let totalG=0,totalI=0;const catMap={};
-    (data.results||[]).forEach(p=>{
+    if(!vigente('resumen',pet))return;
+    if(!data||!data.results)throw new Error('consulta fallida'); // un error de Notion no es «sin datos»: se conserva lo que se ve
+    data.results.forEach(p=>{
       const g=p.properties?.Gasto?.number||0;
       const i=p.properties?.Ingreso?.number||0;
       totalG+=g;totalI+=i;
@@ -2653,23 +2776,24 @@ async function loadResumen(){
       }
     });
     // Cada visita a Inicio vuelve a leer: los demás periodos se recalculan al pedirlos
-    resumenCache={'1M':{g:totalG,i:totalI}};resumenDia=hoyLocal();
+    resumenPrevio={...resumenPrevio,...resumenCache};
+    resumenCache={'1M':{g:totalG,i:totalI}};resumenDia=hoyLocal();guardarResumen();
     pintarResumen();
     document.getElementById('resBar').style.transform=barScale(totalI>0?(totalI-totalG)/totalI*100:0);
     const sorted=Object.entries(catMap).sort((a,b)=>b[1].total-a[1].total).slice(0,5);
     const max=sorted[0]?.[1]?.total||1;
-    document.getElementById('chartWrap').innerHTML=sorted.length?sorted.map(([name,{emoji,total}],i)=>`
+    pintar('chartWrap','graf|mes',sorted.length?sorted.map(([name,{emoji,total}],i)=>`
       <div class="chart-row">
         <div class="chart-emoji">${emoji}</div>
         <div class="chart-name">${name}</div>
         <div class="chart-bar-wrap"><div class="chart-bar" style="width:${total/max*100}%;background:${BAR_COLORS[i]}"></div></div>
         <div class="chart-val">${fmt(total)} €</div>
-      </div>`).join(''):'<div class="loading">'+t('sin_gastos_mes')+'</div>';
-  }catch(e){document.getElementById('chartWrap').innerHTML='<div class="loading">Error</div>';}
+      </div>`).join(''):'<div class="loading">'+t('sin_gastos_mes')+'</div>');
+  }catch(e){pintarError('chartWrap','graf|mes','<div class="loading">Error</div>');}
 }
 
 /* ── MOVIMIENTOS ── */
-let movsCache={},transfCache={};
+let movsCache={},transfCache={},movsPeticion=0;
 let movsFilterAccId=null;
 function renderMovFilterChips(){
   const accs=CUENTAS.filter(c=>cuentasActivasIds.has(c.id));
@@ -2720,7 +2844,8 @@ async function loadMovs(silencioso){
   renderMovFilterChips();
   renderMovCatChips();
   // Tras editar se recarga sin esqueleto: la lista se sustituye de golpe en vez de parpadear
-  if(silencioso!==true)document.getElementById('recentMovs').innerHTML=skeletonRowsInner(6);
+  const pet=++movsPeticion,claveMovs='movs|'+[movsFilterTipo,movsFilterAccId,movsFilterCatId].map(x=>x||'').join('|');
+  mostrarGuardado('recentMovs',claveMovs,silencioso===true?null:skeletonRowsInner(6));
   try{
     // Las transferencias (otra base de datos) van mezcladas con los movimientos; no tienen categoría ni son gasto/ingreso
     const verMovs=movsFilterTipo!=='transferencia';
@@ -2738,10 +2863,11 @@ async function loadMovs(silencioso){
       ]});
       if(conds.length)query.filter=conds.length===1?conds[0]:{and:conds};
       const data=await nFetch('/databases/'+DB_ID+'/query','POST',query);
-      pages=(data.results||[]).filter(p=>(p.properties?.Gasto?.number||0)+(p.properties?.Ingreso?.number||0)>0);
+      if(!data||!data.results)throw new Error('consulta fallida'); // un error de Notion no es «sin datos»: se conserva lo que se ve
+      pages=data.results.filter(p=>(p.properties?.Gasto?.number||0)+(p.properties?.Ingreso?.number||0)>0);
       hayMas=!!data.has_more;
     }
-    let transfs=[];
+    let transfs=[],transfFallo=false;
     if(verTransf){
       const tc=[];
       if(movsFilterAccId)tc.push({or:[
@@ -2754,11 +2880,13 @@ async function loadMovs(silencioso){
       const body={sorts:[{property:'Fecha',direction:'descending'}],page_size:100};
       if(tc.length)body.filter=tc.length===1?tc[0]:{and:tc};
       const td=await nQueryAll(TRANSFER_DB,body);
-      transfs=(td&&td.results)||[];
+      // Si fallan solo las transferencias se enseñan los movimientos, pero esa lista incompleta no se guarda
+      if(!td||!td.results)transfFallo=true;else transfs=td.results;
     }
+    if(pet!==movsPeticion)return; // llegó antes una consulta más reciente (otro filtro)
     if(!pages.length&&!transfs.length){
       const msg=movsFilterAccId?t('msg_sin_movs_cuenta'):t('empty_movs_sub');
-      document.getElementById('recentMovs').innerHTML=emptyState('🧾',t('empty_movs_title'),msg);return;
+      (transfFallo?pintarError:pintar)('recentMovs',claveMovs,emptyState('🧾',t('empty_movs_title'),msg));return;
     }
     movsCache={};transfCache={};
     const fechaDe=p=>p.properties?.Fecha?.date?.start||'';
@@ -2799,20 +2927,20 @@ async function loadMovs(silencioso){
       </div>`,'openEditMovement','deleteMovement',p.id);
     });
     // Filas agrupadas por día desde el primer pintado: moverlas después reiniciaría su animación de entrada
-    let dia=null,html='';
-    filas.forEach(({p},i)=>{
+    // El balance de cada día va en el propio HTML (igual que pintarBalanceDia): así sale también de la caché
+    const grupos=[];
+    filas.forEach(({p,tr},i)=>{
       const d=fechaTxt(fechaDe(p));
-      if(d!==dia){
-        if(dia!==null)html+='</div>';
-        dia=d;
-        html+=`<div class="mov-daygroup"><span>${d}</span></div><div class="mov-group">`;
-      }
-      html+=htmlFilas[i];
+      if(!grupos.length||grupos[grupos.length-1].d!==d)grupos.push({d,neto:0,html:''});
+      const g=grupos[grupos.length-1];
+      g.html+=htmlFilas[i];
+      if(!tr){const x=p.properties?.Gasto?.number,y=p.properties?.Ingreso?.number;g.neto+=(x&&x>0)?-x:(y||0);}
     });
-    const lista=document.getElementById('recentMovs');
-    lista.innerHTML=html+'</div>';
-    lista.querySelectorAll('.mov-daygroup').forEach(pintarBalanceDia);
-  }catch(e){document.getElementById('recentMovs').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
+    (transfFallo?pintarError:pintar)('recentMovs',claveMovs,grupos.map(g=>{
+      const neto=Math.round(g.neto*100)/100;
+      return`<div class="mov-daygroup"><span>${g.d}</span><span class="mov-day-bal${neto>0?' pos':neto<0?' neg':''}">${neto>0?'+':neto<0?'-':''}${fmt(Math.abs(neto))} €</span></div><div class="mov-group">${g.html}</div>`;
+    }).join(''));
+  }catch(e){if(pet===movsPeticion)pintarError('recentMovs',claveMovs,emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub')));}
 }
 /* Balance del día en su cabecera: ingresos − gastos de las filas del grupo que le sigue */
 function pintarBalanceDia(cab){
@@ -3279,6 +3407,7 @@ function setPeriod(offset,btn){
   loadStats();
 }
 async function loadStats(){
+  statsVista=true;
   const now=new Date();
   let start,end,months;
   if(statPeriod===0){
@@ -3714,8 +3843,9 @@ function renderInsight(sorted,tasa,totalG){
 
 /* ── CUENTAS ── */
 async function loadAccounts(){
-  document.getElementById('accountCards').innerHTML=skeletonCards(4);
-  Object.keys(accountMovsLoaded).forEach(k=>delete accountMovsLoaded[k]);
+  const pet=nuevaPeticion('cuentas');
+  mostrarGuardado('accountCards','cuentas',skeletonCards(4));
+  mostrarGuardado('quickAccounts','carrusel',null);
   try{
     const [data,inv]=await Promise.all([
       nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{and:[
@@ -3727,14 +3857,16 @@ async function loadAccounts(){
     // La cuenta MyInvestor muestra el valor de cartera (último registrado + aportaciones posteriores)
     const valorCartera=inv.valor;
     const order=['Revolut Personal','Ibercaja','Sabadell','MyInvestor','MyInvestor Remunerada','Openbank Corriente','Openbank Ahorro','Pluxee','Revolut Compartida','Efectivo'];
-    const pages=(data.results||[]).sort((a,b)=>{
+    if(!vigente('cuentas',pet))return;
+    if(!data||!data.results)throw new Error('consulta fallida'); // un error de Notion no es «sin datos»: se conserva lo que se ve
+    const pages=data.results.sort((a,b)=>{
       const na=a.properties?.Nombre?.title?.[0]?.plain_text||'';
       const nb=b.properties?.Nombre?.title?.[0]?.plain_text||'';
       return order.findIndex(x=>na.includes(x))-order.findIndex(x=>nb.includes(x));
     });
-    if(!pages.length){document.getElementById('accountCards').innerHTML=emptyState('💳',t('empty_cuentas_title'),t('empty_cuentas_sub'));return;}
+    if(!pages.length){pintar('accountCards','cuentas',emptyState('💳',t('empty_cuentas_title'),t('empty_cuentas_sub')));pintarCarrusel([]);return;}
     const carrusel=[];
-    document.getElementById('accountCards').innerHTML=pages.map(p=>{
+    const cambia=pintar('accountCards','cuentas',pages.map(p=>{
       const fullName=p.properties?.Nombre?.title?.[0]?.plain_text||'—';
       const name=fullName.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
       const pageId=p.id.replace(/-/g,'');
@@ -3757,15 +3889,17 @@ async function loadAccounts(){
         </div>
         <div class="account-movs-wrap" id="movs-${pageId}"><div class="account-movs-clip"><div class="account-movs-inner"></div></div></div>
       </div>`;
-    }).join('');
+    }).join(''));
     pintarCarrusel(carrusel);
-    document.querySelectorAll('.account-balance[data-bal]').forEach(el=>{
+    // Los saldos solo cuentan desde cero si han cambiado; sin cambios, una cuenta desplegada sigue abierta y se refrescan sus filas
+    if(cambia)document.querySelectorAll('.account-balance[data-bal]').forEach(el=>{
       const target=parseFloat(el.dataset.bal);
       el.textContent='0,00 €';el.dataset.rawVal='0';
       animateCounter(el,target,{suffix:' €',duration:600});
     });
+    else{const abierta=document.querySelector('#accountCards .account-card.expanded .account-movs-wrap');if(abierta)cargarMovsCuenta(abierta.id.replace('movs-',''));}
     abrirCuentaPendiente();
-  }catch(e){document.getElementById('accountCards').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
+  }catch(e){if(vigente('cuentas',pet))pintarError('accountCards','cuentas',emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub')));}
 }
 /* Desde Inicio: ir a Cuentas con esa cuenta desplegada y a la vista (no a Movimientos) */
 let cuentaPendiente=null;
@@ -3783,7 +3917,6 @@ function abrirCuentaPendiente(){
   const cab=document.querySelector('#sec-cuentas .header');
   window.scrollTo(0,card.getBoundingClientRect().top+window.scrollY-(cab?cab.offsetHeight:0)-8);
 }
-const accountMovsLoaded={};
 async function toggleAccountMovs(pageId,headerEl){
   const card=headerEl.closest('.account-card');
   const wrap=document.getElementById('movs-'+pageId);
@@ -3795,9 +3928,14 @@ async function toggleAccountMovs(pageId,headerEl){
   if(isOpen){card.classList.remove('expanded');return;}
   card.classList.add('expanded');
 
-  if(accountMovsLoaded[pageId]){return;} // ya cargado, solo reabrimos
-  const inner=wrap.querySelector('.account-movs-inner');
-  inner.innerHTML=skeletonRowsInner(4);
+  cargarMovsCuenta(pageId);
+}
+/* Movimientos de una cuenta desplegada: los ya vistos al momento y se refrescan en segundo plano */
+async function cargarMovsCuenta(pageId){
+  const inner=document.querySelector('#movs-'+pageId+' .account-movs-inner');
+  if(!inner)return;
+  const clave='ctamovs|'+pageId,pet=nuevaPeticion(clave);
+  mostrarGuardado(inner,clave,skeletonRowsInner(4));
   try{
     // Todos los movimientos de la cuenta, siguiendo la paginación de Notion (antes se cortaba en 100)
     const data=await nQueryAll(DB_ID,{
@@ -3805,12 +3943,13 @@ async function toggleAccountMovs(pageId,headerEl){
       sorts:[{timestamp:'created_time',direction:'descending'}],
       page_size:100
     });
+    if(!vigente(clave,pet)||!inner.isConnected)return;
     if(!data||!data.results)throw new Error('consulta fallida'); // un error no es «sin movimientos»; al reabrir se reintenta
     const pages=data.results.filter(p=>(p.properties?.Gasto?.number||0)+(p.properties?.Ingreso?.number||0)>0);
     if(!pages.length){
-      inner.innerHTML='<div class="acc-movs-empty">Sin movimientos registrados en esta cuenta</div>';
+      pintar(inner,clave,'<div class="acc-movs-empty">Sin movimientos registrados en esta cuenta</div>');
     }else{
-      inner.innerHTML=pages.map(p=>{
+      pintar(inner,clave,pages.map(p=>{
         const name=p.properties?.Nombre?.title?.[0]?.plain_text||'—';
         const g=p.properties?.Gasto?.number,i=p.properties?.Ingreso?.number;
         const isG=g&&g>0;const amt=isG?g:(i||0);
@@ -3825,10 +3964,9 @@ async function toggleAccountMovs(pageId,headerEl){
           <div class="amn-body"><div class="amn-name">${name}</div><div class="amn-date">${fechaStr}</div></div>
           <div class="amn-amt ${isG?'g':'i'}">${isG?'-':'+'}${fmt(amt)} €</div>
         </div>`;
-      }).join('');
+      }).join(''));
     }
-    accountMovsLoaded[pageId]=true;
-  }catch(e){inner.innerHTML='<div class="acc-movs-empty">Error al cargar</div>';}
+  }catch(e){pintarError(inner,clave,'<div class="acc-movs-empty">Error al cargar</div>');}
 }
 /* ── Pulsación larga (450 ms) en una fila de cuenta: abre la edición, igual que el toque ── */
 (function(){
@@ -3862,10 +4000,13 @@ async function toggleAccountMovs(pageId,headerEl){
 /* ── METAS DE AHORRO (viven en CUENTAS_DB, Cuenta o Meta='Meta') ── */
 let goalsCache=[],editingGoalId=null;
 async function loadGoals(){
-  document.getElementById('goalsList').innerHTML=skeletonCards(2);
+  const pet=nuevaPeticion('metas');
+  mostrarGuardado('goalsList','metas',skeletonCards(2));
   try{
     const data=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'Cuenta o Meta',select:{equals:'Meta'}}});
-    goalsCache=(data.results||[]).map(p=>({
+    if(!vigente('metas',pet))return;
+    if(!data||!data.results)throw new Error('consulta fallida'); // un error de Notion no es «sin datos»: se conserva lo que se ve
+    goalsCache=data.results.map(p=>({
       id:p.id,
       nombre:p.properties?.Nombre?.title?.[0]?.plain_text||'—',
       objetivo:p.properties?.Objetivo?.number||0,
@@ -3873,10 +4014,10 @@ async function loadGoals(){
       emoji:p.properties?.Emoji?.rich_text?.[0]?.plain_text||'🎯',
     }));
     if(!goalsCache.length){
-      document.getElementById('goalsList').innerHTML=emptyState('🎯',t('empty_goals_title'),t('empty_goals_sub'));
+      pintar('goalsList','metas',emptyState('🎯',t('empty_goals_title'),t('empty_goals_sub')));
       return;
     }
-    document.getElementById('goalsList').innerHTML=goalsCache.map(g=>{
+    pintar('goalsList','metas',goalsCache.map(g=>{
       const pct=g.objetivo>0?Math.min(100,(g.ahorrado/g.objetivo*100)):0;
       return`<div class="goal-card">
         <div class="goal-top">
@@ -3890,8 +4031,8 @@ async function loadGoals(){
           <button class="acc-action" style="flex:1;" onclick="openGoalAdd('${g.id}','${g.nombre.replace(/'/g,"\\'")}')">➕ ${t('btn_anadir')}</button>
         </div>
       </div>`;
-    }).join('');
-  }catch(e){document.getElementById('goalsList').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
+    }).join(''));
+  }catch(e){if(vigente('metas',pet))pintarError('goalsList','metas',emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub')));}
 }
 function openNewGoal(){
   document.getElementById('goalEmoji').value='🎯';
@@ -3951,10 +4092,13 @@ async function confirmGoalAdd(){
 /* ── LISTA DE DESEOS (viven en CUENTAS_DB, Tipo='Wish List') ── */
 let wishCache=[],wishSelectedType='Para mi';
 async function loadWishes(){
-  document.getElementById('wishList').innerHTML=skeletonCards(2);
+  const pet=nuevaPeticion('deseos');
+  mostrarGuardado('wishList','deseos',skeletonCards(2));
   try{
     const data=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'Tipo',select:{equals:'Wish List'}}});
-    wishCache=(data.results||[]).map(p=>({
+    if(!vigente('deseos',pet))return;
+    if(!data||!data.results)throw new Error('consulta fallida'); // un error de Notion no es «sin datos»: se conserva lo que se ve
+    wishCache=data.results.map(p=>({
       id:p.id,
       nombre:p.properties?.Nombre?.title?.[0]?.plain_text||'—',
       precio:p.properties?.Objetivo?.number||0,
@@ -3963,7 +4107,7 @@ async function loadWishes(){
       emoji:p.properties?.Emoji?.rich_text?.[0]?.plain_text||'🎁',
     }));
     if(!wishCache.length){
-      document.getElementById('wishList').innerHTML=emptyState('🎁',t('empty_wishes_title'),t('empty_wishes_sub'));
+      pintar('wishList','deseos',emptyState('🎁',t('empty_wishes_title'),t('empty_wishes_sub')));
       return;
     }
     const pendientes=wishCache.filter(w=>w.estado==='Pendiente');
@@ -3987,8 +4131,8 @@ async function loadWishes(){
           </div>
         </div>
       </div>`;
-    document.getElementById('wishList').innerHTML=pendientes.map(renderItem).join('')+comprados.map(renderItem).join('');
-  }catch(e){document.getElementById('wishList').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
+    pintar('wishList','deseos',pendientes.map(renderItem).join('')+comprados.map(renderItem).join(''));
+  }catch(e){if(vigente('deseos',pet))pintarError('wishList','deseos',emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub')));}
 }
 function selWishType(tipo,el){
   wishSelectedType=tipo;
@@ -4213,6 +4357,7 @@ async function borrarConDeshacer(pageId,{quitar,msg,recargar,opcional,msgSinOpci
       hechas.push(id);
     }
     if(quitar)quitar();
+    marcarTocadas();
     showToast(hechas.length<ids.length?msgSinOpcional:msg,'',{texto:'Deshacer',fn:async()=>{
       try{
         const ok=await Promise.all(hechas.map(restaurarPagina));
@@ -4245,7 +4390,7 @@ let invPendingTipo='Aportación',invCache={},editingInvId=null,editingInvFondo='
 let invUltimo=null; // último resultado de fetchValorCartera, para precargar «Actualizar Valor»
 function renderFondos(fondos,totalAportado){
   const total=fondos?fondos.reduce((s,f)=>s+f.valor,0):0;
-  document.getElementById('invFondos').innerHTML=FONDOS.map((f,i)=>{
+  pintar('invFondos','inv|fondos',FONDOS.map((f,i)=>{
     const d=fondos?.[i];
     const peso=d&&total>0?d.valor/total*100:f.pct*100;
     let rend='';
@@ -4259,20 +4404,32 @@ function renderFondos(fondos,totalAportado){
       <div class="fondo-sub"><span class="fondo-isin" onclick="copiarIsin('${f.isin}')">${f.nombre} · ${f.isin}</span>${rend}</div>
       <div class="fondo-bar"><div style="width:${Math.min(100,peso)}%;background:${f.color};"></div></div>
     </div>`;
-  }).join('')+(fondos?'':`<div class="fondo-hint">${t('fondos_hint')}</div>`);
+  }).join('')+(fondos?'':`<div class="fondo-hint">${t('fondos_hint')}</div>`));
 }
 function copiarIsin(isin){
   try{navigator.clipboard.writeText(isin).then(()=>showToast(t('isin_copiado')+': '+isin,'success'));}catch(e){}
 }
+/* Cabecera de Inversión guardada, para enseñarla al abrir la app mientras llega la nueva */
+function pintarCabeceraInv(cab){
+  const v=document.getElementById('invValorActual');
+  v.textContent=fmt(cab.valor)+' €';v.dataset.rawVal=cab.valor;
+  (cab.textos||[]).forEach(([id,texto,cls])=>{const e=document.getElementById(id);if(e){e.textContent=texto;e.className=cls;}});
+}
 async function loadInversion(){
-  document.getElementById('invHistList').innerHTML=skeletonRowsInner(3);
+  const pet=nuevaPeticion('inv');
+  mostrarGuardado('invHistList','inv|hist',skeletonRowsInner(3));
+  mostrarGuardado('invFondos','inv|fondos',null);
+  const cab=cachePantalla['v|inv'],valEl=document.getElementById('invValorActual');
+  if(cab&&!valEl.dataset.pintado)pintarCabeceraInv(cab);
   try{
     const [data,inv]=await Promise.all([
       nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'InvTipo',select:{is_not_empty:true}},sorts:[{property:'InvFecha',direction:'descending'}]}),
       fetchValorCartera()
     ]);
     invUltimo=inv;
-    const rows=data.results||[];
+    if(!vigente('inv',pet))return;
+    if(!data||!data.results)throw new Error('consulta fallida'); // un error de Notion no es «sin datos»: se conserva lo que se ve
+    const rows=data.results;
     const aportaciones=rows.filter(r=>r.properties?.InvTipo?.select?.name==='Aportación');
     const valores=rows.filter(r=>r.properties?.InvTipo?.select?.name==='Valor Cartera');
     const totalAportado=aportaciones.reduce((s,r)=>s+(r.properties?.InvImporte?.number||0),0);
@@ -4281,7 +4438,7 @@ async function loadInversion(){
     const rendimiento=ultimoValor-totalAportado;
     const pct=totalAportado>0?(rendimiento/totalAportado*100):0;
 
-    animateCounter(document.getElementById('invValorActual'),ultimoValor,{suffix:' €'});
+    animateCounter(valEl,ultimoValor,{suffix:' €'});valEl.dataset.pintado='1';
     renderFondos(inv.fondos,totalAportado);
     document.getElementById('invUltimaFecha').textContent=ultimaFecha?(t('actualizado_lbl')+': '+new Date(ultimaFecha+'T00:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short',year:'numeric'})):t('sin_datos_registra');
     document.getElementById('invAportado').textContent=fmt(totalAportado)+' €';
@@ -4289,6 +4446,7 @@ async function loadInversion(){
     document.getElementById('invRendimiento').className='hero-mini-val '+(rendimiento>=0?'i':'g');
     document.getElementById('invPct').textContent=(pct>=0?'+':'')+pct.toFixed(1)+'%';
     document.getElementById('invPct').className='hero-mini-val '+(pct>=0?'i':'g');
+    cacheGuardar('v|inv',{valor:ultimoValor,textos:['invUltimaFecha','invAportado','invRendimiento','invPct'].map(id=>{const e=document.getElementById(id);return[id,e.textContent,e.className];})});
 
     /* Recordatorio de actualización (>35 días sin actualizar valor de cartera) */
     let diasSinActualizar=null;
@@ -4308,7 +4466,7 @@ async function loadInversion(){
     });
 
     invCache={};
-    document.getElementById('invHistList').innerHTML=rows.map(r=>{
+    pintar('invHistList','inv|hist',rows.map(r=>{
       invCache[r.id]=r;
       const tipo=r.properties?.InvTipo?.select?.name||'';
       const fondo=r.properties?.InvFondo?.select?.name||'';
@@ -4322,8 +4480,8 @@ async function loadInversion(){
         <div class="mov-amount ${isAporte?'ingreso':''}">${isAporte?'+':''}${fmt(importe)} €</div>
         <button class="del-btn" onclick="deleteInv('${r.id}',this)">🗑️</button>
       </div>`,'openEditInv','deleteInv',r.id);
-    }).join('')||emptyState('📈',t('empty_inv_title'),t('empty_inv_sub'));
-  }catch(e){document.getElementById('invHistList').innerHTML=emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub'));}
+    }).join('')||emptyState('📈',t('empty_inv_title'),t('empty_inv_sub')));
+  }catch(e){if(vigente('inv',pet))pintarError('invHistList','inv|hist',emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub')));}
 }
 function openInvModal(tipo){
   editingInvId=null;editingInvFondo='';
