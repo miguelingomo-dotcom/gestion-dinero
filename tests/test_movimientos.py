@@ -1,5 +1,6 @@
 import re
 
+import pytest
 from playwright.sync_api import expect
 
 import datos
@@ -118,3 +119,60 @@ def test_fallo_en_transferencias_no_oculta_los_movimientos(app):
     app.notion.fallar_consultas.add(datos.BASES["transfers"])
     app.ir("movimientos")
     expect(app.fila_mov("Mercadona")).to_be_visible()
+
+
+NOMBRE_LARGO = "Compra larguísima en una tienda con un nombre que no cabe de ninguna manera en la fila"
+
+
+def largos(n):
+    datos.gasto(n, NOMBRE_LARGO, "2026-11-12", 12345.67, cuenta=datos.REVOLUT)
+
+
+def importe_visible(fila, importe, ancho, nombre=".mov-name"):
+    """El importe se ve entero dentro de la pantalla y, si el nombre no cabe, es el nombre el que se recorta."""
+    expect(fila.locator(importe)).to_be_visible()
+    caja = fila.locator(importe).bounding_box()
+    assert caja["x"] + caja["width"] <= ancho, caja
+    return fila.locator(nombre).evaluate("e=>[e.scrollWidth>e.clientWidth,getComputedStyle(e).textOverflow]")
+
+
+@pytest.mark.parametrize("ancho", [390, 320], ids=["iphone", "estrecho"])
+@pytest.mark.parametrize("nombre", ["Remunerada (2,50%) → MyInvestor", NOMBRE_LARGO], ids=["transferencia", "movimiento"])
+def test_nombre_largo_se_recorta_y_el_importe_se_ve(abrir, ancho, nombre):
+    app = abrir(mas=largos)
+    app.page.set_viewport_size({"width": ancho, "height": 844})
+    app.ir("movimientos")
+    fila = app.fila_mov(nombre)
+    fila.wait_for()
+    assert importe_visible(fila, ".mov-amount", ancho) == [True, "ellipsis"]
+    # La fila ocupa justo el carril: no hay que deslizar para ver el importe
+    rail = fila.locator("xpath=ancestor::div[contains(@class,'swipe')][1]")
+    assert fila.bounding_box()["width"] <= rail.bounding_box()["width"]
+
+
+@pytest.mark.parametrize("ancho", [390, 320], ids=["iphone", "estrecho"])
+def test_nombre_largo_en_la_vista_de_cuenta(abrir, ancho):
+    app = abrir(mas=largos)
+    app.page.set_viewport_size({"width": ancho, "height": 844})
+    app.ir("cuentas")
+    t = app.desplegar_cuenta("Revolut Personal")
+    fila = t.locator(".acc-mov-row", has_text=NOMBRE_LARGO)
+    fila.wait_for()
+    assert importe_visible(fila, ".amn-amt", ancho, ".amn-name") == [True, "ellipsis"]
+
+
+def test_filas_de_inversion_dentro_de_la_pantalla(app):
+    app.ir("inversion")
+    filas = app.page.locator("#invHistList .mov-item")
+    expect(filas).to_have_count(5)
+    for i in range(5):
+        caja = filas.nth(i).locator(".mov-amount").bounding_box()
+        assert caja["x"] + caja["width"] <= 390, caja
+
+
+def test_las_acciones_de_deslizar_siguen_fuera_hasta_deslizar(abrir):
+    app = abrir(mas=largos)
+    app.ir("movimientos")
+    fila = app.fila_mov(NOMBRE_LARGO)
+    fila.wait_for()
+    assert fila.locator("xpath=ancestor::div[contains(@class,'swipe')][1]").evaluate("e=>e.scrollWidth>e.clientWidth")

@@ -1,6 +1,5 @@
 import re
 
-import pytest
 from playwright.sync_api import expect
 
 import datos
@@ -144,12 +143,3 @@ def test_transferencia_antigua_a_myinvestor_avisa_sin_tocar_aportaciones(abrir):
     app.borrar_fila(app.fila_mov("Ibercaja → MyInvestor"))
     expect(app.toast()).to_contain_text("revisa la aportación en Inversión")
     assert app.notion.activa(datos.AP_ANTIGUA)
-
-
-@pytest.mark.xfail(strict=True, reason="FALLO CONOCIDO: un nombre largo no se recorta; la fila se ensancha y deja el importe "
-                                       "fuera de la pantalla («MyInvestor Remunerada (2,50%) → MyInvestor»)")
-def test_nombre_largo_no_saca_el_importe_de_la_pantalla(app):
-    app.ir("movimientos")
-    fila = app.fila_mov("Remunerada (2,50%) → MyInvestor")
-    fila.wait_for()
-    assert fila.locator(".mov-amount").bounding_box()["x"] + fila.locator(".mov-amount").bounding_box()["width"] <= 390

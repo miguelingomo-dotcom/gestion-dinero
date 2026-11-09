@@ -709,7 +709,7 @@ body.kashy-privado .fondo-val,body.kashy-privado .fondo-rend,body.kashy-privado 
 .swipe{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none;}
 .swipe::-webkit-scrollbar{display:none;}
-.swipe > .mov-item{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;
+.swipe > .mov-item{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;
   background:linear-gradient(var(--surface),var(--surface)),var(--page);}
 .swipe > .mov-item:active{background:linear-gradient(var(--surface2),var(--surface2)),var(--page);}
 .swipe .del-btn{display:none!important;}
