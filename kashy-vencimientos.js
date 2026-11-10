@@ -30,6 +30,11 @@ const DIAS_CARTERA=35; // más días sin actualizar el valor de la cartera: reco
 
 const pad=n=>String(n).padStart(2,'0');
 const diaDe=hoy=>Number(hoy.slice(8,10));
+/* ¿Toca hoy algo fijado en ese día del mes? Si el mes no tiene ese día (un 30 en febrero), toca el último del mes */
+function tocaHoy(dia,hoy){
+  const d=diaDe(hoy),ultimo=Number(mesDe(hoy).fin.slice(8,10));
+  return d===dia||(d===ultimo&&dia>ultimo);
+}
 function mesDe(hoy){
   const a=Number(hoy.slice(0,4)),m=Number(hoy.slice(5,7));
   return{ini:a+'-'+pad(m)+'-01',fin:a+'-'+pad(m)+'-'+pad(new Date(Date.UTC(a,m,0)).getUTCDate())};
@@ -81,17 +86,16 @@ async function transferRegistrada(x,hoy,consultar){
 /* Lo que vence hoy y aún no está registrado.
    pagos: [{s, importe}] · transferencias: [{toId, destino, importe|null, aportacion}] */
 async function vencenHoy(hoy,consultar){
-  const dia=diaDe(hoy);
   const [pagos,transferencias,aportacion]=await Promise.all([
-    Promise.all(SUSCRIPCIONES.filter(s=>s.dia===dia&&!pagoPorEmpezar(s,hoy)).map(async s=>{
+    Promise.all(SUSCRIPCIONES.filter(s=>tocaHoy(s.dia,hoy)&&!pagoPorEmpezar(s,hoy)).map(async s=>{
       if(await pagoRegistrado(s,hoy,consultar))return null;
       if(!s.cuotasTotales)return{s,importe:s.amount};
       const p=await progresoCuotas(s,consultar);
       return p.terminado?null:{s,importe:importeCuota(s,p.cuotasPagadas)};
     })),
-    Promise.all(TRANSF_RECURRENTES.filter(x=>x.dia===dia).map(async x=>
+    Promise.all(TRANSF_RECURRENTES.filter(x=>tocaHoy(x.dia,hoy)).map(async x=>
       await transferRegistrada(x,hoy,consultar)?null:{toId:x.toId,destino:NOMBRES[x.toId],importe:x.amount||null,aportacion:false})),
-    dia===APORTACION.dia&&!(await transferRegistrada({fromId:APORTACION.fromId,toId:APORTACION.toId},hoy,consultar))
+    tocaHoy(APORTACION.dia,hoy)&&!(await transferRegistrada({fromId:APORTACION.fromId,toId:APORTACION.toId},hoy,consultar))
       ?{toId:APORTACION.toId,destino:NOMBRES[APORTACION.toId],importe:APORTACION.importe,aportacion:true}:null,
   ]);
   return{pagos:pagos.filter(Boolean),transferencias:transferencias.filter(Boolean).concat(aportacion?[aportacion]:[])};
@@ -119,5 +123,5 @@ function textoNotificacion(v){
   return{titulo:solo?'Ka$hy · Recordatorio':'Ka$hy · Hoy vence',cuerpo:lineas.join('\n')};
 }
 raiz.KashyVencimientos={IDS,BASES,SUSCRIPCIONES,TRANSF_RECURRENTES,APORTACION,NOMBRES,DIAS_CARTERA,
-  mesDe,pagoPorEmpezar,totalCuotas,importeCuota,progresoCuotas,pagoRegistrado,transferRegistrada,vencenHoy,recordatorioCartera,textoNotificacion};
+  mesDe,tocaHoy,pagoPorEmpezar,totalCuotas,importeCuota,progresoCuotas,pagoRegistrado,transferRegistrada,vencenHoy,recordatorioCartera,textoNotificacion};
 })(typeof globalThis!=='undefined'?globalThis:window);

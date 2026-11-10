@@ -1861,7 +1861,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   // El logo se ve hasta que llegan los datos (como mucho 1,2 s), también con datos guardados: debajo ya están pintados
   const carga=Promise.all([loadInicio().catch(()=>{}),loadAccounts()]);
   Promise.race([carga,new Promise(r=>setTimeout(r,1200))])
-    .then(()=>{document.getElementById('splashScreen').classList.add('hide');});
+    .then(()=>{
+      document.getElementById('splashScreen').classList.add('hide');
+      // Si Notion aún no ha respondido, el patrimonio sube desde 0 hasta el último guardado; luego se ajusta si cambia
+      const tot=document.getElementById('totalAmount');
+      if(!tot.dataset.pintado&&cachePantalla['v|total']!=null){tot.dataset.pintado='1';animateCounter(tot,cachePantalla['v|total'],{suffix:' €'});}
+    });
   loadCuentasActivas();
   loadInversion();
   iniciarNotificaciones();
@@ -2528,11 +2533,11 @@ async function leerValorCartera(){
 }
 async function loadPatrimonio(){
   const pet=nuevaPeticion('patrimonio');
-  // Al abrir la app: el último total y su curva, mientras llega el nuevo
+  // Al abrir la app: el desglose y la curva guardados mientras llega lo nuevo. El total no se pinta aquí: sube desde 0
+  // al llegar el dato (o, si Notion tarda, hasta el guardado al quitarse el logo; ver arranque)
   const totalEl=document.getElementById('totalAmount');
-  if(cachePantalla['v|total']!=null&&!totalEl.dataset.pintado){
+  if(cachePantalla['v|total']!=null&&!totalEl.dataset.pintado&&!patrimonioBreakdown.items.length){
     const prev=cachePantalla['v|total'];
-    totalEl.textContent=fmt(prev)+' €';totalEl.dataset.rawVal=prev;totalEl.dataset.pintado='1';
     patrimonioBreakdown=cachePantalla['v|desglose']||patrimonioBreakdown;
     patTotalHoy=prev;
     if(!patHist){try{patHist=JSON.parse(localStorage.getItem('kashy-pat-hist')||'null');}catch(e){}}
@@ -3336,11 +3341,11 @@ async function calcCuotasProgress(s){
 const totalCuotas=KashyVencimientos.totalCuotas,importeCuota=KashyVencimientos.importeCuota;
 const suscProgreso={}; // último progreso leído de Notion por índice de SUSCRIPCIONES
 function renderSusc(){
-  const hoy=new Date().getDate();
+  const hoy=hoyLocal();
   document.getElementById('suscripList').innerHTML=SUSCRIPCIONES.map((s,i)=>{
     const accName=CUENTAS.find(c=>c.id===s.cuentaId)?.name||'';
     const hasProgress=!!(s.fechaInicio&&s.fechaFin&&s.cuotasTotales);
-    const porEmpezar=pagoPorEmpezar(s),esHoy=s.dia===hoy&&!porEmpezar;
+    const porEmpezar=pagoPorEmpezar(s),esHoy=KashyVencimientos.tocaHoy(s.dia,hoy)&&!porEmpezar;
     return`
     <div class="sus-card-wrap" id="suscWrap-${i}">
       <div class="sus-card${esHoy?' hoy':''}${hasProgress?' has-progress':''}">
@@ -4304,9 +4309,9 @@ function showTransfer(accountId,accountName,destinoId,importe){
 function selDestino(id,el){transferToId=id;el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',c===el));}
 function closeTransfer(){document.getElementById('transferOverlay').classList.remove('show');}
 function renderTransfRec(){
-  const hoy=new Date().getDate();
+  const hoy=hoyLocal();
   document.getElementById('transfRecList').innerHTML=TRANSF_RECURRENTES.map((x,i)=>{
-    const desde=nombreCuenta(x.fromId),esHoy=x.dia===hoy;
+    const desde=nombreCuenta(x.fromId),esHoy=KashyVencimientos.tocaHoy(x.dia,hoy);
     return`
     <div class="sus-card${esHoy?' hoy':''}">
       <div class="sus-icon" style="background:${bankColor(desde)}22;border-color:${bankColor(desde)}55;">⇄</div>

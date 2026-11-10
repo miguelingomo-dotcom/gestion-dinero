@@ -295,3 +295,16 @@ def test_registrar_la_aportacion_retira_el_aviso(abrir):
     app.page.locator("#sec-inversion .sus-btn", has_text="Registrar").click()
     expect(app.toast()).to_contain_text("Aportación de 150€")
     expect(alerta(app)).not_to_have_class(re.compile(r"\bshow\b"))
+
+
+def test_pago_del_30_avisa_el_ultimo_dia_de_febrero(abrir):
+    app = abrir(hoy="2027-02-28")
+    expect(aviso_de(app)).to_contain_text("☁️ iCloud")
+    app.ir("registrar")
+    expect(app.page.locator(".sus-card-wrap", has=app.page.locator(".sus-name", has_text="iCloud")).locator(".sus-name")).to_contain_text("🔔")
+
+
+def test_pago_del_30_no_avisa_antes_del_ultimo_dia(abrir):
+    app = abrir(hoy="2027-02-27")
+    app.avisos_listos()
+    expect(aviso_de(app)).not_to_contain_text("iCloud")

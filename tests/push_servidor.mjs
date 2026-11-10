@@ -109,6 +109,20 @@ await ok('texto de la notificación', async () => {
   assert.equal(K.textoNotificacion({ pagos: [], transferencias: [], cartera: { dias: null } }).titulo, 'Ka$hy · Recordatorio');
 });
 
+await ok('un día que el mes no tiene (30 en febrero) toca el último día', async () => {
+  assert.equal(K.tocaHoy(30, '2027-02-28'), true);
+  assert.equal(K.tocaHoy(30, '2027-02-27'), false);
+  assert.equal(K.tocaHoy(30, '2028-02-28'), false);
+  assert.equal(K.tocaHoy(30, '2028-02-29'), true);
+  assert.equal(K.tocaHoy(29, '2027-02-28'), true);
+  assert.equal(K.tocaHoy(30, '2026-11-30'), true);
+  assert.equal(K.tocaHoy(31, '2026-11-30'), true);
+  assert.equal(K.tocaHoy(30, '2026-12-31'), false);
+  const v = await K.vencenHoy('2027-02-28', async () => ({ results: [] }));
+  // Sin movimientos en este Notion falso, Vinilos (día 29) no está terminado: también le toca el 28
+  assert.deepEqual(v.pagos.map(x => x.s.name).sort(), ['DAZN Fútbol', 'Vinilos', 'iCloud']);
+});
+
 // ── Cron: autenticación ──
 await ok('cron sin CRON_SECRET, sin cabecera o con otra: rechazado sin tocar Notion', async () => {
   reiniciar(); suscribir(); ahora('2026-07-23T07:30:00Z');

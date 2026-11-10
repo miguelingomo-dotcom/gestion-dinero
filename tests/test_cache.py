@@ -243,3 +243,39 @@ def test_si_fallan_las_transferencias_no_se_guarda_una_lista_incompleta(app):
     # Con datos guardados se conserva la lista completa, transferencias incluidas
     expect(app.fila_mov("Ibercaja → Revolut Personal")).to_be_visible()
     expect(app.fila_mov("Mercadona")).to_be_visible()
+
+
+CONTADOR = """(()=>{window.__total=[];new MutationObserver(()=>{const e=document.getElementById('totalAmount');
+  if(e&&window.__total[window.__total.length-1]!==e.textContent)window.__total.push(e.textContent);})
+  .observe(document,{childList:true,subtree:true,characterData:true});})();"""
+
+
+def valores_total(p):
+    return [float(x.replace(" €", "").replace(".", "").replace(",", ".")) for x in p.evaluate("()=>window.__total") if "€" in x]
+
+
+def test_al_abrir_el_patrimonio_sube_desde_cero(abrir):
+    app = abrir(antes=lambda page: page.add_init_script(CONTADOR))
+    p = app.page
+    expect(p.locator("#totalAmount")).to_have_text("5925,00 €")
+    p.wait_for_timeout(300)
+    p.evaluate("()=>{window.__total=[]}")
+    p.reload()  # ya con caché: también debe subir desde 0
+    expect(p.locator("#totalAmount")).to_have_text("5925,00 €")
+    v = valores_total(p)
+    assert v[0] < 1000 and v[-1] == 5925 and len(v) > 3, v
+
+
+def test_si_notion_tarda_sube_hasta_el_guardado(abrir):
+    def antes(page):
+        page.add_init_script(CONTADOR)
+        con_red_controlada(page)
+    app = abrir(antes=antes)
+    p = app.page
+    expect(p.locator("#totalAmount")).to_have_text("5925,00 €")
+    p.wait_for_timeout(600)
+    p.evaluate("()=>sessionStorage.setItem('sin-red','1')")
+    p.reload()
+    expect(p.locator("#totalAmount")).to_have_text("5925,00 €", timeout=4000)
+    v = valores_total(p)
+    assert v[0] < 1000 and v[-1] == 5925, v
