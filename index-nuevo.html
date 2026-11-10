@@ -4792,7 +4792,16 @@ async function loadInversion(){
     });
 
     invCache={};
-    pintar('invHistList','inv|hist',rows.map(r=>{
+    /* El historial enseña las aportaciones y solo el valor actual de la cartera: el último registro de cada fondo (o el
+       último total, si aún no hay valor de todos los fondos). Los valores anteriores siguen en Notion: la curva del
+       patrimonio y el rendimiento los usan igual; solo no se listan */
+    const recientes=(a,b)=>((b.properties?.InvFecha?.date?.start||'')+b.created_time).localeCompare((a.properties?.InvFecha?.date?.start||'')+a.created_time);
+    const porFondo=FONDOS.map(f=>valores.filter(r=>r.properties?.InvFondo?.select?.name===f.key).sort(recientes)[0]).filter(Boolean);
+    const ultimoTotal=valores.filter(r=>!r.properties?.InvFondo?.select?.name).sort(recientes)[0];
+    const actuales=new Set((porFondo.length===FONDOS.length?porFondo:[...porFondo,ultimoTotal].filter(Boolean)).map(r=>r.id));
+    const visibles=rows.filter(r=>r.properties?.InvTipo?.select?.name==='Aportación'||actuales.has(r.id));
+    rows.forEach(r=>{invCache[r.id]=r;});
+    pintar('invHistList','inv|hist',visibles.map(r=>{
       invCache[r.id]=r;
       const tipo=r.properties?.InvTipo?.select?.name||'';
       const fondo=r.properties?.InvFondo?.select?.name||'';

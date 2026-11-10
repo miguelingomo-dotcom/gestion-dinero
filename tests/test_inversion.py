@@ -63,6 +63,11 @@ def test_actualizar_valor_guarda_solo_los_fondos_cambiados(app):
     assert len(posts) == 1
     assert posts[0]["cuerpo"]["properties"]["InvFondo"]["select"]["name"] == "MSCI World"
     assert posts[0]["cuerpo"]["properties"]["InvImporte"]["number"] == 600
+    # El historial sigue con 5 filas: el valor nuevo de MSCI World sustituye en la lista al anterior, que sigue en Notion
+    expect(p.locator("#invHistList .mov-item")).to_have_count(5)
+    expect(p.locator("#invHistList")).to_contain_text("600,00 €")
+    expect(p.locator("#invHistList")).not_to_contain_text("500,00 €")
+    assert len([f for f in app.notion.filas("cuentas") if (f["properties"].get("InvFondo") or {}).get("select", {}).get("name") == "MSCI World"]) == 2
 
 
 def test_borrar_aportacion_enlazada_borra_la_transferencia_y_deshacer_restaura(app):
@@ -160,3 +165,26 @@ def test_rediseno_formato_espanol_e_iconos(app):
     # El ISIN es un botón para copiarlo
     expect(p.locator("#invFondos .fondo-isin").first).to_have_attribute("aria-label", re.compile(r"Copiar ISIN"))
     expect(p.locator("#invAportMensualLbl")).to_have_text("150,00 €")
+
+
+
+def _valores_antiguos(n):
+    datos.valor_cartera(n, "S&P 500", 900, "2026-08-01")
+    datos.valor_cartera(n, "MSCI World", 450, "2026-08-01")
+    datos.valor_cartera(n, "Emergentes", 200, "2026-08-01")
+    n.anadir("cuentas", {"Nombre": datos.titulo("Valor Cartera"), "InvTipo": {"select": {"name": "Valor Cartera"}},
+                         "InvImporte": {"number": 1400}, "InvFecha": {"date": {"start": "2026-03-01"}}})
+
+
+def test_el_historial_solo_ensena_el_valor_actual_y_las_aportaciones(abrir):
+    app = abrir(mas=_valores_antiguos)
+    p = app.page
+    app.ir("inversion")
+    filas = p.locator("#invHistList .mov-item")
+    # 2 aportaciones + el valor actual de los 3 fondos; los de agosto y el total de marzo no se listan
+    expect(filas).to_have_count(5)
+    texto = p.locator("#invHistList").inner_text()
+    assert "1000,00 €" in texto and "900,00 €" not in texto and "1400,00 €" not in texto, texto
+    # Siguen en Notion y el valor de la cartera es el de los valores actuales
+    assert len([f for f in app.notion.filas("cuentas") if (f["properties"].get("InvTipo") or {}).get("select", {}).get("name") == "Valor Cartera"]) == 7
+    expect(p.locator("#invValorActual")).to_contain_text("1900")
