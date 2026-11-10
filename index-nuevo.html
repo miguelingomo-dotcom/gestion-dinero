@@ -1062,6 +1062,98 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
 #sec-movimientos .empty-state-icon{width:52px;height:52px;margin:0 auto 12px;display:grid;place-items:center;border-radius:var(--r-lg);background:var(--fill);color:var(--muted);font-size:24px;}
 #sec-movimientos .empty-state-icon svg{width:24px;height:24px;}
 #sec-movimientos .skeleton.skel-row{border-radius:var(--r-lg);}
+
+/* ══ REDISEÑO · REGISTRAR (paso 4) ══ */
+#sec-registrar .header{border-bottom:0;background:color-mix(in srgb,var(--page) 82%,transparent);gap:12px;}
+#sec-registrar .header-left{min-width:0;}
+#sec-registrar .header-left h1{font-size:clamp(27px,8.6vw,34px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#sec-registrar .header-left p{display:none;}
+#sec-registrar .header-right{gap:8px;margin-top:2px;}
+#sec-registrar .icon-btn{width:36px;height:36px;border:0;background:var(--fill);color:var(--text);transition:transform 120ms var(--ease-out);}
+#sec-registrar .icon-btn:active{transform:scale(.92);}
+#sec-registrar .icon-btn svg{width:19px;height:19px;}
+#sec-registrar .reg-wrap{padding:0 16px;margin:0;}
+/* Gasto · Ingreso: control segmentado con marca que se desliza */
+#regTipo{position:relative;display:flex;gap:0;padding:3px;margin:4px 0 0;border:0;border-radius:var(--r-pill);background:var(--fill);}
+#regTipo::before{content:"";position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:var(--r-pill);background:var(--surface);
+  box-shadow:var(--sh-sm);transition:transform var(--dur-base) var(--ease-out);}
+[data-theme="dark"] #regTipo::before{background:var(--surface3);}
+#regTipo.der::before{transform:translateX(100%);}
+#regTipo .type-btn,#regTipo .type-btn.active{position:relative;z-index:1;flex:1;padding:8px 0;border:0;border-radius:var(--r-pill);background:none;box-shadow:none;
+  font-size:15px;font-weight:600;color:var(--muted);transition:color var(--dur-fast) ease;}
+#regTipo .type-btn.active{color:var(--text);}
+/* Importe: grande, centrado, rojo o verde según el tipo, con el € pegado */
+#sec-registrar .amount-box{margin:0;padding:22px 0 6px;border:0;background:none;box-shadow:none;border-radius:0;}
+#sec-registrar .amount-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+#sec-registrar .importe-fila{display:flex;align-items:baseline;justify-content:center;gap:4px;}
+#sec-registrar .amount-in{width:60px;max-width:100%;padding:0;border:0;background:none;outline:none;text-align:center;
+  font-family:var(--font-round);font-size:52px;font-weight:700;letter-spacing:-.035em;color:var(--red);caret-color:var(--accent);font-variant-numeric:tabular-nums;}
+#sec-registrar .amount-in.ing{color:var(--green);}
+#sec-registrar .amount-in::placeholder{color:var(--muted2);}
+#sec-registrar .importe-eur{font-family:var(--font-round);font-size:32px;font-weight:700;color:var(--muted2);}
+/* Campos */
+#sec-registrar .field{margin:16px 0 0;}
+#sec-registrar .field label{display:block;margin:0 4px 8px;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted);}
+#sec-registrar .field input[type=text],#sec-registrar .field input[type=date]{width:100%;height:50px;padding:0 16px;border:0;border-radius:var(--r-md);
+  background:var(--surface);box-shadow:var(--sh-sm);font-size:17px;color:var(--text);}
+#sec-registrar .field input:focus{box-shadow:0 0 0 2px var(--accent);border:0;}
+.sugerencia{display:inline-flex;align-items:center;gap:8px;max-width:100%;margin-top:8px;padding:5px 12px 5px 5px;border-radius:var(--r-pill);
+  background:var(--accent-soft);font-size:14px;color:var(--text);}
+.sugerencia .kficha{width:26px;height:26px;border-radius:8px;}
+.sugerencia .kficha.marca svg{width:15px;height:15px;}
+.sugerencia .kficha.letra{font-size:13px;}
+.sugerencia b{font-weight:600;}
+/* Cuentas y fechas: chips */
+#sec-registrar .chips-wrap{gap:8px;}
+#sec-registrar .chip{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border:0;border-radius:var(--r-pill);background:var(--surface);
+  box-shadow:var(--sh-sm);color:var(--text);font-size:15px;font-weight:500;transition:transform 120ms var(--ease-out),box-shadow var(--dur-fast) ease;}
+#sec-registrar .chip:active{transform:scale(.96);}
+#sec-registrar #accountChips .chip{padding:5px 12px 5px 5px;opacity:1;color:var(--text);font-weight:500;}
+#sec-registrar #accountChips .chip.selected{box-shadow:inset 0 0 0 2px var(--accent);}
+#sec-registrar .chip .kficha{width:28px;height:28px;border-radius:9px;}
+#sec-registrar .chip .kficha svg.ki,#sec-registrar .chip .kficha.marca svg{width:16px;height:16px;}
+#sec-registrar .chip.selected{background:var(--surface);color:var(--text);box-shadow:inset 0 0 0 2px var(--accent);}
+#sec-registrar #fechaChips .chip.selected{background:var(--text);color:var(--page);box-shadow:none;}
+/* Categorías: rejilla de 4 con su icono y color; la elegida, con un aro de su color */
+#sec-registrar .cat-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 8px;margin:0;}
+#sec-registrar .cat-item{gap:6px;}
+#sec-registrar .cat-circle{width:54px;height:54px;border:0;border-radius:var(--r-lg);background:var(--cat-bg);color:var(--cat);box-shadow:none;
+  transition:transform 120ms var(--ease-out),box-shadow var(--dur-fast) ease;}
+#sec-registrar .cat-circle svg.ki{width:25px;height:25px;}
+#sec-registrar .cat-item.selected .cat-circle{background:var(--cat-bg);border:0;box-shadow:0 0 0 2px var(--page),0 0 0 4px var(--cat);}
+#sec-registrar .cat-lbl{max-width:100%;font-size:11.5px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--muted);overflow-wrap:normal;hyphens:auto;}
+#sec-registrar .cat-item.selected .cat-lbl{color:var(--text);}
+/* Botón: rojo para gasto, verde para ingreso */
+#sec-registrar .submit-btn{margin-top:24px;height:52px;padding:0;border:0;border-radius:var(--r-md);background:var(--red);color:var(--on-red);font-size:17px;font-weight:600;box-shadow:none;}
+#sec-registrar .submit-btn.ing{background:var(--green);color:var(--on-green);}
+/* Pagos recurrentes e ingresos rápidos */
+#sec-registrar .sus-section{margin-top:32px;}
+#sec-registrar .sus-sec-title{margin:0 4px 10px;font-size:20px;font-weight:700;letter-spacing:-.02em;}
+#sec-registrar .sus-card-wrap{margin:0 0 10px;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--sh-sm);overflow:hidden;}
+#sec-registrar .sus-card,#sec-registrar .sus-card.has-progress{margin:0;padding:12px 16px;gap:12px;border:0;border-radius:0;background:none;box-shadow:none;}
+#sec-registrar #ingresosRapidosList .sus-card{margin:0 0 10px;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--sh-sm);}
+#sec-registrar .sus-card.hoy{box-shadow:none;}
+#sec-registrar .sus-icon{width:40px;height:40px;border:0;border-radius:0;background:none;font-size:inherit;}
+#sec-registrar .sus-icon .anim-emo{display:block;}
+#sec-registrar .sus-info{flex:1;min-width:0;}
+#sec-registrar .sus-name{font-size:16px;font-weight:500;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#sec-registrar .sus-meta{margin-top:2px;font-size:13px;color:var(--muted);}
+#sec-registrar .sus-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0;max-width:45%;}
+#sec-registrar .sus-amount{display:block;max-width:100%;font-size:16px;font-weight:600;white-space:nowrap;color:var(--red);}
+#sec-registrar .sus-amount.ing{color:var(--green);}
+#sec-registrar .sus-btn{height:30px;padding:0 12px;border:0;border-radius:var(--r-pill);background:var(--fill);color:var(--text);font-size:14px;font-weight:600;}
+.hoy-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:var(--r-pill);background:var(--warning-soft);color:var(--warn-text);
+  font-size:11px;font-weight:700;letter-spacing:.02em;vertical-align:2px;}
+#sec-registrar .susc-progress{margin:0;padding:0 16px 12px 68px;border:0;border-radius:0;background:none;}
+#sec-registrar .susc-progress-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);}
+#sec-registrar .susc-progress .res-bar{height:6px;margin:6px 0;border-radius:3px;background:var(--fill);}
+#sec-registrar .susc-progress .res-bar-fill{background:var(--accent);border-radius:3px;}
+#sec-registrar .susc-progress-sub{font-size:12px;color:var(--muted2);}
+/* Éxito: la insignia lleva la ficha del comercio o la categoría */
+#successBadgeEmo .kficha{width:30px;height:30px;border-radius:50%;}
+#successBadgeEmo .kficha svg.ki{width:17px;height:17px;}
+#successBadgeEmo .kficha.marca svg{width:17px;height:17px;}
+@media (prefers-reduced-motion:reduce){#regTipo::before{transition:none;}}
 </style>
 </head>
 <body>
@@ -1150,14 +1242,17 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
       <div class="header-right"><button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button></div>
     </div>
     <div class="reg-wrap">
-      <div class="type-toggle">
+      <div class="type-toggle" id="regTipo">
         <button class="type-btn active" id="btnG" onclick="setType('gasto')" data-i18n="tipo_gasto">💸 Gasto</button>
         <button class="type-btn" id="btnI" onclick="setType('ingreso')" data-i18n="tipo_ingreso">💰 Ingreso</button>
       </div>
       <div class="amount-box">
         <div class="amount-lbl" data-i18n="lbl_cantidad">Cantidad</div>
-        <input class="amount-in" type="text" id="inputAmt" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">
+        <div class="importe-fila"><input class="amount-in" type="text" id="inputAmt" placeholder="0" inputmode="decimal" autocomplete="off" aria-label="Cantidad" oninput="sanitizeAmt(this);ajustarImporteReg()"><span class="importe-eur" aria-hidden="true">€</span></div>
       </div>
+      <div class="field"><label data-i18n="lbl_nombre_field">Nombre</label><input type="text" id="inputName" placeholder="Ej: Mercadona" data-i18n-placeholder="lbl_ejemplo_nombre" autocomplete="off" enterkeyhint="done" oninput="sugerirCategoria()"><div id="regSugerencia" aria-live="polite"></div></div>
+      <div class="field"><label data-i18n="lbl_cuenta">Cuenta</label><div class="chips-wrap" id="accountChips"></div></div>
+      <div class="field"><label data-i18n="lbl_categoria">Categoría</label><div class="cat-grid" id="catGrid"></div></div>
       <div class="field"><label data-i18n="lbl_fecha">Fecha</label>
         <div class="chips-wrap" id="fechaChips">
           <div class="chip selected" data-fecha="hoy" onclick="selFecha('hoy',this)">Hoy</div>
@@ -1166,9 +1261,6 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
         </div>
         <input type="date" id="inputFecha" style="display:none;margin-top:8px;" onchange="fechaElegida(this.value)">
       </div>
-      <div class="field"><label data-i18n="lbl_nombre_field">Nombre</label><input type="text" id="inputName" placeholder="Ej: Mercadona" data-i18n-placeholder="lbl_ejemplo_nombre" oninput="sugerirCategoria()"></div>
-      <div class="field"><label data-i18n="lbl_cuenta">Cuenta</label><div class="chips-wrap" id="accountChips"></div></div>
-      <div class="field"><label data-i18n="lbl_categoria">Categoría</label><div class="cat-grid" id="catGrid"></div></div>
       <button class="submit-btn" id="submitBtn" onclick="submitMovement()">Registrar Gasto</button>
       <div class="sus-section">
         <div class="sus-sec-title" data-i18n="gastos_fijos">Pagos recurrentes</div>
@@ -1599,7 +1691,7 @@ const I18N={
     patrimonio_sub:'Cuentas + inversión (MyInvestor)',
     pat_1m:'en 1 mes',pat_3m:'en 3 meses',pat_6m:'en 6 meses',pat_todo:'desde el inicio',pat_todo_btn:'Todo',
     periodo_1m:'Este mes',periodo_3m:'Últimos 3 meses',periodo_6m:'Últimos 6 meses',periodo_todo:'Desde el inicio',
-    tipo_gasto:'💸 Gasto',tipo_ingreso:'💰 Ingreso',
+    tipo_gasto:'Gasto',tipo_ingreso:'Ingreso',
     lbl_nombre:'Nombre',lbl_fecha:'Fecha',lbl_cuenta:'Cuenta',lbl_categoria:'Categoría',
     lbl_cantidad:'Cantidad',lbl_emoji:'Emoji',lbl_objetivo:'Objetivo (€)',lbl_precio:'Precio (€)',
     lbl_tipo:'Tipo',lbl_ahorrado:'Ya ahorrado (€)',lbl_importe:'Importe',
@@ -2004,7 +2096,7 @@ function autoFitAmount(el){
   while(!cabe()&&size>base*.5){size-=1;el.style.fontSize=size+'px';}
   if(!cabe()){el.style.fontSize=base*.5+'px';el.classList.add('cifra-partida');}
 }
-const CIFRAS_AJUSTABLES='.hero-amount,.hero-mini-val,.qa-bal,.chart-val,.pat-item-val,#recentMovs .mov-amount,#recentMovs .mov-day-bal';
+const CIFRAS_AJUSTABLES='.hero-amount,.hero-mini-val,.qa-bal,.chart-val,.pat-item-val,#recentMovs .mov-amount,#recentMovs .mov-day-bal,#sec-registrar .sus-amount';
 function ajustarCifras(raiz){(raiz||document).querySelectorAll(CIFRAS_AJUSTABLES).forEach(autoFitAmount);}
 let ajusteRz;window.addEventListener('resize',()=>{clearTimeout(ajusteRz);ajusteRz=setTimeout(()=>ajustarCifras(),120);});
 /* Cifra grande en dos tamaños: «5925» y «,00 €» más pequeño (el texto sigue siendo el mismo) */
@@ -2093,6 +2185,7 @@ const scrollPorSeccion={};
 function showSec(name,idx){
   if(name==='inicio')requestAnimationFrame(()=>{ajustarCifras(document.getElementById('sec-inicio'));moverMarcaPat();});
   if(name==='movimientos')requestAnimationFrame(()=>ajustarCifras(document.getElementById('recentMovs')));
+  if(name==='registrar')requestAnimationFrame(()=>{ajustarImporteReg();ajustarCifras(document.getElementById('sec-registrar'));});
   const actual=document.querySelector('.section.active');
   // Tocar la pestaña en la que ya estás sube arriba, como en iOS
   if(actual&&actual.id==='sec-'+name){
@@ -2550,8 +2643,8 @@ function showSuccessBurst(anim){
   emo.getAnimations().forEach(a=>a.cancel());
   el.classList.remove('show');
   void el.offsetWidth; // reinicia la animación si se dispara varias veces seguidas
-  const conInsignia=!!(anim&&ANIM_FAMILIAS[anim.familia]&&anim.emoji);
-  emo.textContent=conInsignia?anim.emoji:'';
+  const conInsignia=!!(anim&&ANIM_FAMILIAS[anim.familia]&&(anim.ficha||anim.emoji));
+  if(conInsignia&&anim.ficha)emo.innerHTML=anim.ficha;else emo.textContent=conInsignia?anim.emoji:'';
   el.classList.add('show');
   if(conInsignia){
     badge.animate(animReducido()
@@ -3466,13 +3559,16 @@ function setType(typ){
   const btn=document.getElementById('submitBtn');
   btn.textContent=typ==='gasto'?t('btn_reg_gasto'):t('btn_reg_ingreso');
   btn.className='submit-btn'+(typ==='ingreso'?' ing':'');
+  document.getElementById('regTipo').classList.toggle('der',typ==='ingreso');
+  document.getElementById('inputAmt').classList.toggle('ing',typ==='ingreso');
   catTocada=false;
   renderCats(typ);
+  sugerirCategoria();
 }
 function renderChips(){
   const accs=CUENTAS.filter(c=>cuentasActivasIds.has(c.id));
   const sel=accs.find(c=>c.id===selectedAccId)||accs[0];
-  document.getElementById('accountChips').innerHTML=accs.map(c=>`<div class="chip${c===sel?' selected':''}"${attrsChipBanco(c.name,`border-left:3px solid ${bankColor(c.name)};`)} onclick="selAcc('${c.id}',this)">${c.emoji} ${c.name}</div>`).join('');
+  document.getElementById('accountChips').innerHTML=accs.map(c=>`<div class="chip${c===sel?' selected':''}" onclick="selAcc('${c.id}',this)">${fichaCuenta(c.name)}${c.name}</div>`).join('');
   if(sel)selectedAccId=sel.id;
 }
 function selAcc(id,el){selectedAccId=id;el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
@@ -3482,7 +3578,8 @@ function renderCats(typ){
   const ult=leerPref('kashy-ult-cat-'+typ);
   const sel=cats.find(c=>c.id===selectedCatId)||cats.find(c=>c.id===ult)||cats[0];
   selectedCatId=sel.id;
-  document.getElementById('catGrid').innerHTML=cats.map(c=>`<div class="cat-item${c===sel?' selected':''}" data-cat="${c.id}" onclick="selCat('${c.id}',this)"><div class="cat-circle"><span class="anim-emo">${c.emoji}</span></div><div class="cat-lbl">${dispName(c)}</div></div>`).join('');
+  document.getElementById('catGrid').innerHTML=cats.map(c=>{const m=CAT_META[c.id]||{ico:'wallet',c:'#5E7C8C'};
+    return`<div class="cat-item${c===sel?' selected':''}" data-cat="${c.id}" style="--cat:${m.c};--cat-bg:${m.c}1F" onclick="selCat('${c.id}',this)"><div class="cat-circle"><span class="anim-emo">${svgIco(m.ico)}</span></div><div class="cat-lbl">${dispName(c)}</div></div>`;}).join('');
 }
 function selCat(id,el){
   catTocada=true;selectedCatId=id;
@@ -3491,17 +3588,49 @@ function selCat(id,el){
   animarEmoji(el.querySelector('.anim-emo'),animDeCategoria(id),'chip');
 }
 /* Propone la categoría según el nombre (el de la categoría o el mismo mapa que getEmoji); no pisa una elegida a mano */
+const CAT_DE_COMERCIO={ // comercio → categoría de gasto (por id de Notion)
+  mercadona:'31621c54013f815cbebbf321cd287ac9',alcampo:'31621c54013f815cbebbf321cd287ac9',consum:'31621c54013f815cbebbf321cd287ac9',
+  mcdonalds:'38621c54013f8171b7c3d2888b5193af',kfc:'38621c54013f8171b7c3d2888b5193af',starbucks:'38621c54013f819eb838ff6f8332fbc6',
+  muerdelapasta:'31621c54013f815794d0e6ee1cae8af4',vinted:'31621c54013f816f89cfeb01f1c7e983',zara:'31621c54013f816f89cfeb01f1c7e983',
+  nike:'31621c54013f816f89cfeb01f1c7e983',primark:'31621c54013f816f89cfeb01f1c7e983',decathlon:'31621c54013f816f89cfeb01f1c7e983',
+  spotify:'31621c54013f8130bd7ddbf775f0f1bd',dazn:'31621c54013f8130bd7ddbf775f0f1bd',icloud:'31621c54013f8130bd7ddbf775f0f1bd',
+  claude:'31621c54013f8130bd7ddbf775f0f1bd',google:'31621c54013f8130bd7ddbf775f0f1bd',ea:'31621c54013f8196b8d4dc7c51c738b2',
+  aliexpress:'31621c54013f8196b8d4dc7c51c738b2',amazon:'31621c54013f8196b8d4dc7c51c738b2',funko:'31621c54013f8196b8d4dc7c51c738b2',
+  panini:'31621c54013f8196b8d4dc7c51c738b2',ikea:'31621c54013f816d85afc5277c4e2c08',airbnb:'31621c54013f8130bd2cc319b0ce9659',
+  winamax:'31621c54013f81fd9415cf07f4284b5b',
+};
+const NOMBRE_COMERCIO={mcdonalds:"McDonald's",muerdelapasta:'Muerde la Pasta',icloud:'iCloud',aliexpress:'AliExpress',ea:'EA Play',dazn:'DAZN',ikea:'IKEA',kfc:'KFC',paypal:'PayPal'};
 function sugerirCategoria(){
-  if(catTocada)return;
   const n=document.getElementById('inputName').value.trim().toLowerCase();
-  if(n.length<3)return;
+  const sug=document.getElementById('regSugerencia');
   const cats=currentType==='gasto'?GASTOS:INGRESOS;
+  const k=n.length>=2?comercioDe(n):null;
+  const catCom=k&&CAT_DE_COMERCIO[k]&&cats.find(c=>c.id===CAT_DE_COMERCIO[k]);
+  // Comercio reconocido: su logo y su categoría, a la vista aunque elijas otra
+  sug.innerHTML=k?`<span class="sugerencia">${fichaMarca(k)}<b>${NOMBRE_COMERCIO[k]||k[0].toUpperCase()+k.slice(1)}</b>${catCom?' · '+dispName(catCom):''}</span>`:'';
+  if(catTocada||n.length<3)return;
   const emo=emojiPorPalabra(n);
-  // Primero el nombre de la categoría (más específico: «nómina pluxee»), después el mapa de palabras
-  const cat=cats.find(c=>n.includes(c.name.toLowerCase()))||(emo&&cats.find(c=>c.emoji===emo));
+  // Primero el comercio, después el nombre de la categoría («nómina pluxee») y por último el mapa de palabras
+  const cat=catCom||cats.find(c=>n.includes(c.name.toLowerCase()))||(emo&&cats.find(c=>c.emoji===emo));
   if(!cat||cat.id===selectedCatId)return;
   selectedCatId=cat.id;
   document.querySelectorAll('#catGrid .cat-item').forEach(el=>el.classList.toggle('selected',el.dataset.cat===cat.id));
+  const el=document.querySelector('#catGrid .cat-item.selected .anim-emo');
+  animarEmoji(el,animDeCategoria(cat.id),'chip');
+}
+/* El importe mide lo que su texto, para que el «€» vaya pegado (como mucho, el ancho de la tarjeta) */
+const medidaImporte=document.createElement('canvas').getContext('2d');
+function ajustarImporteReg(){
+  const i=document.getElementById('inputAmt');if(!i||!i.offsetParent)return;
+  const cs=getComputedStyle(i);
+  // Ningún importe se corta: si no cabe a su tamaño, la letra se reduce (como mucho a la mitad) en vez de desplazarse
+  if(!i.dataset.baseSize)i.dataset.baseSize=parseFloat(cs.fontSize);
+  const base=+i.dataset.baseSize,max=i.parentElement.parentElement.clientWidth-56,txt=i.value||i.placeholder;
+  medidaImporte.font=cs.fontWeight+' '+base+'px '+cs.fontFamily;
+  const ancho=medidaImporte.measureText(txt).width*1.02+12;
+  const size=ancho>max?Math.max(base*.5,Math.floor(base*max/ancho)):base;
+  i.style.fontSize=size+'px';
+  i.style.width=Math.min(max,Math.ceil(ancho*size/base))+'px';
 }
 /* ── Fecha del registro: Hoy · Ayer · Otra ── */
 function fechaLocalDe(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
@@ -3563,10 +3692,10 @@ async function submitMovement(){
       guardarPref('kashy-ult-cuenta',selectedAccId);guardarPref('kashy-ult-cat-'+currentType,selectedCatId);
       const importeTxt=document.getElementById('inputAmt').value;
       const fechaUsada={tipo:fechaTipo,valor:document.getElementById('inputFecha').value};
-      showSuccessBurst(animDeCategoria(catId));
+      showSuccessBurst({...animDeCategoria(catId),ficha:fichaMov(name,catId)});
       showToast(isG?t('toast_gasto_ok'):t('toast_ingreso_ok'),'',{texto:'Deshacer',fn:()=>deshacerRegistro(res.id,importeTxt,name,fechaUsada)});
       document.getElementById('inputAmt').value='';document.getElementById('inputName').value='';
-      catTocada=false;reiniciarFecha();
+      catTocada=false;reiniciarFecha();ajustarImporteReg();document.getElementById('regSugerencia').innerHTML='';
     }
     else showToast('Error: '+(res.message||'—'),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
@@ -3579,7 +3708,7 @@ async function deshacerRegistro(pageId,importeTxt,nombre,fechaUsada){
     const data=await res.json();
     if(!(data.archived||data.in_trash)){showToast('No se pudo deshacer','error');return;}
     const amt=document.getElementById('inputAmt'),nom=document.getElementById('inputName');
-    if(!amt.value&&!nom.value){amt.value=importeTxt;nom.value=nombre;if(fechaUsada)restaurarFecha(fechaUsada.tipo,fechaUsada.valor);}
+    if(!amt.value&&!nom.value){amt.value=importeTxt;nom.value=nombre;if(fechaUsada)restaurarFecha(fechaUsada.tipo,fechaUsada.valor);ajustarImporteReg();sugerirCategoria();}
     showToast('Registro deshecho');
   }catch(e){showToast(t('toast_conexion'),'error');}
 }
@@ -3601,9 +3730,9 @@ function renderSusc(){
     return`
     <div class="sus-card-wrap" id="suscWrap-${i}">
       <div class="sus-card${esHoy?' hoy':''}${hasProgress?' has-progress':''}">
-        <div class="sus-icon" id="suscIcon-${i}" style="background:${bankColor(accName)}22;border-color:${bankColor(accName)}55;"><span class="anim-emo">${s.emoji}</span></div>
-        <div class="sus-info"><div class="sus-name">${s.name}${esHoy?' 🔔':''}</div><div class="sus-meta">${t('dia_lbl')} ${s.dia} · ${accName}</div></div>
-        <div class="sus-right"><div class="sus-amount" id="suscAmt-${i}">-${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regSusc(${i})"${porEmpezar?' disabled':''}>${t('btn_registrar')}</button></div>
+        <div class="sus-icon" id="suscIcon-${i}"><span class="anim-emo">${fichaMov(s.name,s.catId)}</span></div>
+        <div class="sus-info"><div class="sus-name">${s.name}${esHoy?'<span class="hoy-tag">Hoy</span>':''}</div><div class="sus-meta">${t('dia_lbl')} ${s.dia} · ${accName}</div></div>
+        <div class="sus-right"><div class="sus-amount" id="suscAmt-${i}">-${fmt(s.amount)} €</div><button class="sus-btn" onclick="regSusc(${i})"${porEmpezar?' disabled':''}>${t('btn_registrar')}</button></div>
       </div>
       ${hasProgress?`<div class="susc-progress" id="suscProgress-${i}"><div class="loading" style="padding:10px 0;font-size:12px;">${t('cargando_progreso')}</div></div>`:''}
     </div>`;
@@ -3625,7 +3754,7 @@ async function refreshSuscProgress(i,animar){
   // Todas las cuotas pagadas (contadas en Notion): la tarjeta desaparece; sus movimientos se quedan donde están
   if(p.terminado&&!animar){if(wrap)wrap.remove();return;}
   const amtEl=document.getElementById('suscAmt-'+i);
-  if(amtEl)amtEl.textContent='-'+importeCuota(s,p.cuotasPagadas).toFixed(2)+' €';
+  if(amtEl)amtEl.textContent='-'+fmt(importeCuota(s,p.cuotasPagadas))+' €';
   el.innerHTML=`
     <div class="susc-progress-row">
       <span>Pagado ${fmt(p.pagado)} € de ${fmt(p.total)} €</span>
@@ -3659,7 +3788,7 @@ async function regSusc(i){
       'Fuente de Gasto':{relation:[{id:s.catId}]},
     }});
     if(res.id){
-      showSuccessBurst({...s.anim,emoji:s.emoji});showToast('✓ '+s.name+' '+t('toast_registrada'),'success');
+      showSuccessBurst({...s.anim,emoji:s.emoji,ficha:fichaMov(s.name,s.catId)});showToast('✓ '+s.name+' '+t('toast_registrada'),'success');
       if(s.fechaInicio&&s.fechaFin&&s.cuotasTotales)refreshSuscProgress(i,true);
     }
     else showToast(t('toast_error_registrar'),'error');
@@ -3672,9 +3801,9 @@ function renderIngresosRapidos(){
     const accName=CUENTAS.find(c=>c.id===s.cuentaId)?.name||'';
     return`
     <div class="sus-card">
-      <div class="sus-icon" style="background:${bankColor(accName)}22;border-color:${bankColor(accName)}55;">${s.emoji}</div>
+      <div class="sus-icon"><span class="anim-emo">${fichaCat(s.catId)}</span></div>
       <div class="sus-info"><div class="sus-name">${s.name}</div><div class="sus-meta">${t('ingreso_rapido')} · ${accName}</div></div>
-      <div class="sus-right"><div class="sus-amount ing">+${s.amount.toFixed(2)} €</div><button class="sus-btn" onclick="regIngresoRapido(${i})">${t('btn_registrar')}</button></div>
+      <div class="sus-right"><div class="sus-amount ing">+${fmt(s.amount)} €</div><button class="sus-btn" onclick="regIngresoRapido(${i})">${t('btn_registrar')}</button></div>
     </div>`;
   }).join('');
 }
@@ -3689,7 +3818,7 @@ async function regIngresoRapido(i){
       Cuenta:{relation:[{id:s.cuentaId}]},
       'Fuente de Ingreso':{relation:[{id:s.catId}]},
     }});
-    if(res.id){showSuccessBurst({...s.anim,emoji:s.emoji});showToast('✓ '+s.name+' '+t('toast_registrada'),'success');}
+    if(res.id){showSuccessBurst({...s.anim,emoji:s.emoji,ficha:fichaCat(s.catId)});showToast('✓ '+s.name+' '+t('toast_registrada'),'success');}
     else showToast(t('toast_error_registrar'),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
 }

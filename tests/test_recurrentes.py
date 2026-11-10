@@ -59,7 +59,7 @@ def test_vinilos_usa_el_importe_de_cada_cuota(abrir):
     app.ir("registrar")
     t = tarjeta(app, "Vinilos")
     expect(t).to_contain_text("1/3 cuotas")
-    expect(t.locator(".sus-amount")).to_have_text("-28.86 €")
+    expect(t.locator(".sus-amount")).to_have_text("-28,86 €")
     t.locator(".sus-btn").click()
     expect(app.toast()).to_contain_text("Vinilos registrada")
     assert app.escrituras("POST")[-1]["cuerpo"]["properties"]["Gasto"]["number"] == 28.86
@@ -301,7 +301,7 @@ def test_pago_del_30_avisa_el_ultimo_dia_de_febrero(abrir):
     app = abrir(hoy="2027-02-28")
     expect(aviso_de(app)).to_contain_text("iCloud")
     app.ir("registrar")
-    expect(app.page.locator(".sus-card-wrap", has=app.page.locator(".sus-name", has_text="iCloud")).locator(".sus-name")).to_contain_text("🔔")
+    expect(app.page.locator(".sus-card-wrap", has=app.page.locator(".sus-name", has_text="iCloud")).locator(".sus-name")).to_contain_text("Hoy")
 
 
 def test_pago_del_30_no_avisa_antes_del_ultimo_dia(abrir):

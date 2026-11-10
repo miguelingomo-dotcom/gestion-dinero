@@ -24,14 +24,15 @@ def test_no_hay_intervalos_ni_observadores_de_parches(abrir):
         assert id not in observados
 
 
-CHIPS_INICIALES = "()=>{renderChips();return [...document.querySelectorAll('#accountChips .chip')].map(c=>[c.textContent,c.style.background,c.dataset.bank])}"
+CHIPS_INICIALES = "()=>{renderChips();return [...document.querySelectorAll('#accountChips .chip')].map(c=>[c.textContent,!!c.querySelector('.kficha.logo img')])}"
 
 
-def test_chips_con_color_en_el_mismo_render(app):
-    # Lectura en la misma tarea que el render: un observador o temporizador aún no habría podido actuar
+def test_chips_con_su_logo_en_el_mismo_render(app):
+    # Rediseño: el chip de Registrar lleva el logo del banco (antes, su color). Se lee en la misma tarea que el render:
+    # un observador o temporizador aún no habría podido actuar
     chips = app.page.evaluate(CHIPS_INICIALES)
     ibercaja = [c for c in chips if "Ibercaja" in c[0]][0]
-    assert ibercaja[1] and ibercaja[2] == "1"
+    assert ibercaja[1]
 
 
 def test_todas_las_listas_de_chips_con_color_al_abrir(app):
