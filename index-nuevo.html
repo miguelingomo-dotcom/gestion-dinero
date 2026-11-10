@@ -978,7 +978,8 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
 #sec-inicio .quick-accounts-head{margin:28px 20px 10px;}
 #sec-inicio .quick-accounts-head span{font-size:20px;font-weight:700;letter-spacing:-.02em;}
 #sec-inicio .quick-accounts-head button{font-size:15px;font-weight:500;color:var(--accent);}
-#sec-inicio .qa-card{flex:0 0 156px;min-height:0;padding:16px;border:0;border-radius:var(--r-lg);background:var(--surface);color:var(--text);
+/* Alto según su contenido (antes 104 px fijos con overflow:hidden recortaban el saldo por abajo) */
+#sec-inicio .qa-card{flex:0 0 156px;width:156px;min-width:0;height:auto;min-height:0;overflow:visible;justify-content:flex-start;padding:16px;border:0;border-radius:var(--r-lg);background:var(--surface);color:var(--text);
   box-shadow:var(--sh-sm);text-align:left;font:inherit;display:block;transition:transform 120ms var(--ease-out);}
 #sec-inicio .qa-card:active{transform:scale(.97);}
 #sec-inicio .qa-card::before,#sec-inicio .qa-card::after{content:none;}
