@@ -1155,6 +1155,78 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
 #successBadgeEmo .kficha svg.ki{width:17px;height:17px;}
 #successBadgeEmo .kficha.marca svg{width:17px;height:17px;}
 @media (prefers-reduced-motion:reduce){#regTipo::before{transition:none;}}
+
+/* ══ REDISEÑO · CUENTAS (paso 5) ══ */
+#sec-cuentas .header{border-bottom:0;background:color-mix(in srgb,var(--page) 82%,transparent);gap:12px;}
+#sec-cuentas .header-left{min-width:0;}
+#sec-cuentas .header-left h1{font-size:clamp(27px,8.6vw,34px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#sec-cuentas .header-left p{display:none;}
+#sec-cuentas .header-right{gap:8px;margin-top:2px;}
+#sec-cuentas .icon-btn{width:36px;height:36px;border:0;background:var(--fill);color:var(--text);transition:transform 120ms var(--ease-out);}
+#sec-cuentas .icon-btn:active{transform:scale(.92);}
+#sec-cuentas .icon-btn svg{width:19px;height:19px;}
+/* Lista agrupada: una fila por cuenta con el logo de su banco */
+#accountCards,#accountCardsInactive{margin:8px 16px 12px;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--sh-sm);overflow:hidden;}
+#accountCards:has(.empty-state),#accountCards:has(.skeleton){background:none;box-shadow:none;}
+#sec-cuentas .account-card{position:relative;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;color:var(--text);overflow:visible;animation:none;}
+#sec-cuentas .account-card::before,#sec-cuentas .account-card::after{content:none;}
+#sec-cuentas .account-card:active{box-shadow:none;}
+#sec-cuentas .account-card+.account-card::before{content:"";position:absolute;inset:0 0 auto 68px;height:0;background:none;border-top:.5px solid var(--separator);z-index:1;}
+#sec-cuentas .account-chevron::before{content:none;}
+#sec-cuentas .account-card-head{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 12px 10px 16px;transition:background-color 120ms ease;}
+#sec-cuentas .account-card-head:active{background:color-mix(in srgb,var(--text) 6%,transparent);}
+#sec-cuentas .account-txt{flex:1;min-width:0;}
+#sec-cuentas .account-name{display:block;margin:0;font-size:16px!important;font-weight:500;letter-spacing:-.01em;color:var(--text)!important;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#sec-cuentas .account-balance{display:block;flex:0 1 auto;min-width:0;max-width:52%;margin:0!important;text-align:right;
+  font-family:inherit;font-size:17px!important;font-weight:600;letter-spacing:-.015em!important;color:var(--text);white-space:nowrap;}
+#sec-cuentas .account-chevron{display:grid;place-items:center;padding:0;color:var(--muted2);font-size:inherit;}
+#sec-cuentas .account-chevron svg{width:18px;height:18px;}
+/* Desplegada: acciones y, debajo, sus movimientos y transferencias */
+#sec-cuentas .account-card.expanded .account-card-head{background:color-mix(in srgb,var(--text) 4%,transparent);}
+#sec-cuentas .account-card .account-actions{gap:8px;padding:0 16px 0 68px;flex-wrap:wrap;}
+#sec-cuentas .account-card.expanded .account-actions{max-height:120px;margin-top:4px;padding-bottom:6px;}
+#sec-cuentas .acc-action{height:32px;padding:0 14px;border:0;border-radius:var(--r-pill);background:var(--fill);color:var(--text);font-size:14px;font-weight:600;}
+#sec-cuentas .account-card .acc-action:first-child{background:var(--fill);color:var(--text);}
+#sec-cuentas .acc-action.peligro{color:var(--red);}
+#sec-cuentas .account-card.expanded .account-movs-wrap{margin-top:0;}
+#sec-cuentas .account-card .account-movs-inner{max-height:420px;padding:4px 0 8px;border:0;background:none;gap:0;}
+#sec-cuentas .acc-mov-row{gap:10px;min-height:52px;padding:6px 16px 6px 68px;border-radius:0;}
+#sec-cuentas .acc-mov-row:active{background:color-mix(in srgb,var(--text) 6%,transparent);}
+#sec-cuentas .account-card .acc-mov-row .amn-emoji{width:32px;height:32px;background:none;border:0;font-size:inherit;}
+#sec-cuentas .acc-mov-row .kficha{width:32px;height:32px;border-radius:10px;}
+#sec-cuentas .acc-mov-row .kficha svg.ki,#sec-cuentas .acc-mov-row .kficha.marca svg{width:17px;height:17px;}
+#sec-cuentas .acc-mov-row .kficha.letra{font-size:15px;}
+#sec-cuentas .account-card .acc-mov-row .amn-name{font-size:15px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#sec-cuentas .account-card .acc-mov-row .amn-date{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#sec-cuentas .acc-mov-row .amn-amt{display:block;flex:0 1 auto;min-width:0;max-width:48%;text-align:right;font-size:15px;font-weight:600;white-space:nowrap;}
+#sec-cuentas .account-card .acc-mov-row .amn-amt.g{color:var(--red);}
+#sec-cuentas .account-card .acc-mov-row .amn-amt.i{color:var(--green);}
+#sec-cuentas .account-card .acc-mov-row .amn-amt.tr{color:var(--accent);}
+#sec-cuentas .account-card .acc-movs-empty{padding:14px 16px 14px 68px;text-align:left;font-size:14px;color:var(--muted);}
+/* Inactivas */
+#sec-cuentas #btnInactivas{display:block;width:auto;height:auto;margin:0 16px;padding:12px 4px;border:0;border-radius:0;background:none!important;
+  text-align:left;color:var(--accent)!important;font-size:15px;font-weight:500;}
+#sec-cuentas #btnInactivas+*{margin-top:0;}
+#accountCardsInactive{margin-top:4px;}
+#sec-cuentas .account-card.inactiva .account-card-head{cursor:default;}
+#sec-cuentas .account-card.inactiva .acc-action{flex:none;width:auto;}
+#sec-cuentas .account-card.inactiva .kficha,#sec-cuentas .account-card.inactiva .account-name{opacity:.55;}
+#accountCardsInactive .loading{padding:16px;}
+/* Transferencias recurrentes */
+#sec-cuentas .card-title{margin:28px 20px 10px!important;font-size:20px;font-weight:700;letter-spacing:-.02em;}
+#sec-cuentas .reg-wrap{margin:0 16px!important;padding:0;}
+#transfRecList{border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--sh-sm);overflow:hidden;}
+#transfRecList .sus-card{position:relative;margin:0;padding:12px 16px;gap:12px;border:0;border-radius:0;background:none;box-shadow:none;}
+#transfRecList .sus-card+.sus-card::before{content:"";position:absolute;top:0;left:68px;right:0;border-top:.5px solid var(--separator);}
+#transfRecList .sus-icon{width:40px;height:40px;border:0;background:none;font-size:inherit;}
+#transfRecList .sus-info{flex:1;min-width:0;}
+#transfRecList .sus-name{font-size:16px;font-weight:500;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#transfRecList .sus-meta{margin-top:2px;font-size:13px;color:var(--muted);}
+#transfRecList .sus-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0;max-width:42%;}
+#transfRecList .sus-amount{display:block;max-width:100%;font-size:16px;font-weight:600;white-space:nowrap;color:var(--accent);}
+#transfRecList .sus-btn{height:30px;padding:0 12px;border:0;border-radius:var(--r-pill);background:var(--fill);color:var(--text);font-size:14px;font-weight:600;}
+#transfRecList .sus-card.hoy{box-shadow:none;}
 </style>
 </head>
 <body>
@@ -1698,8 +1770,8 @@ const I18N={
     lbl_tipo:'Tipo',lbl_ahorrado:'Ya ahorrado (€)',lbl_importe:'Importe',
     btn_guardar:'Guardar',btn_cancelar:'Cancelar',btn_registrar:'Registrar',btn_anadir:'Añadir',
     btn_reg_gasto:'Registrar Gasto',btn_reg_ingreso:'Registrar Ingreso',
-    btn_eliminar:'Eliminar',btn_mover:'⇄ Mover',btn_add_acc:'↗ Añadir',btn_withdraw:'↙ Retirar',
-    btn_deactivate:'⏸ Desactivar',btn_reactivate:'▶ Reactivar',btn_actualizar_valor:'📊 Actualizar Valor',
+    btn_eliminar:'Eliminar',btn_mover:'Mover',btn_add_acc:'Añadir',btn_withdraw:'Retirar',
+    btn_deactivate:'Desactivar',btn_reactivate:'Reactivar',btn_actualizar_valor:'📊 Actualizar Valor',
     btn_aportacion:'➕ Aportación',btn_para_mi:'Para mí',btn_regalo:'🎁 Regalo',btn_comprado:'✓ Comprado',
     gastos_fijos:'Pagos recurrentes',ingresos_rapidos:'Ingresos rápidos',
     transf_recurrentes:'Transferencias recurrentes',filter_transferencias:'Transferencias',metas_ahorro:'Metas de ahorro',
@@ -2097,7 +2169,7 @@ function autoFitAmount(el){
   while(!cabe()&&size>base*.5){size-=1;el.style.fontSize=size+'px';}
   if(!cabe()){el.style.fontSize=base*.5+'px';el.classList.add('cifra-partida');}
 }
-const CIFRAS_AJUSTABLES='.hero-amount,.hero-mini-val,.qa-bal,.chart-val,.pat-item-val,#recentMovs .mov-amount,#recentMovs .mov-day-bal,#sec-registrar .sus-amount';
+const CIFRAS_AJUSTABLES='.hero-amount,.hero-mini-val,.qa-bal,.chart-val,.pat-item-val,#recentMovs .mov-amount,#recentMovs .mov-day-bal,#sec-registrar .sus-amount,#sec-cuentas .account-balance,#sec-cuentas .amn-amt,#sec-cuentas .sus-amount';
 function ajustarCifras(raiz){(raiz||document).querySelectorAll(CIFRAS_AJUSTABLES).forEach(autoFitAmount);}
 let ajusteRz;window.addEventListener('resize',()=>{clearTimeout(ajusteRz);ajusteRz=setTimeout(()=>ajustarCifras(),120);});
 /* Cifra grande en dos tamaños: «5925» y «,00 €» más pequeño (el texto sigue siendo el mismo) */
@@ -2187,6 +2259,7 @@ function showSec(name,idx){
   if(name==='inicio')requestAnimationFrame(()=>{ajustarCifras(document.getElementById('sec-inicio'));moverMarcaPat();});
   if(name==='movimientos')requestAnimationFrame(()=>ajustarCifras(document.getElementById('recentMovs')));
   if(name==='registrar')requestAnimationFrame(()=>{ajustarImporteReg();ajustarCifras(document.getElementById('sec-registrar'));});
+  if(name==='cuentas')requestAnimationFrame(()=>ajustarCifras(document.getElementById('sec-cuentas')));
   const actual=document.querySelector('.section.active');
   // Tocar la pestaña en la que ya estás sube arriba, como en iOS
   if(actual&&actual.id==='sec-'+name){
@@ -4215,21 +4288,19 @@ async function loadAccounts(){
       const name=fullName.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
       const pageId=p.id.replace(/-/g,'');
       const bal=(pageId===MYINVESTOR_ACC_ID&&typeof valorCartera==='number')?valorCartera:(p.properties?.['Balance']?.formula?.number||0);
-      const color=bankColor(name),fondo=colorDe(name);
       carrusel.push({pageId,name,bal});
-      return`<div class="account-card" style="border-left:3px solid ${color};${fondo?`background:${fondo};`:''}">
+      return`<div class="account-card">
         <div class="account-card-head" onclick="toggleAccountMovs('${pageId}',this)">
-          <div style="flex:1;">
-            <div class="account-name" data-plain="${name}"><span class="acc-ico">${emojiDe(name)}</span>${name}</div>
-            <div class="account-balance" data-bal="${bal}">${fmt(bal)} €</div>
-          </div>
-          <div class="account-chevron">⌄</div>
+          ${fichaCuenta(name)}
+          <div class="account-txt"><div class="account-name" data-plain="${name}">${name}</div></div>
+          <div class="account-balance" data-bal="${bal}">${fmt(bal)} €</div>
+          <div class="account-chevron">${svgIco('chevron-down')}</div>
         </div>
         <div class="account-actions">
           <button class="acc-action" onclick="showSec('registrar',-1)">${t('btn_add_acc')}</button>
           <button class="acc-action" onclick="showTransfer('${pageId}','${name}')">${t('btn_mover')}</button>
           <button class="acc-action" onclick="showSec('registrar',-1)">${t('btn_withdraw')}</button>
-          <button class="acc-action" onclick="deactivateAccount('${pageId}','${name}')" style="color:var(--red);">${t('btn_deactivate')}</button>
+          <button class="acc-action peligro" onclick="deactivateAccount('${pageId}','${name}')">${t('btn_deactivate')}</button>
         </div>
         <div class="account-movs-wrap" id="movs-${pageId}"><div class="account-movs-clip"><div class="account-movs-inner"></div></div></div>
       </div>`;
@@ -4242,6 +4313,7 @@ async function loadAccounts(){
       animateCounter(el,target,{suffix:' €',duration:600});
     });
     else{const abierta=document.querySelector('#accountCards .account-card.expanded .account-movs-wrap');if(abierta)cargarMovsCuenta(abierta.id.replace('movs-',''));}
+    requestAnimationFrame(()=>ajustarCifras(document.getElementById('accountCards')));
     abrirCuentaPendiente();
   }catch(e){if(vigente('cuentas',pet))pintarError('accountCards','cuentas',emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub')));}
 }
@@ -4281,34 +4353,48 @@ async function cargarMovsCuenta(pageId){
   const clave='ctamovs|'+pageId,pet=nuevaPeticion(clave);
   mostrarGuardado(inner,clave,skeletonRowsInner(4));
   try{
-    // Todos los movimientos de la cuenta, siguiendo la paginación de Notion (antes se cortaba en 100)
-    const data=await nQueryAll(DB_ID,{
-      filter:{property:'Cuenta',relation:{contains:pageId}},
-      sorts:[{timestamp:'created_time',direction:'descending'}],
-      page_size:100
-    });
+    // Todos los movimientos de la cuenta (siguiendo la paginación de Notion) y sus transferencias, de entrada y de salida
+    const [data,td]=await Promise.all([
+      nQueryAll(DB_ID,{filter:{property:'Cuenta',relation:{contains:pageId}},sorts:[{timestamp:'created_time',direction:'descending'}],page_size:100}),
+      nQueryAll(TRANSFER_DB,{filter:{or:[{property:'Transferir Desde',relation:{contains:pageId}},{property:'Transferir a',relation:{contains:pageId}}]},
+        sorts:[{property:'Fecha',direction:'descending'}],page_size:100}).catch(()=>null)
+    ]);
     if(!vigente(clave,pet)||!inner.isConnected)return;
     if(!data||!data.results)throw new Error('consulta fallida'); // un error no es «sin movimientos»; al reabrir se reintenta
+    // Si fallan solo las transferencias se enseñan los movimientos, pero esa lista incompleta no se guarda
+    const transfFallo=!td||!td.results;
     const pages=data.results.filter(p=>(p.properties?.Gasto?.number||0)+(p.properties?.Ingreso?.number||0)>0);
-    if(!pages.length){
-      pintar(inner,clave,'<div class="acc-movs-empty">Sin movimientos registrados en esta cuenta</div>');
+    const transfs=transfFallo?[]:td.results;
+    const fechaTxt=f=>{if(!f)return '';try{return new Date(f+'T12:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short'});}catch(e){return '';}};
+    const filas=[...pages.map(p=>({p,tr:false})),...transfs.map(p=>({p,tr:true}))]
+      .sort((x,y)=>(y.p.properties?.Fecha?.date?.start||'').localeCompare(x.p.properties?.Fecha?.date?.start||'')||(y.p.created_time||'').localeCompare(x.p.created_time||''));
+    if(!filas.length){
+      (transfFallo?pintarError:pintar)(inner,clave,'<div class="acc-movs-empty">Sin movimientos registrados en esta cuenta</div>');
     }else{
-      pintar(inner,clave,pages.map(p=>{
+      (transfFallo?pintarError:pintar)(inner,clave,filas.map(({p,tr})=>{
+        const fechaStr=fechaTxt(p.properties?.Fecha?.date?.start||'');
+        if(tr){
+          transfCache[p.id]=p;
+          const desde=relTr(p,'Transferir Desde'),hacia=relTr(p,'Transferir a'),sale=desde===pageId;
+          const otra=nombreCuenta(sale?hacia:desde)||'—',monto=p.properties?.Monto?.number||0;
+          return`<div class="acc-mov-row acc-tr-row" data-tr="${p.id}" onclick="openEditTransfer('${p.id}')" style="cursor:pointer;">
+          <div class="amn-emoji">${fichaTransf()}</div>
+          <div class="amn-body"><div class="amn-name">${sale?'A':'De'} ${otra}</div><div class="amn-date">${fechaStr?fechaStr+' · ':''}Transferencia</div></div>
+          <div class="amn-amt tr">${sale?'-':'+'}${fmt(monto)} €</div>
+        </div>`;
+        }
         const name=p.properties?.Nombre?.title?.[0]?.plain_text||'—';
         const g=p.properties?.Gasto?.number,i=p.properties?.Ingreso?.number;
         const isG=g&&g>0;const amt=isG?g:(i||0);
-        const fecha=p.properties?.Fecha?.date?.start||'';
-        let fechaStr='';
-        if(fecha){try{fechaStr=new Date(fecha+'T12:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{day:'numeric',month:'short'});}catch(e){}}
         const catRelId=isG?(p.properties?.['Fuente de Gasto']?.relation?.[0]?.id||'').replace(/-/g,''):(p.properties?.['Fuente de Ingreso']?.relation?.[0]?.id||'').replace(/-/g,'');
         const cat=[...GASTOS,...INGRESOS].find(c=>c.id===catRelId);
-        const emoji=cat?cat.emoji:getEmoji(name);
         return`<div class="acc-mov-row" data-mov="${p.id}" onclick="openEditMovement('${p.id}')" style="cursor:pointer;">
-          <div class="amn-emoji">${emoji}</div>
-          <div class="amn-body"><div class="amn-name">${name}</div><div class="amn-date">${fechaStr}</div></div>
+          <div class="amn-emoji">${fichaMov(name,catRelId)}</div>
+          <div class="amn-body"><div class="amn-name">${sinEmoji(name)}</div><div class="amn-date">${[fechaStr,cat?dispName(cat):''].filter(Boolean).join(' · ')}</div></div>
           <div class="amn-amt ${isG?'g':'i'}">${isG?'-':'+'}${fmt(amt)} €</div>
         </div>`;
       }).join(''));
+      requestAnimationFrame(()=>ajustarCifras(inner));
     }
   }catch(e){pintarError(inner,clave,'<div class="acc-movs-empty">Error al cargar</div>');}
 }
@@ -4326,7 +4412,7 @@ async function cargarMovsCuenta(pageId){
       if(!f2)return;
       disparada=true;
       f2.classList.add('lp-disparo');setTimeout(()=>f2.classList.remove('lp-disparo'),120);
-      openEditMovement(f2.dataset.mov);
+      if(f2.dataset.tr)openEditTransfer(f2.dataset.tr);else openEditMovement(f2.dataset.mov);
     },450);
   });
   // Se cancela si el dedo se mueve, si se suelta antes o si algo hace scroll (la lista o la página)
@@ -4377,11 +4463,9 @@ async function loadInactivas(){
       const fullName=p.properties?.Nombre?.title?.[0]?.plain_text||'—';
       const name=fullName.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
       const pageId=p.id.replace(/-/g,'');
-      return`<div class="account-card" style="opacity:.6;">
-        <div class="account-name">${name}</div>
-        <div class="account-actions">
-          <button class="acc-action" onclick="reactivateAccount('${pageId}','${name}')">${t('btn_reactivate')}</button>
-        </div>
+      return`<div class="account-card inactiva">
+        <div class="account-card-head">${fichaCuenta(name)}<div class="account-txt"><div class="account-name">${name}</div></div>
+          <button class="acc-action" onclick="reactivateAccount('${pageId}','${name}')">${t('btn_reactivate')}</button></div>
       </div>`;
     }).join('')||'<div class="loading">'+t('no_hay_inactivas')+'</div>';
   }catch(e){wrap.innerHTML='<div class="loading">Error al cargar</div>';}
@@ -4424,9 +4508,9 @@ function renderTransfRec(){
     const desde=nombreCuenta(x.fromId),esHoy=KashyVencimientos.tocaHoy(x.dia,hoy);
     return`
     <div class="sus-card${esHoy?' hoy':''}">
-      <div class="sus-icon" style="background:${bankColor(desde)}22;border-color:${bankColor(desde)}55;">⇄</div>
-      <div class="sus-info"><div class="sus-name">${desde} → ${nombreCuenta(x.toId)}</div><div class="sus-meta">${t('dia_lbl')} ${x.dia}${x.amount?'':' · '+t('importe_a_elegir')}${esHoy?' 🔔':''}</div></div>
-      <div class="sus-right">${x.amount?`<div class="sus-amount tr">${x.amount.toFixed(2)} €</div>`:''}<button class="sus-btn" onclick="regTransfRec(${i})">${t('btn_registrar')}</button></div>
+      <div class="sus-icon">${fichaTransf()}</div>
+      <div class="sus-info"><div class="sus-name">${desde} → ${nombreCuenta(x.toId)}</div><div class="sus-meta">${t('dia_lbl')} ${x.dia}${x.amount?'':' · '+t('importe_a_elegir')}${esHoy?'<span class="hoy-tag">Hoy</span>':''}</div></div>
+      <div class="sus-right">${x.amount?`<div class="sus-amount tr">${fmt(x.amount)} €</div>`:''}<button class="sus-btn" onclick="regTransfRec(${i})">${t('btn_registrar')}</button></div>
     </div>`;
   }).join('');
 }

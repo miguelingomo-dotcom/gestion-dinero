@@ -88,12 +88,13 @@ def test_inversion_con_carril_al_terminar_el_render(app):
     assert r == 5
 
 
-def test_cuentas_con_color_icono_y_carrusel_al_terminar_el_render(app):
+def test_cuentas_con_logo_y_carrusel_al_terminar_el_render(app):
     r = app.page.evaluate("""async()=>{const q=document.getElementById('quickAccounts');q.innerHTML='';delete q.dataset.clave;await loadAccounts();
       const c=document.querySelector('#accountCards .account-card'),n=c.querySelector('.account-name');
-      return {fondo:c.style.background,ico:n.querySelector('.acc-ico').textContent.length>0,plain:n.dataset.plain,
+      return {logo:!!c.querySelector('.account-card-head .kficha'),plain:n.dataset.plain,
               carrusel:document.querySelectorAll('#quickAccounts .qa-card').length}}""")
-    assert r["fondo"] and r["ico"] and r["plain"] == "Revolut Personal"
+    # Rediseño: el logo del banco (antes, color de fondo y emoji) sale en el mismo render
+    assert r["logo"] and r["plain"] == "Revolut Personal"
     assert r["carrusel"] == 5
 
 

@@ -173,7 +173,7 @@ def test_tarjetas_de_transferencias_recurrentes(app):
     expect(app.page.locator("#transfRecList .sus-card")).to_have_count(2)
     expect(rec(app, 0)).to_contain_text("Ibercaja → MyInvestor Remunerada (2,50%)")
     expect(rec(app, 0)).to_contain_text("Día 23")
-    expect(rec(app, 0).locator(".sus-amount")).to_have_text("150.00 €")
+    expect(rec(app, 0).locator(".sus-amount")).to_have_text("150,00 €")
     expect(rec(app, 1)).to_contain_text("Ibercaja → Revolut Personal")
     expect(rec(app, 1)).to_contain_text("Día 26")
     expect(rec(app, 1)).to_contain_text("importe a elegir")

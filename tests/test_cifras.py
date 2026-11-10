@@ -99,3 +99,25 @@ def test_ningun_importe_de_movimientos_se_corta(abrir):
         cortadas = p.evaluate(CORTADAS.replace(".hero-mini,", ".mov-item,.mov-daygroup,.hero-mini,"), sel)
         assert not cortadas, (ancho, cortadas)
         assert p.evaluate("()=>document.documentElement.scrollWidth<=innerWidth")
+
+
+def _cuentas_enormes(notion):
+    datos.cuenta(notion, "Openbank Corriente", "31621c54013f8195b826ed3873c898ea", 98765432.1)
+    datos.gasto(notion, "Casa de la playa con jardín y piscina", "2026-11-14", 12345678.9)
+    datos.transferencia(notion, datos.IBERCAJA, datos.REVOLUT, 7654321.98, "2026-11-13")
+
+
+def test_ningun_importe_de_cuentas_se_corta(abrir):
+    app = abrir(mas=_cuentas_enormes)
+    p = app.page
+    app.ir("cuentas")
+    expect(app.cuenta("Openbank Corriente").locator(".account-balance")).to_contain_text("98.765.432,10 €")
+    t = app.desplegar_cuenta("Ibercaja")
+    expect(t.locator(".acc-tr-row").first).to_be_visible()
+    sel = "#sec-cuentas .account-balance,#sec-cuentas .amn-amt,#sec-cuentas .sus-amount"
+    for ancho in [390, 320]:
+        p.set_viewport_size({"width": ancho, "height": 760})
+        p.wait_for_timeout(700)
+        cortadas = p.evaluate(CORTADAS.replace(".hero-mini,", ".account-card-head,.acc-mov-row,.sus-card,.hero-mini,"), sel)
+        assert not cortadas, (ancho, cortadas)
+        assert p.evaluate("()=>document.documentElement.scrollWidth<=innerWidth")

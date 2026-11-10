@@ -32,9 +32,10 @@ def test_desplegar_una_cuenta_muestra_sus_movimientos(app):
     app.ir("cuentas")
     t = app.desplegar_cuenta("Revolut Personal")
     filas = t.locator(".acc-mov-row")
-    expect(filas).to_have_count(1)
+    expect(filas).to_have_count(2)  # Repsol y, desde el rediseño, la transferencia que entra de Ibercaja
     expect(filas.first).to_contain_text("Repsol")
     expect(filas.first).to_contain_text("-60,00 €")
+    expect(filas.nth(1)).to_contain_text("De Ibercaja")
     # Solo una desplegada a la vez
     app.desplegar_cuenta("Ibercaja")
     expect(t).not_to_have_class(re.compile(r"\bexpanded\b"))
@@ -183,3 +184,44 @@ def test_cuentas_ya_no_tiene_metas_ni_deseos(app):
         expect(p.locator("#" + id)).to_have_count(0)
     # Sin botones Recargar en ninguna cabecera: se recarga tirando hacia abajo
     expect(p.locator('[aria-label="Recargar"]')).to_have_count(0)
+
+
+def test_la_cuenta_desplegada_mezcla_sus_transferencias_por_fecha(app):
+    app.ir("cuentas")
+    t = app.desplegar_cuenta("Ibercaja")
+    filas = t.locator(".acc-mov-row")
+    expect(filas.first).to_be_visible()
+    nombres = [n.strip() for n in t.locator(".amn-name").all_inner_texts()]
+    # Mercadona (10/11), la transferencia que sale a Revolut (2/11) y la nómina (1/11), en orden de fecha
+    assert nombres[:3] == ["Mercadona", "A Revolut Personal", "Nómina noviembre"], nombres
+    sale = t.locator(".acc-tr-row", has_text="A Revolut Personal")
+    expect(sale.locator(".amn-amt")).to_have_text("-250,00 €")
+    expect(sale.locator(".amn-amt")).to_have_class("amn-amt tr")
+    expect(sale.locator(".amn-date")).to_contain_text("Transferencia")
+
+
+def test_la_transferencia_entrante_sale_en_la_cuenta_de_destino(app):
+    app.ir("cuentas")
+    t = app.desplegar_cuenta("Revolut Personal")
+    entra = t.locator(".acc-tr-row", has_text="De Ibercaja")
+    expect(entra.locator(".amn-amt")).to_have_text("+250,00 €")
+    # Se abre con su propia hoja de editar transferencia
+    entra.click()
+    expect(app.page.locator("#trEditOverlay")).to_have_class(re.compile(r"\bshow\b"))
+    expect(app.page.locator("#trEditAmt")).to_have_value("250")
+
+
+def test_si_fallan_las_transferencias_se_ven_los_movimientos(abrir):
+    app = abrir()
+    app.notion.fallar_consultas.add(datos.BASES["transfers"])
+    app.ir("cuentas")
+    t = app.desplegar_cuenta("Ibercaja")
+    expect(t.locator(".acc-mov-row", has_text="Mercadona")).to_be_visible()
+    expect(t.locator(".acc-tr-row")).to_have_count(0)
+
+
+def test_cuentas_con_logo_del_banco(app):
+    app.ir("cuentas")
+    expect(app.cuenta("Ibercaja").locator(".account-card-head .kficha.logo img")).to_have_count(1)
+    expect(app.cuenta("Revolut Personal").locator(".account-card-head .kficha.marca")).to_have_count(1)
+    expect(app.cuenta("Efectivo").locator(".account-card-head .kficha.cat")).to_have_count(1)
