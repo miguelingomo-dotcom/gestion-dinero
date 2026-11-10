@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "Ka$hy: dependencias de las funciones de Vercel (api/)",
+  "dependencies": {
+    "web-push": "3.6.7"
+  }
+}

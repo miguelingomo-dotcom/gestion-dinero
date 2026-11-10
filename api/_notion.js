@@ -20,3 +20,22 @@ export async function responderDeNotion(res, ruta, { method = 'GET', body } = {}
   }
   res.status(response.status).json(data);
 }
+
+// Llamada directa para el código del servidor (avisos, ajustes): devuelve {status, data} o lanza sin NOTION_TOKEN
+export async function pedirNotion(ruta, { method = 'GET', body } = {}) {
+  const token = process.env.NOTION_TOKEN;
+  if (!token) throw new Error('NOTION_TOKEN sin configurar en Vercel');
+  const headers = { 'Authorization': 'Bearer ' + token, 'Notion-Version': '2022-06-28' };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const response = await fetch(`https://api.notion.com/v1/${ruta}`, {
+    method,
+    headers,
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+  return { status: response.status, data: await response.json() };
+}
+
+// Consulta de una base para kashy-vencimientos.js: la respuesta de Notion tal cual
+export async function consultarNotion(dbId, body) {
+  return (await pedirNotion(`databases/${dbId}/query`, { method: 'POST', body })).data;
+}

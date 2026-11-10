@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron-avisos?franja=verano", "schedule": "0 7 * * *" },
+    { "path": "/api/cron-avisos?franja=invierno", "schedule": "0 8 * * *" }
+  ]
+}

@@ -84,7 +84,7 @@ def abrir(b,html,tema,red,hoy,forz):
         if not q.url.startswith(APP_ORIGIN+'/'):return route.abort()
         ru=q.url[len(APP_ORIGIN):].split('?')[0]
         if ru=='/':return route.fulfill(status=200,content_type='text/html; charset=utf-8',body=forzado(html) if forz else html)
-        if ru=='/icon.png':return route.fulfill(status=200,content_type='image/png',path=str(datos.RAIZ/'icon.png'))
+        if ru in ('/icon.png','/kashy-vencimientos.js'):return route.fulfill(status=200,content_type='image/png' if ru.endswith('.png') else 'text/javascript',path=str(datos.RAIZ/ru[1:]))
         if ru.startswith('/api/'):
             x=n.responder(q.method,q.url,json.loads(q.post_data) if q.post_data else None) or (500,{})
             return route.fulfill(status=x[0],content_type='application/json',body=json.dumps(x[1]))

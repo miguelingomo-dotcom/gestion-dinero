@@ -1,6 +1,7 @@
 # Tests de Ka$hy
 
 Primera vez (crea `.venv` y `.browsers`, ignorados en git): `tests/setup.sh`
+Para los tests de notificaciones hace falta también `npm install` en la raíz (instala `web-push` en `node_modules`, ignorado en git).
 
 Ejecutar, desde la raíz del proyecto:
 

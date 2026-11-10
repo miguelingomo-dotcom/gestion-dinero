@@ -30,7 +30,9 @@
     document.addEventListener(ev,function(e){e.preventDefault();},{passive:false});
   });
 </script>
+<link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon.png">
+<script src="/kashy-vencimientos.js"></script>
 <link rel="icon" href="/icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -238,6 +240,16 @@ body{
   border-radius:14px;padding:14px;outline:none;
 }
 .clave-input:focus{border-color:var(--accent);}
+.notif-wrap{margin-bottom:24px;}
+.notif-prueba{width:100%;margin-top:10px;}
+.notif-prueba:disabled{opacity:.4;cursor:default;}
+.notif-switch{position:relative;width:51px;height:31px;flex-shrink:0;border:none;border-radius:100px;padding:0;cursor:pointer;
+  background:color-mix(in srgb,var(--text) 16%,transparent);transition:background-color .2s ease;}
+.notif-switch span{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .2s cubic-bezier(.23,1,.32,1);}
+.notif-switch.on{background:var(--accent);}
+.notif-switch.on span{transform:translateX(20px);}
+.notif-switch:disabled{opacity:.4;cursor:default;}
 .clave-error{min-height:20px;font-size:13px;font-weight:600;color:var(--red);margin:8px 0 12px;}
 .sus-btn{color:var(--text);padding:6px 12px;font-size:12px;cursor:pointer;}
 .sus-btn:active{opacity:.7;}
@@ -1176,6 +1188,16 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       <button class="icon-btn" style="width:32px;height:32px;font-size:15px;" onclick="openNewWish()">➕</button>
     </div>
     <div id="wishList"><div class="loading" data-i18n="cargando">Cargando...</div></div>
+
+    <div class="card-title" style="margin:20px 20px 10px;" data-i18n="notif_titulo">Notificaciones</div>
+    <div class="reg-wrap notif-wrap">
+      <div class="sus-card" style="margin:0;">
+        <div class="sus-icon">🔔</div>
+        <div class="sus-info"><div class="sus-name" id="notifNombre" data-i18n="notif_nombre">Aviso diario</div><div class="sus-meta" id="notifMeta">Entre las 9:00 y las 9:59, si vence algo</div></div>
+        <div class="sus-right"><button type="button" class="notif-switch" id="notifSwitch" role="switch" aria-checked="false" aria-labelledby="notifNombre" onclick="toggleNotificaciones()"><span></span></button></div>
+      </div>
+      <button type="button" class="acc-action notif-prueba" id="notifPrueba" onclick="probarNotificacion()" disabled data-i18n="notif_prueba">Enviar notificación de prueba</button>
+    </div>
   </div>
 
   <!-- ── GOAL MODAL ── -->
@@ -1569,6 +1591,11 @@ const I18N={
     rendimiento_lbl:'Rendimiento',aportacion_mensual:'Aportación mensual',
     nueva_aportacion:'Nueva Aportación',actualizar_valor_cartera:'Actualizar Valor de Cartera',fondos_lbl:'Fondos',fondos_hint:'Pulsa «Actualizar Valor» e introduce el valor de cada fondo para ver cómo va cada uno.',isin_copiado:'ISIN copiado',editar_aportacion:'Editar Aportación',editar_valor_cartera:'Editar Valor de Cartera',toast_inv_actualizado:'✓ Registro actualizado',cambiar_fecha:'Hoy · Cambiar fecha',inv_total:'Total',inv_vs_ultimo:'vs. último total',inv_sin_cambios:'Sin cambios, no se ha guardado nada',
     dia_lbl:'Día',ingreso_rapido:'Ingreso rápido',clave_titulo:'Introduce tu clave',clave_sub:'Se guarda en este dispositivo y solo se pide una vez.',clave_lbl:'Clave de acceso',clave_btn:'Entrar',clave_error:'Clave incorrecta. Vuelve a introducirla.',
+    notif_titulo:'Notificaciones',notif_nombre:'Aviso diario',notif_meta:'Entre las 9:00 y las 9:59, si vence algo',
+    notif_no_disponible:'Añade Ka$hy a la pantalla de inicio para activarlas',notif_prueba:'Enviar notificación de prueba',
+    notif_activadas:'✓ Notificaciones activadas',notif_desactivadas:'Notificaciones desactivadas',
+    notif_denegado:'Bloqueadas: actívalas en Ajustes › Notificaciones › Ka$hy',notif_error:'No se pudo cambiar. Inténtalo de nuevo',
+    notif_prueba_ok:'✓ Enviada: llegará en unos segundos',notif_caducada:'La suscripción ya no vale: vuelve a activarlas',
     cobros_hoy:'⚠️ Cobros hoy',transf_hoy:'⇄ Transferencias hoy',importe_a_elegir:'importe a elegir',
     ahorrando_bien:'Estás ahorrando bien 💪',cuidado_gastos:'Cuidado con los gastos ⚠️',
     tasa_excelente:'De cada 100€ que ingresas, ahorras {t}€ — excelente 🎯',
@@ -1675,6 +1702,11 @@ const I18N={
     rendimiento_lbl:'Return',aportacion_mensual:'Monthly contribution',
     nueva_aportacion:'New Contribution',actualizar_valor_cartera:'Update Portfolio Value',fondos_lbl:'Funds',fondos_hint:'Tap “Update Value” and enter each fund’s value to see how each one is doing.',isin_copiado:'ISIN copied',editar_aportacion:'Edit Contribution',editar_valor_cartera:'Edit Portfolio Value',toast_inv_actualizado:'✓ Entry updated',cambiar_fecha:'Today · Change date',inv_total:'Total',inv_vs_ultimo:'vs. last total',inv_sin_cambios:'No changes, nothing saved',
     dia_lbl:'Day',ingreso_rapido:'Quick income',clave_titulo:'Enter your key',clave_sub:'It stays on this device and is only asked for once.',clave_lbl:'Access key',clave_btn:'Enter',clave_error:'Wrong key. Please enter it again.',
+    notif_titulo:'Notifications',notif_nombre:'Daily reminder',notif_meta:'Between 9:00 and 9:59, if something is due',
+    notif_no_disponible:'Add Ka$hy to your Home Screen to turn them on',notif_prueba:'Send test notification',
+    notif_activadas:'✓ Notifications on',notif_desactivadas:'Notifications off',
+    notif_denegado:'Blocked: turn them on in Settings › Notifications › Ka$hy',notif_error:'Couldn\'t change it. Please try again',
+    notif_prueba_ok:'✓ Sent: it should arrive in a few seconds',notif_caducada:'The subscription expired: turn them on again',
     cobros_hoy:'⚠️ Due today',transf_hoy:'⇄ Transfers today',importe_a_elegir:'choose amount',
     ahorrando_bien:'You\'re saving well 💪',cuidado_gastos:'Watch your spending ⚠️',
     tasa_excelente:'For every €100 you earn, you save €{t} — excellent 🎯',
@@ -1744,8 +1776,8 @@ const FONDOS=[
   {key:'MSCI World',nombre:'iShares Developed World Index (clase S)',isin:'IE000ZYRH0Q7',pct:.25,color:'var(--blue)'},
   {key:'Emergentes',nombre:'Fidelity MSCI Emerging Markets Index P-ACC-EUR',isin:'IE00BYX5M476',pct:.20,color:'var(--orange)'},
 ];
-const INV_APORTACION_MENSUAL=150; // Aportación periódica automática desde MyInvestor Remunerada
-const INV_APORTACION_DIA=26; // Día del mes en que se ejecuta
+const INV_APORTACION_MENSUAL=KashyVencimientos.APORTACION.importe; // Aportación periódica automática desde MyInvestor Remunerada
+const INV_APORTACION_DIA=KashyVencimientos.APORTACION.dia; // Día del mes en que se ejecuta
 const IBERCAJA_ID='31621c54013f811ebd49f65e2776d28e';
 const REVOLUT_PERSONAL_ID='31621c54013f817f9f00fc6acc160c26';
 const MYINVESTOR_REM_ID='3d821c54013f81eab324f5174d95ade2'; // MyInvestor Remunerada: de aquí sale la aportación a los fondos
@@ -1796,22 +1828,8 @@ const INGRESOS=[
 ];
 function dispName(item){return (LANG==='en'&&item.nameEn)?item.nameEn:item.name;}
 function catNameTr(n){const c=[...GASTOS,...INGRESOS].find(x=>x.name===n);return c?dispName(c):n;}
-const SUSCRIPCIONES=[
-  {name:'Spotify',emoji:'🎵',amount:20.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:3,anim:{familia:'balanceo',origen:'50% 100%'}},
-  {name:'Letra Coche',emoji:'🚗',amount:432.35,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f81689c53c344e9ce8987',dia:5,fechaInicio:'2026-05-05',fechaFin:'2028-01-05',cuotasTotales:24,cuotasIniciales:3,pagadoInicial:1297.05,anim:{familia:'avance'}},
-  {name:'iCloud',emoji:'☁️',amount:1.50,cuentaId:'38621c54013f818ead8be5ec81d47356',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:30,anim:{familia:'flote'}},
-  {name:'DAZN Basket',emoji:'🏀',amount:4.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:27,fechaInicio:'2026-08-01',fechaFin:'2027-04-27',cuotasTotales:12,cuotasIniciales:4,pagadoInicial:19.96,anim:{familia:'salto'}},
-  {name:'Claude Pro',emoji:'🤖',amount:21.78,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:11,anim:{familia:'zumbido'}},
-  {name:'DAZN Fútbol',emoji:'⚽',amount:2.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:28,fechaInicio:'2026-08-28',fechaFin:'2027-08-28',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'salto'}},
-  {name:'Mueble Ikea',emoji:'🛋️',amount:28.93,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f816d85afc5277c4e2c08',dia:27,fechaInicio:'2026-10-27',fechaFin:'2026-12-27',cuotasTotales:3,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'latido'}},
-  {name:'Vinilos',emoji:'💿',amount:28.85,importes:[28.85,28.86,28.85],cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8196b8d4dc7c51c738b2',dia:29,fechaInicio:'2026-10-29',fechaFin:'2026-12-29',cuotasTotales:3,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'giro'}},
-  {name:'Revisiones Coche',emoji:'🔧',amount:55,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f81689c53c344e9ce8987',dia:5,fechaInicio:'2026-12-05',fechaFin:'2027-11-05',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'giro'}},
-];
-/* Sin amount: la hoja se abre con el importe vacío y cualquier importe cuenta como «ya registrada» este mes */
-const TRANSF_RECURRENTES=[
-  {fromId:IBERCAJA_ID,toId:MYINVESTOR_REM_ID,amount:150,dia:23},
-  {fromId:IBERCAJA_ID,toId:REVOLUT_PERSONAL_ID,dia:26},
-];
+const SUSCRIPCIONES=KashyVencimientos.SUSCRIPCIONES; // en kashy-vencimientos.js, compartido con el servidor
+const TRANSF_RECURRENTES=KashyVencimientos.TRANSF_RECURRENTES;
 const INGRESOS_RAPIDOS=[
   {name:'Awela',emoji:'👵',amount:10,cuentaId:'31621c54013f813483ded3bbd77a5e10',catId:'31621c54013f810f800cd4fd01aef4da',anim:{familia:'balanceo',origen:'50% 100%'}},
   {name:'Mamá',emoji:'👩‍👧',amount:50,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f817f9194cb102e04b7dd',anim:{familia:'balanceo',origen:'50% 100%'}},
@@ -1845,6 +1863,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     .then(()=>{document.getElementById('splashScreen').classList.add('hide');});
   loadCuentasActivas();
   loadInversion();
+  iniciarNotificaciones();
 });
 
 async function loadCuentasActivas(){
@@ -1996,6 +2015,78 @@ document.addEventListener('click',e=>{
     cerrarSwipe(sw);
   }
 },true);
+/* ── NOTIFICACIONES ──
+   Web Push con service worker (sw.js). El permiso se pide solo al tocar el interruptor. Si el navegador no las admite
+   (Safari sin instalar la app), el interruptor queda desactivado con una explicación */
+const pushDisponible=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+let notifOcupado=false;
+function pintarNotif(activas,aviso){
+  const sw=document.getElementById('notifSwitch');
+  sw.classList.toggle('on',activas);sw.setAttribute('aria-checked',activas?'true':'false');
+  document.getElementById('notifPrueba').disabled=!activas;
+  document.getElementById('notifMeta').textContent=aviso||t('notif_meta');
+}
+const bytesDeClave=b64=>{
+  const s=atob((b64+'='.repeat((4-b64.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/'));
+  return Uint8Array.from(s,c=>c.charCodeAt(0));
+};
+async function guardarSuscripcion(sub){
+  const r=await fetch('/api/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:sub.toJSON()})});
+  if(!r.ok)throw new Error('guardar');
+}
+/* Al arrancar: el estado real del interruptor, y si el servidor no tiene esta suscripción (se borró o cambió), se le envía */
+async function iniciarNotificaciones(){
+  if(!pushDisponible()){pintarNotif(false,t('notif_no_disponible'));document.getElementById('notifSwitch').disabled=true;return;}
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.tipo==='ir-inicio')showSec('inicio',0);});
+  pintarNotif(false);
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    const sub=await reg.pushManager.getSubscription();
+    const activas=!!sub&&Notification.permission==='granted';
+    pintarNotif(activas);
+    if(!activas)return;
+    const r=await fetch('/api/push');const d=await r.json();
+    if(r.ok&&d.endpoint!==sub.endpoint)await guardarSuscripcion(sub);
+  }catch(e){}
+}
+async function toggleNotificaciones(){
+  if(notifOcupado||!pushDisponible())return;
+  const activar=document.getElementById('notifSwitch').getAttribute('aria-checked')!=='true';
+  // Safari solo muestra el permiso si se pide en el mismo toque, antes de cualquier espera
+  const permiso=activar?Notification.requestPermission():null;
+  notifOcupado=true;
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    if(activar){
+      if(await permiso!=='granted'){showToast(t('notif_denegado'),'error');return;}
+      const r=await fetch('/api/push');const d=await r.json();
+      if(!r.ok||!d.publicKey)throw new Error('clave');
+      const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:bytesDeClave(d.publicKey)});
+      await guardarSuscripcion(sub);
+      pintarNotif(true);showToast(t('notif_activadas'),'success');
+    }else{
+      const sub=await reg.pushManager.getSubscription();
+      if(sub)await sub.unsubscribe();
+      await fetch('/api/push',{method:'DELETE'});
+      pintarNotif(false);showToast(t('notif_desactivadas'));
+    }
+  }catch(e){showToast(t('notif_error'),'error');}
+  finally{notifOcupado=false;}
+}
+async function probarNotificacion(){
+  const b=document.getElementById('notifPrueba');
+  if(b.disabled)return;
+  b.disabled=true;
+  try{
+    const r=await fetch('/api/push?prueba=1',{method:'POST'});
+    if(r.ok)showToast(t('notif_prueba_ok'),'success');
+    else if(r.status===410||r.status===409){pintarNotif(false);showToast(t('notif_caducada'),'error');return;}
+    else showToast(t('notif_error'),'error');
+  }catch(e){showToast(t('toast_conexion'),'error');}
+  b.disabled=document.getElementById('notifSwitch').getAttribute('aria-checked')!=='true';
+}
+
 /* ── CACHÉ DE PANTALLA ──
    Cada lista recuerda el último HTML pintado (en memoria y en localStorage): al volver a una pestaña, o al abrir la
    app, se ve al instante y Notion se consulta en segundo plano; solo se repinta si llega algo distinto, así que no
@@ -2318,66 +2409,28 @@ function showSuccessBurst(anim){
     triggered=false;
   },{passive:true});
 })();
-/* Pagos y transferencias recurrentes de hoy en Inicio. Se omiten los ya registrados este mes (mismo nombre que crea
-   «Registrar», o misma transferencia) y los pagos a plazos terminados; en los plazos se avisa del importe de la próxima
-   cuota, como en su tarjeta. Se vuelve a llamar al registrar una transferencia, para retirar el aviso */
+/* Consulta a Notion para el módulo compartido de vencimientos */
+const consultarNotion=(db,body)=>nFetch('/databases/'+db+'/query','POST',body);
+/* Pagos, transferencias recurrentes y aportación mensual de hoy en Inicio (kashy-vencimientos.js, la misma lógica que
+   la notificación diaria). Se omiten los ya registrados este mes y los pagos a plazos terminados; en los plazos se avisa
+   del importe de la próxima cuota. Se vuelve a llamar al registrar una transferencia, para retirar el aviso */
 async function checkAlerts(){
-  const hoy=new Date().getDate();
-  const candidatos=SUSCRIPCIONES.filter(s=>s.dia===hoy&&!pagoPorEmpezar(s));
-  const transf=TRANSF_RECURRENTES.filter(x=>x.dia===hoy);
-  if(!candidatos.length&&!transf.length)return;
-  const [pendientes,transfPend]=await Promise.all([
-    Promise.all(candidatos.map(async s=>{
-      if(await registradoEsteMes(s))return null;
-      if(!s.cuotasTotales)return{s,importe:s.amount};
-      const p=await calcCuotasProgress(s);
-      return p.terminado?null:{s,importe:importeCuota(s,p.cuotasPagadas)};
-    })),
-    Promise.all(transf.map(async x=>await transferRegistradaEsteMes(x)?null:x))
-  ]).then(r=>r.map(l=>l.filter(Boolean)));
+  const {pagos,transferencias}=await KashyVencimientos.vencenHoy(hoyLocal(),consultarNotion);
   const banner=document.getElementById('alertBanner');
-  banner.classList.toggle('show',pendientes.length+transfPend.length>0);
+  banner.classList.toggle('show',pagos.length+transferencias.length>0);
   if(!banner.classList.contains('show'))return;
   const partes=[];
-  if(pendientes.length){
-    const total=pendientes.reduce((t,x)=>t+x.importe,0);
-    partes.push(pendientes.map(x=>x.s.emoji+' '+x.s.name).join(', ')+' · -'+total.toFixed(2)+' €');
+  if(pagos.length){
+    const total=pagos.reduce((t,x)=>t+x.importe,0);
+    partes.push(pagos.map(x=>x.s.emoji+' '+x.s.name).join(', ')+' · -'+total.toFixed(2)+' €');
   }
   // El banner es estrecho: basta el destino, sin el interés entre paréntesis
-  transfPend.forEach(x=>partes.push(nombreCuenta(x.toId).replace(/\s*\(.*\)$/,'')+(x.amount?' · '+x.amount.toFixed(2)+' €':'')));
-  const titulo=banner.querySelector('.alert-title'),clave=pendientes.length?'cobros_hoy':'transf_hoy';
+  transferencias.forEach(x=>partes.push((x.aportacion?t('aportacion_mensual'):nombreCuenta(x.toId).replace(/\s*\(.*\)$/,''))+(x.importe?' · '+x.importe.toFixed(2)+' €':'')));
+  const titulo=banner.querySelector('.alert-title'),clave=pagos.length?'cobros_hoy':'transf_hoy';
   titulo.setAttribute('data-i18n',clave);titulo.textContent=t(clave);
   document.getElementById('alertItems').textContent=partes.join(', ');
 }
-/* Pago a plazos cuya primera cuota aún no ha llegado: sin aviso y sin «Registrar», que crearía un gasto que no cuenta como cuota */
-function pagoPorEmpezar(s){return !!s.fechaInicio&&hoyLocal()<s.fechaInicio;}
-/* ¿Hay ya un movimiento de este pago en el mes en curso? Si Notion no responde, se avisa igualmente */
-async function registradoEsteMes(s){
-  const n=new Date(),ini=fechaLocalDe(new Date(n.getFullYear(),n.getMonth(),1)),fin=fechaLocalDe(new Date(n.getFullYear(),n.getMonth()+1,0));
-  try{
-    const d=await nFetch('/databases/'+DB_ID+'/query','POST',{filter:{and:[
-      {property:'Nombre',title:{equals:s.emoji+' '+s.name}},
-      {property:'Fecha',date:{on_or_after:ini}},
-      {property:'Fecha',date:{on_or_before:fin}}
-    ]},page_size:1});
-    return !!(d&&d.results&&d.results.length);
-  }catch(e){return false;}
-}
-/* ¿Hay ya esta transferencia en el mes en curso? Con amount, solo si coincide el importe. Si Notion no responde, se avisa igualmente */
-async function transferRegistradaEsteMes(x){
-  const n=new Date(),ini=fechaLocalDe(new Date(n.getFullYear(),n.getMonth(),1)),fin=fechaLocalDe(new Date(n.getFullYear(),n.getMonth()+1,0));
-  const conds=[
-    {property:'Transferir Desde',relation:{contains:x.fromId}},
-    {property:'Transferir a',relation:{contains:x.toId}},
-    {property:'Fecha',date:{on_or_after:ini}},
-    {property:'Fecha',date:{on_or_before:fin}}
-  ];
-  if(x.amount)conds.push({property:'Monto',number:{equals:x.amount}});
-  try{
-    const d=await nFetch('/databases/'+TRANSFER_DB+'/query','POST',{filter:{and:conds},page_size:1});
-    return !!(d&&d.results&&d.results.length);
-  }catch(e){return false;}
-}
+const pagoPorEmpezar=s=>KashyVencimientos.pagoPorEmpezar(s,hoyLocal());
 const PALABRAS_EMOJI=[['mercadona','🛒'],['supermercado','🛒'],['restaurante','🍽️'],['gasolina','⛽'],['spotify','🎵'],['gym','💪'],['coche','🚗'],['letra','🚗'],['icloud','☁️'],['farmacia','💊'],['nómina','💼'],['nomina','💼'],['mamá','👩‍👧'],['bizum','📲'],['transferencia','⇄']];
 function emojiPorPalabra(n){
   n=(n||'').toLowerCase();
@@ -3272,30 +3325,10 @@ async function deshacerRegistro(pageId,importeTxt,nombre,fechaUsada){
 /* ── SUSCRIPCIONES ── */
 async function calcCuotasProgress(s){
   const finStr=new Date(s.fechaFin+'T00:00:00').toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{month:'short',year:'numeric'});
-  const baseCuotas=s.cuotasIniciales||0;
-  const basePagado=s.pagadoInicial||0;
-  try{
-    const data=await nFetch('/databases/'+DB_ID+'/query','POST',{
-      filter:{and:[
-        {property:'Nombre',title:{equals:s.emoji+' '+s.name}},
-        {property:'Fecha',date:{on_or_after:s.fechaInicio}}
-      ]},
-      sorts:[{property:'Fecha',direction:'ascending'}]
-    });
-    const rows=data.results||[];
-    const cuotasPagadas=Math.min(s.cuotasTotales,baseCuotas+rows.length);
-    const pagado=basePagado+rows.reduce((sum,r)=>sum+(r.properties?.Gasto?.number||0),0);
-    const total=totalCuotas(s);
-    const pct=Math.min(100,(pagado/total)*100);
-    return{cuotasPagadas,pagado,total,pct,finStr,terminado:cuotasPagadas>=s.cuotasTotales};
-  }catch(e){
-    // Sin datos de Notion no se da por terminado: la tarjeta sigue visible
-    return{cuotasPagadas:baseCuotas,pagado:basePagado,total:totalCuotas(s),pct:0,finStr,terminado:false};
-  }
+  const p=await KashyVencimientos.progresoCuotas(s,consultarNotion);
+  return{...p,pct:Math.min(100,(p.pagado/p.total)*100),finStr};
 }
-/* Total e importe de cada cuota: con importes (cuotas distintas, p. ej. Vinilos) se usa la lista; si no, amount */
-function totalCuotas(s){return s.importes?Math.round(s.importes.reduce((a,b)=>a+b,0)*100)/100:s.cuotasTotales*s.amount;}
-function importeCuota(s,cuotasPagadas){return s.importes?(s.importes[cuotasPagadas]??s.amount):s.amount;}
+const totalCuotas=KashyVencimientos.totalCuotas,importeCuota=KashyVencimientos.importeCuota;
 const suscProgreso={}; // último progreso leído de Notion por índice de SUSCRIPCIONES
 function renderSusc(){
   const hoy=new Date().getDate();
@@ -4653,7 +4686,7 @@ async function quickAportacionMensual(){
     }});
     if(!tr.id){showToast('Error: '+(tr.message||t('toast_intentalo')),'error');return;}
     const res=await crearAportacion('Aportación mensual - '+today,INV_APORTACION_MENSUAL,today,tr.id);
-    if(res.id){showSuccessBurst();showToast(t('toast_aportacion_de')+' '+INV_APORTACION_MENSUAL+'€ '+t('toast_registrada'),'success');loadInversion();}
+    if(res.id){showSuccessBurst();showToast(t('toast_aportacion_de')+' '+INV_APORTACION_MENSUAL+'€ '+t('toast_registrada'),'success');loadInversion();checkAlerts();}
     else showToast('Error: '+(res.message||t('toast_intentalo')),'error');
   }catch(e){showToast(t('toast_conexion'),'error');}
 }

@@ -35,7 +35,9 @@ async function llamar(h, method, clave) {
   return res;
 }
 
-const archivos = readdirSync(dir).filter(f => f.endsWith('.js') && !f.startsWith('_'));
+// cron-avisos.js se protege con CRON_SECRET (lo llama Vercel, no la app): tiene sus propios tests en push_servidor.mjs
+const archivos = readdirSync(dir).filter(f => f.endsWith('.js') && !f.startsWith('_') && f !== 'cron-avisos.js');
+Object.assign(process.env, { VAPID_PUBLIC_KEY: 'BPub', VAPID_PRIVATE_KEY: 'priv', VAPID_SUBJECT: 'mailto:prueba@example.com' });
 for (const archivo of archivos) {
   const h = (await import(pathToFileURL(join(dir, archivo)).href)).default;
   process.env.KASHY_KEY = CLAVE;

@@ -17,6 +17,8 @@ from notion_mock import APP_ORIGIN, FakeNotion  # noqa: E402
 expect.set_options(timeout=5000)
 # Las únicas peticiones externas que la app intenta son las fuentes de Google: se bloquean, y cualquier otra hace fallar la prueba
 EXTERNOS_ESPERADOS = ("https://fonts.googleapis.com/", "https://fonts.gstatic.com/")
+ESTATICOS = {"/icon.png": "image/png", "/icon-192.png": "image/png", "/kashy-vencimientos.js": "text/javascript",
+             "/manifest.webmanifest": "application/manifest+json", "/sw.js": "text/javascript"}
 CLAVE = "clave-de-prueba"  # inventada: la real solo está en Vercel y en el dispositivo
 
 
@@ -38,6 +40,8 @@ class App:
         self.clave_valida = CLAVE  # la que acepta el servidor simulado
         self.rechazos = []  # peticiones respondidas con 401
         self.peticiones_api = []  # cabeceras de cada llamada a /api/
+        # /api/push simulado: suscripción guardada, pruebas enviadas y el código que devolverá la prueba
+        self.push = {"suscripcion": None, "pruebas": 0, "codigo_prueba": 200, "guardados": 0, "borrados": 0}
 
     def ir(self, seccion):
         if seccion in self.NAV:
@@ -80,6 +84,29 @@ class App:
 
     def escrituras(self, metodo=None):
         return [e for e in self.notion.escrituras if not metodo or e["metodo"] == metodo]
+
+
+# Clave pública VAPID de prueba (65 bytes, como las reales)
+CLAVE_VAPID = "BPWgDWfYVxXkAHU4xN7O2t2h3hkr8tlqmDqzvwDYiwq8bWEgDDJptNqtsukaBePvXa2rzvxLfVKH87sezIfBnd0"
+
+
+def responder_push(app, metodo, url, cuerpo):
+    p = app.push
+    if metodo == "GET":
+        return 200, {"publicKey": CLAVE_VAPID, "suscrito": bool(p["suscripcion"]),
+                     "endpoint": p["suscripcion"]["endpoint"] if p["suscripcion"] else None}
+    if metodo == "DELETE":
+        p["suscripcion"] = None
+        p["borrados"] += 1
+        return 200, {"ok": True}
+    if "prueba=" in url:
+        if not p["suscripcion"]:
+            return 409, {"error": "Sin suscripción"}
+        p["pruebas"] += 1
+        return p["codigo_prueba"], {}
+    p["suscripcion"] = cuerpo["subscription"]
+    p["guardados"] += 1
+    return 200, {"ok": True}
 
 
 @pytest.fixture(scope="session")
@@ -127,8 +154,8 @@ def abrir(navegador, tema):
             ruta = req.url[len(APP_ORIGIN):].split("?")[0]
             if ruta == "/":
                 return route.fulfill(status=200, content_type="text/html; charset=utf-8", body=html)
-            if ruta == "/icon.png":
-                return route.fulfill(status=200, content_type="image/png", path=str(datos.RAIZ / "icon.png"))
+            if ruta in ESTATICOS:
+                return route.fulfill(status=200, content_type=ESTATICOS[ruta], path=str(datos.RAIZ / ruta[1:]))
             if ruta.startswith("/api/"):
                 # Como el servidor real: sin la clave correcta no se ejecuta nada
                 app.peticiones_api.append(req.headers)
@@ -136,7 +163,10 @@ def abrir(navegador, tema):
                     app.rechazos.append(req.method + " " + req.url)
                     return route.fulfill(status=401, content_type="application/json", body='{"error":"No autorizado"}')
                 cuerpo = json.loads(req.post_data) if req.post_data else None
-                r = notion.responder(req.method, req.url, cuerpo)
+                if ruta == "/api/push":
+                    r = responder_push(app, req.method, req.url, cuerpo)
+                else:
+                    r = notion.responder(req.method, req.url, cuerpo)
                 if r is None:
                     app.rutas_desconocidas.append(req.method + " " + req.url)
                     return route.fulfill(status=500, content_type="application/json", body="{}")

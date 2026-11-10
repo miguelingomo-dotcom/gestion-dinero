@@ -217,13 +217,14 @@ def test_aviso_transferencia_dia_23(abrir):
 
 def test_aviso_transferencia_dia_26_sin_importe_y_se_retira_al_registrar(abrir):
     app = abrir(hoy="2026-12-26")  # diciembre: los datos base ya traen la de noviembre
-    expect(aviso_de(app)).to_have_text("Revolut Personal")
+    expect(aviso_de(app)).to_have_text("Revolut Personal, Aportación mensual · 150.00 €")
     app.ir("cuentas")
     rec(app, 1).locator(".sus-btn").click()
     app.page.locator("#transferAmt").fill("90")
     app.page.locator("#transferOverlay .modal-confirm").click()
     expect(app.toast()).to_contain_text("Transferencia registrada")
-    expect(alerta(app)).not_to_have_class(re.compile(r"\bshow\b"))
+    # Solo queda la aportación, que vence el mismo día
+    expect(aviso_de(app)).to_have_text("Aportación mensual · 150.00 €")
 
 
 @pytest.mark.parametrize("hoy,desde,hacia,importe,fecha,avisa", [
@@ -238,6 +239,8 @@ def test_ya_registrada_este_mes(abrir, hoy, desde, hacia, importe, fecha, avisa)
     def semilla(n):
         datos.cuenta(n, "💳 Ibercaja", datos.IBERCAJA, 500)
         datos.transferencia(n, desde, hacia, importe, fecha)
+        # El día 26 también vence la aportación: ya hecha, para que solo cuente la transferencia probada
+        datos.transferencia(n, datos.REMUNERADA, datos.MYINVESTOR, 150, hoy[:8] + "02")
     app = abrir(hoy=hoy, sembrar=semilla)
     app.avisos_listos()
     if avisa:
@@ -251,3 +254,44 @@ def test_si_notion_falla_se_avisa_igualmente(abrir):
         n.fallar_consultas.add(datos.BASES["transfers"])
     app = abrir(hoy="2026-11-23", mas=semilla)
     expect(alerta(app)).to_have_class(re.compile(r"\bshow\b"))
+
+
+# ── Aportación mensual (día 26) ──
+def test_aviso_de_aportacion_el_26(abrir):
+    def semilla(n):
+        datos.cuenta(n, "💳 Ibercaja", datos.IBERCAJA, 500)
+        datos.transferencia(n, datos.IBERCAJA, datos.REVOLUT, 50, "2026-11-03")
+    app = abrir(hoy="2026-11-26", sembrar=semilla)
+    expect(alerta(app).locator(".alert-title")).to_have_text("⇄ Transferencias hoy")
+    expect(aviso_de(app)).to_have_text("Aportación mensual · 150.00 €")
+
+
+def test_aportacion_de_cualquier_importe_cuenta_como_hecha(abrir):
+    def semilla(n):
+        datos.cuenta(n, "💳 Ibercaja", datos.IBERCAJA, 500)
+        datos.transferencia(n, datos.IBERCAJA, datos.REVOLUT, 50, "2026-11-03")
+        datos.transferencia(n, datos.REMUNERADA, datos.MYINVESTOR, 80, "2026-11-10")
+    app = abrir(hoy="2026-11-26", sembrar=semilla)
+    app.avisos_listos()
+    expect(alerta(app)).not_to_have_class(re.compile(r"\bshow\b"))
+
+
+def test_aportacion_de_otro_mes_no_cuenta(abrir):
+    def semilla(n):
+        datos.cuenta(n, "💳 Ibercaja", datos.IBERCAJA, 500)
+        datos.transferencia(n, datos.IBERCAJA, datos.REVOLUT, 50, "2026-11-03")
+        datos.transferencia(n, datos.REMUNERADA, datos.MYINVESTOR, 150, "2026-10-26")
+    app = abrir(hoy="2026-11-26", sembrar=semilla)
+    expect(aviso_de(app)).to_have_text("Aportación mensual · 150.00 €")
+
+
+def test_registrar_la_aportacion_retira_el_aviso(abrir):
+    def semilla(n):
+        datos.cuenta(n, "💳 Ibercaja", datos.IBERCAJA, 500)
+        datos.transferencia(n, datos.IBERCAJA, datos.REVOLUT, 50, "2026-11-03")
+    app = abrir(hoy="2026-11-26", sembrar=semilla)
+    expect(aviso_de(app)).to_have_text("Aportación mensual · 150.00 €")
+    app.ir("inversion")
+    app.page.locator("#sec-inversion .sus-btn", has_text="Registrar").click()
+    expect(app.toast()).to_contain_text("Aportación de 150€")
+    expect(alerta(app)).not_to_have_class(re.compile(r"\bshow\b"))
