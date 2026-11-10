@@ -78,7 +78,7 @@ def test_editar_movimiento_desde_la_vista_de_cuenta(app):
     app.ir("cuentas")
     abrir_fila(app, "Ibercaja", "Mercadona")
     expect(p.locator("#editOverlay")).to_have_class("modal-overlay show")
-    expect(p.locator("#editAmt")).to_have_value("84.5")
+    expect(p.locator("#editAmt")).to_have_value("84,50")
     expect(p.locator("#editName")).to_have_value("Mercadona")
     assert not app.escrituras("POST")  # leer una página no escribe nada
     p.locator("#editAmt").fill("100")
@@ -95,8 +95,8 @@ def test_editar_ingreso_desde_la_vista_de_cuenta(app):
     p = app.page
     app.ir("cuentas")
     abrir_fila(app, "Ibercaja", "Nómina noviembre")
-    expect(p.locator("#editTitle")).to_contain_text("Ingreso")
-    expect(p.locator("#editAmt")).to_have_value("2000")
+    expect(p.locator("#editTitle")).to_have_text("Editar ingreso")
+    expect(p.locator("#editAmt")).to_have_value("2000,00")
 
 
 def test_mover_el_movimiento_a_otra_cuenta_lo_saca_de_la_lista(app):
@@ -208,7 +208,7 @@ def test_la_transferencia_entrante_sale_en_la_cuenta_de_destino(app):
     # Se abre con su propia hoja de editar transferencia
     entra.click()
     expect(app.page.locator("#trEditOverlay")).to_have_class(re.compile(r"\bshow\b"))
-    expect(app.page.locator("#trEditAmt")).to_have_value("250")
+    expect(app.page.locator("#trEditAmt")).to_have_value("250,00")
 
 
 def test_si_fallan_las_transferencias_se_ven_los_movimientos(abrir):

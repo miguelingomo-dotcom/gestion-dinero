@@ -22,7 +22,7 @@ def test_editar_movimiento(app):
     app.ir("movimientos")
     app.fila_mov("Mercadona").locator(".mov-info").click()
     expect(p.locator("#editOverlay")).to_have_class("modal-overlay show")
-    expect(p.locator("#editAmt")).to_have_value("84.5")
+    expect(p.locator("#editAmt")).to_have_value("84,50")
     expect(p.locator("#editName")).to_have_value("Mercadona")
     p.locator("#editAmt").fill("90,10")
     p.locator("#editName").fill("Mercadona grande")

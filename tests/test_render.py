@@ -35,11 +35,12 @@ def test_chips_con_su_logo_en_el_mismo_render(app):
     assert ibercaja[1]
 
 
-def test_todas_las_listas_de_chips_con_color_al_abrir(app):
+def test_todas_las_listas_de_chips_con_logo_al_abrir(app):
+    # Rediseño: los chips de cuenta de las hojas llevan el logo del banco (antes, su color), ya al abrir
     p = app.page
-    color = p.evaluate("""([ib,rem])=>{showTransfer(ib,'Ibercaja',rem,150);
-      return document.querySelector('#transferToChips .chip.selected').style.background}""", [datos.IBERCAJA, datos.REMUNERADA])
-    assert color
+    logo = p.evaluate("""([ib,rem])=>{showTransfer(ib,'Ibercaja',rem,150);
+      return !!document.querySelector('#transferToChips .chip.selected .kficha')}""", [datos.IBERCAJA, datos.REMUNERADA])
+    assert logo
 
 
 def test_filtro_todas_sin_color_de_banco(app):

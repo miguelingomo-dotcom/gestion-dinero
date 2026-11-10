@@ -69,7 +69,7 @@ def guardar_edicion(app):
 def test_editar_transferencia(app):
     p = app.page
     abrir_edicion(app, "Ibercaja → Revolut Personal")
-    expect(p.locator("#trEditAmt")).to_have_value("250")
+    expect(p.locator("#trEditAmt")).to_have_value("250,00")
     p.locator("#trEditAmt").fill("260,25")
     p.locator("#trEditDate").fill("2026-11-03")
     guardar_edicion(app)
