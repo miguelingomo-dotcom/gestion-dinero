@@ -7,16 +7,17 @@
 'use strict';
 const IDS={IBERCAJA:'31621c54013f811ebd49f65e2776d28e',MYINVESTOR_REM:'3d821c54013f81eab324f5174d95ade2',REVOLUT_PERSONAL:'31621c54013f817f9f00fc6acc160c26',MYINVESTOR:'3b821c54013f817088e9fe2e7a0a3707'};
 const BASES={MOVS:'25e21c54013f817481d6cd37b0daa2b5',TRANSFER:'25e21c54013f813faceae0152856368e',CUENTAS:'25e21c54013f817e959ee75351072a94'};
+/* En este orden salen en Registrar, en el aviso de Inicio y en la notificación diaria. Los nuevos, al final */
 const SUSCRIPCIONES=[
-  {name:'Spotify',emoji:'🎵',amount:20.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:3,anim:{familia:'balanceo',origen:'50% 100%'}},
   {name:'Letra Coche',emoji:'🚗',amount:432.35,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f81689c53c344e9ce8987',dia:5,fechaInicio:'2026-05-05',fechaFin:'2028-01-05',cuotasTotales:24,cuotasIniciales:3,pagadoInicial:1297.05,anim:{familia:'avance'}},
-  {name:'iCloud',emoji:'☁️',amount:1.50,cuentaId:'38621c54013f818ead8be5ec81d47356',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:30,anim:{familia:'flote'}},
-  {name:'DAZN Basket',emoji:'🏀',amount:4.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:27,fechaInicio:'2026-08-01',fechaFin:'2027-04-27',cuotasTotales:12,cuotasIniciales:4,pagadoInicial:19.96,anim:{familia:'salto'}},
+  {name:'Revisiones Coche',emoji:'🔧',amount:55,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f81689c53c344e9ce8987',dia:5,fechaInicio:'2026-12-05',fechaFin:'2027-11-05',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'giro'}},
   {name:'Claude Pro',emoji:'🤖',amount:21.78,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:11,anim:{familia:'zumbido'}},
+  {name:'DAZN Basket',emoji:'🏀',amount:4.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:27,fechaInicio:'2026-08-01',fechaFin:'2027-04-27',cuotasTotales:12,cuotasIniciales:4,pagadoInicial:19.96,anim:{familia:'salto'}},
   {name:'DAZN Fútbol',emoji:'⚽',amount:2.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:28,fechaInicio:'2026-08-28',fechaFin:'2027-08-28',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'salto'}},
+  {name:'Spotify',emoji:'🎵',amount:20.99,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:3,anim:{familia:'balanceo',origen:'50% 100%'}},
+  {name:'iCloud',emoji:'☁️',amount:1.50,cuentaId:'38621c54013f818ead8be5ec81d47356',catId:'31621c54013f8130bd7ddbf775f0f1bd',dia:30,anim:{familia:'flote'}},
   {name:'Mueble Ikea',emoji:'🛋️',amount:28.93,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f816d85afc5277c4e2c08',dia:27,fechaInicio:'2026-10-27',fechaFin:'2026-12-27',cuotasTotales:3,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'latido'}},
   {name:'Vinilos',emoji:'💿',amount:28.85,importes:[28.85,28.86,28.85],cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f8196b8d4dc7c51c738b2',dia:29,fechaInicio:'2026-10-29',fechaFin:'2026-12-29',cuotasTotales:3,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'giro'}},
-  {name:'Revisiones Coche',emoji:'🔧',amount:55,cuentaId:'31621c54013f811ebd49f65e2776d28e',catId:'31621c54013f81689c53c344e9ce8987',dia:5,fechaInicio:'2026-12-05',fechaFin:'2027-11-05',cuotasTotales:12,cuotasIniciales:0,pagadoInicial:0,anim:{familia:'giro'}},
 ];
 /* Sin amount: la hoja se abre con el importe vacío y cualquier importe cuenta como «ya registrada» este mes */
 const TRANSF_RECURRENTES=[

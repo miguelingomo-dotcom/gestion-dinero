@@ -308,3 +308,28 @@ def test_pago_del_30_no_avisa_antes_del_ultimo_dia(abrir):
     app = abrir(hoy="2027-02-27")
     app.avisos_listos()
     expect(aviso_de(app)).not_to_contain_text("iCloud")
+
+
+ORDEN = ["Letra Coche", "Revisiones Coche", "Claude Pro", "DAZN Basket", "DAZN Fútbol", "Spotify", "iCloud",
+         "Mueble Ikea", "Vinilos"]
+
+
+def test_orden_de_los_pagos_recurrentes(app):
+    app.ir("registrar")
+    nombres = app.page.locator("#suscripList .sus-name")
+    expect(nombres).to_have_count(len(ORDEN))
+    vistos = [n.split("Hoy")[0].strip() for n in nombres.all_inner_texts()]
+    assert vistos == ORDEN, vistos
+
+
+def test_un_pago_terminado_no_sale_y_el_orden_se_mantiene(abrir):
+    app = abrir(mas=lambda n: registrados(n, "🛋️ Mueble Ikea", ["2026-10-27", "2026-11-01", "2026-11-10"], 28.93))
+    app.ir("registrar")
+    expect(tarjeta(app, "Mueble Ikea")).to_have_count(0)
+    vistos = [n.split("Hoy")[0].strip() for n in app.page.locator("#suscripList .sus-name").all_inner_texts()]
+    assert vistos == [x for x in ORDEN if x != "Mueble Ikea"], vistos
+
+
+def test_el_aviso_de_inicio_sigue_el_mismo_orden(abrir):
+    app = abrir(hoy="2026-11-27")  # DAZN Basket y Mueble Ikea vencen el 27
+    expect(aviso_de(app)).to_contain_text("DAZN Basket, Mueble Ikea")

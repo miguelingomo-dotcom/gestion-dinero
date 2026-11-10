@@ -179,3 +179,7 @@ Es un rediseño, no una app nueva: **cambia el aspecto, no lo que hace**. La dem
 
 ## 6. Fase 2 (cuando des el visto bueno)
 Se migraría pantalla a pantalla para que los tests de regresión vayan detectando cambios: tokens y tipografía, luego Inicio, Movimientos, Registrar, Cuentas, Inversión y Estadísticas, y al final las hojas. Las capturas de referencia se renovarían en cada paso, revisándolas antes.
+
+**Pendiente para el paso de las hojas y la barra inferior** (el último):
+- La hoja de editar un movimiento no cabe en la pantalla del iPhone (unos 906 px de contenido para unos 740 visibles): fecha e importe más pequeños, categorías más compactas con los iconos nuevos y Guardar/Cancelar siempre a la vista abajo, con un test que compruebe que cabe en 667 px de alto (iPhone SE).
+- La barra inferior todavía tiene el aspecto antiguo.
