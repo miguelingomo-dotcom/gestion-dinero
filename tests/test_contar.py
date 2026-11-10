@@ -67,7 +67,7 @@ def test_no_cuenta_al_tocar_la_misma_pestana_ni_al_cerrar_una_hoja(abrir):
 
 def test_con_reducir_movimiento_no_cuenta(app):
     p = app.page
-    # Espera a que termine la cuenta del arranque (esa ya existía y no depende de esta función)
+    # Con «Reducir movimiento» tampoco cuenta el patrimonio al abrir: el valor sale directamente
     p.wait_for_function("()=>document.getElementById('totalAmount').dataset.rawVal==='5925'", timeout=4000)
     app.ir("cuentas")
     p.evaluate(OBSERVA, "#totalAmount")

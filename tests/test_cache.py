@@ -257,7 +257,7 @@ def valores_total(p):
 
 
 def test_al_abrir_el_patrimonio_sube_desde_cero(abrir):
-    app = abrir(antes=lambda page: page.add_init_script(CONTADOR))
+    app = abrir(antes=lambda page: page.add_init_script(CONTADOR), reducir=False)
     p = app.page
     expect(p.locator("#totalAmount")).to_have_text("5925,00 €")
     p.wait_for_timeout(300)
@@ -272,7 +272,7 @@ def test_si_notion_tarda_sube_hasta_el_guardado(abrir):
     def antes(page):
         page.add_init_script(CONTADOR)
         con_red_controlada(page)
-    app = abrir(antes=antes)
+    app = abrir(antes=antes, reducir=False)
     p = app.page
     expect(p.locator("#totalAmount")).to_have_text("5925,00 €")
     p.wait_for_timeout(600)
@@ -281,3 +281,13 @@ def test_si_notion_tarda_sube_hasta_el_guardado(abrir):
     expect(p.locator("#totalAmount")).to_have_text("5925,00 €", timeout=4000)
     v = valores_total(p)
     assert v[0] < 1000 and v[-1] == 5925, v
+
+
+
+def test_con_reducir_movimiento_el_patrimonio_no_cuenta_al_abrir(abrir):
+    app = abrir(antes=lambda page: page.add_init_script(CONTADOR))  # abrir() emula «Reducir movimiento» por defecto
+    p = app.page
+    expect(p.locator("#totalAmount")).to_have_text("5925,00 €")
+    p.wait_for_timeout(800)
+    v = [float(x.replace(" €", "").replace(".", "").replace(",", ".")) for x in p.evaluate("()=>window.__total") if "€" in x]
+    assert all(x in (0, 5925) for x in v), v

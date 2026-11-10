@@ -2838,6 +2838,8 @@ function animateCounter(el,end,{prefix='',suffix='',decimals=2,duration=700}={})
   if(!el)return;
   // Sin mostrarse (pestaña oculta): directamente el valor final. Nadie vería la animación, y un navegador puede congelarla
   if(!el.getClientRects().length){ponerCifra(el,prefix+fmt(end)+suffix);el.dataset.rawVal=end;return;}
+  // Con «Reducir movimiento», ninguna cifra cuenta (tampoco el patrimonio al abrir): el valor sale directamente
+  if(animReducido()){el._turno=(el._turno||0)+1;el._hacia=null;ponerCifra(el,prefix+fmt(end)+suffix);el.dataset.rawVal=end;autoFitAmount(el);return;}
   const startVal=parseFloat((el.dataset.rawVal||'0').replace(',','.'))||0;
   if(Math.abs(startVal-end)<0.005){
     if(el._hacia!=null&&Math.abs(el._hacia-end)<0.005)return; // ya cuenta hacia este valor al entrar en la pestaña
