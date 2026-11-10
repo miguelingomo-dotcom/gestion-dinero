@@ -42,6 +42,8 @@ Run the suite before every commit: `tests/.venv/bin/pytest tests` from the proje
 - **localStorage keys**: these use a `kashy-` prefix (`kashy-theme`, `kashy-lang`) or are named by constants (`PRIV_KEY`). localStorage holds UI preferences, the API key (`kashy-key`), and the screen cache (`kashy-cache-v1`, a copy of what was last shown); all financial data lives in Notion.
 - **Layout**: mobile-first, with `.app` capped at 430px wide and a fixed bottom nav. The app is meant to be installed as an iOS home-screen web app (apple-mobile-web-app meta tags, `icon.png`).
 - **Formatting**: amounts are in euros. Use `fmt`/`parseAmt`/`sanitizeAmt` for money and `getDateRange` for month windows.
+- **Design kit** (redesign, `docs/sistema-de-diseno.md`): `svgIco(name)` draws a bundled Lucide icon (`KIT_ICONOS`); `fichaCat(id)` is a category tile with its icon and color from `CAT_META` (keyed by the Notion category id); `fichaCuenta(name)` is an account tile with its bank logo (`KIT_LOGOS`, bundled from the banks' sites, plus Revolut from Simple Icons). Nothing is fetched at runtime. The redesigned screens' CSS lives in scoped blocks at the end of `<style>` (`/* ══ REDISEÑO · … ══ */`).
+- **Amounts are never cut off**: `autoFitAmount(el)` shrinks an amount's font until it fits its own box (down to half size) and then lets it wrap; `ajustarCifras(root)` runs it on every `CIFRAS_AJUSTABLES` element and on resize. An amount needs a box with a width (block, and `min-width:0` inside flex or grid). `ponerCifra` draws an element with `data-partes` in two sizes (whole part and «,00 €»). `tests/test_cifras.py` checks it with huge amounts at 390 and 320 px.
 
 ## Security note
 

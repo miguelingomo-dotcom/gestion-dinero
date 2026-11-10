@@ -126,7 +126,7 @@ def test_revisiones_terminadas_desaparecen(abrir):
 def test_aviso_el_dia_del_pago(abrir):
     app = abrir(hoy="2026-11-11")
     expect(alerta(app)).to_have_class(re.compile(r"\bshow\b"))
-    expect(aviso_de(app)).to_have_text("🤖 Claude Pro · -21.78 €")
+    expect(aviso_de(app)).to_have_text("Claude Pro · -21,78 €")
 
 
 def test_sin_aviso_otro_dia(app):
@@ -147,13 +147,13 @@ def test_aviso_si_lo_registrado_es_del_mes_pasado(abrir):
 
 def test_aviso_suma_los_pagos_del_dia_y_omite_cuotas_que_no_tocan(abrir):
     app = abrir(hoy="2026-11-05")
-    expect(aviso_de(app)).to_have_text("🚗 Letra Coche · -432.35 €")  # Revisiones aún no ha empezado
+    expect(aviso_de(app)).to_have_text("Letra Coche · -432,35 €")  # Revisiones aún no ha empezado
 
 
 def test_aviso_de_revisiones_desde_el_primer_dia(abrir):
     app = abrir(hoy="2026-12-05")
-    expect(aviso_de(app)).to_contain_text("🔧 Revisiones Coche")
-    expect(aviso_de(app)).to_contain_text("487.35 €")  # con Letra Coche
+    expect(aviso_de(app)).to_contain_text("Revisiones Coche")
+    expect(aviso_de(app)).to_contain_text("487,35 €")  # con Letra Coche
 
 
 def test_sin_aviso_de_un_pago_terminado(abrir):
@@ -211,20 +211,20 @@ def test_revolut_con_importe_vacio(app):
 
 def test_aviso_transferencia_dia_23(abrir):
     app = abrir(hoy="2026-11-23")
-    expect(alerta(app).locator(".alert-title")).to_have_text("⇄ Transferencias hoy")
-    expect(aviso_de(app)).to_have_text("MyInvestor Remunerada · 150.00 €")
+    expect(alerta(app).locator(".alert-title")).to_have_text("Transferencias hoy")
+    expect(aviso_de(app)).to_have_text("MyInvestor Remunerada · 150,00 €")
 
 
 def test_aviso_transferencia_dia_26_sin_importe_y_se_retira_al_registrar(abrir):
     app = abrir(hoy="2026-12-26")  # diciembre: los datos base ya traen la de noviembre
-    expect(aviso_de(app)).to_have_text("Revolut Personal, Aportación mensual · 150.00 €")
+    expect(aviso_de(app)).to_have_text("Revolut Personal, Aportación mensual · 150,00 €")
     app.ir("cuentas")
     rec(app, 1).locator(".sus-btn").click()
     app.page.locator("#transferAmt").fill("90")
     app.page.locator("#transferOverlay .modal-confirm").click()
     expect(app.toast()).to_contain_text("Transferencia registrada")
     # Solo queda la aportación, que vence el mismo día
-    expect(aviso_de(app)).to_have_text("Aportación mensual · 150.00 €")
+    expect(aviso_de(app)).to_have_text("Aportación mensual · 150,00 €")
 
 
 @pytest.mark.parametrize("hoy,desde,hacia,importe,fecha,avisa", [
@@ -262,8 +262,8 @@ def test_aviso_de_aportacion_el_26(abrir):
         datos.cuenta(n, "💳 Ibercaja", datos.IBERCAJA, 500)
         datos.transferencia(n, datos.IBERCAJA, datos.REVOLUT, 50, "2026-11-03")
     app = abrir(hoy="2026-11-26", sembrar=semilla)
-    expect(alerta(app).locator(".alert-title")).to_have_text("⇄ Transferencias hoy")
-    expect(aviso_de(app)).to_have_text("Aportación mensual · 150.00 €")
+    expect(alerta(app).locator(".alert-title")).to_have_text("Transferencias hoy")
+    expect(aviso_de(app)).to_have_text("Aportación mensual · 150,00 €")
 
 
 def test_aportacion_de_cualquier_importe_cuenta_como_hecha(abrir):
@@ -282,7 +282,7 @@ def test_aportacion_de_otro_mes_no_cuenta(abrir):
         datos.transferencia(n, datos.IBERCAJA, datos.REVOLUT, 50, "2026-11-03")
         datos.transferencia(n, datos.REMUNERADA, datos.MYINVESTOR, 150, "2026-10-26")
     app = abrir(hoy="2026-11-26", sembrar=semilla)
-    expect(aviso_de(app)).to_have_text("Aportación mensual · 150.00 €")
+    expect(aviso_de(app)).to_have_text("Aportación mensual · 150,00 €")
 
 
 def test_registrar_la_aportacion_retira_el_aviso(abrir):
@@ -290,7 +290,7 @@ def test_registrar_la_aportacion_retira_el_aviso(abrir):
         datos.cuenta(n, "💳 Ibercaja", datos.IBERCAJA, 500)
         datos.transferencia(n, datos.IBERCAJA, datos.REVOLUT, 50, "2026-11-03")
     app = abrir(hoy="2026-11-26", sembrar=semilla)
-    expect(aviso_de(app)).to_have_text("Aportación mensual · 150.00 €")
+    expect(aviso_de(app)).to_have_text("Aportación mensual · 150,00 €")
     app.ir("inversion")
     app.page.locator("#sec-inversion .sus-btn", has_text="Registrar").click()
     expect(app.toast()).to_contain_text("Aportación de 150€")
@@ -299,7 +299,7 @@ def test_registrar_la_aportacion_retira_el_aviso(abrir):
 
 def test_pago_del_30_avisa_el_ultimo_dia_de_febrero(abrir):
     app = abrir(hoy="2027-02-28")
-    expect(aviso_de(app)).to_contain_text("☁️ iCloud")
+    expect(aviso_de(app)).to_contain_text("iCloud")
     app.ir("registrar")
     expect(app.page.locator(".sus-card-wrap", has=app.page.locator(".sus-name", has_text="iCloud")).locator(".sus-name")).to_contain_text("🔔")
 
