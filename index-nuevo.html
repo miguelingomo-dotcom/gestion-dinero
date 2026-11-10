@@ -438,7 +438,7 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 @keyframes slideInItem{from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
 @keyframes shimmer{0%{background-position:-200px 0;}100%{background-position:200px 0;}}
 @keyframes popIn{0%{opacity:0;transform:scale(.92);}100%{opacity:1;transform:scale(1);}}
-@keyframes spin{to{transform:rotate(360deg);}}
+
 .section{display:none;}
 @keyframes secFade{from{opacity:0;}to{opacity:1;}}
 .section.active{display:block;animation:secFade .15s var(--ease-out) both;}
@@ -475,16 +475,6 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .empty-state-icon{font-size:38px;margin-bottom:10px;opacity:.6;}
 .empty-state-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
 .empty-state-sub{font-size:12.5px;color:var(--muted);line-height:1.5;}
-/* ── PULL TO REFRESH ── */
-.ptr-indicator{
-  position:fixed;top:env(safe-area-inset-top,0px);left:50%;transform:translateX(-50%) translateY(-100%);width:36px;
-  height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--border);box-shadow:var(--sh-md);
-  display:flex;align-items:center;justify-content:center;z-index:250;
-  transition:transform var(--dur-base) var(--ease),opacity var(--dur-base) var(--ease);opacity:0;
-}
-.ptr-indicator.pulling,.ptr-indicator.loading{opacity:1;}
-.ptr-indicator svg{width:18px;height:18px;stroke:var(--accent);transition:transform .1s linear;}
-.ptr-indicator.loading svg{animation:spin .7s linear infinite;}
 /* Números animados: pequeño pop al terminar de contar */
 .count-pop{animation:popIn .3s var(--ease);}
 /* ── SPLASH SCREEN ── */
@@ -1420,6 +1410,18 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
 @media (prefers-reduced-motion:reduce){#sec-stats .period-marca.lista{transition:none;}}
 
 /* ══ REDISEÑO · HOJAS, ESTADOS Y BARRA INFERIOR (paso 8) ══ */
+/* Nada en una hoja se desplaza de lado: la hoja solo se mueve en vertical y no encadena el gesto con la página.
+   Las filas de cuentas y categorías se deslizan dentro de su propia fila, sin arrastrar la hoja al llegar al final */
+.modal-overlay{overscroll-behavior:contain;touch-action:none;}
+.modal-overlay .modal{overflow-x:hidden!important;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;}
+.modal .chips-wrap,.modal .fila-desliza{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x pan-y;}
+.modal *{max-width:100%;}
+.modal .chips-wrap,.modal .fila-desliza,.modal .modal-btns,.modal .modal-grab{max-width:none;}
+.modal .chip{max-width:none;}
+/* iOS da a los campos de fecha un ancho mínimo propio que no respeta su columna: sin apariencia nativa y sin mínimo */
+.modal input{min-width:0;box-sizing:border-box;}
+.modal input[type=date]{display:block;-webkit-appearance:none;appearance:none;min-width:0;width:100%;}
+.modal input[type=date]::-webkit-date-and-time-value{text-align:left;}
 /* Hojas: superficie con asa, título centrado, campos del sistema y botones siempre a la vista abajo */
 .modal-overlay{background:var(--scrim,rgba(10,10,15,.38));}
 [data-theme="dark"] .modal-overlay{background:rgba(0,0,0,.55);}
@@ -1507,7 +1509,6 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
   <div class="splash-word">Ka<span>$</span>hy</div>
   <div class="splash-name">GESTIÓN DE DINERO</div>
 </div>
-<div id="ptrIndicator" class="ptr-indicator"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></div>
 <div id="successBurst" class="success-burst"><div class="success-burst-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div class="success-burst-badge" id="successBadge"><span class="anim-emo" id="successBadgeEmo"></span></div></div></div>
 <div class="app">
 
@@ -2037,7 +2038,7 @@ const I18N={
     ver_inactivas:'Ver cuentas inactivas',ocultar_inactivas:'Ocultar cuentas inactivas',
     empty_movs:'Sin movimientos aún',empty_movs_sub:'Registra tu primer gasto o ingreso desde el botón ➕',
     empty_cuentas:'Sin cuentas activas',empty_goals:'Sin metas aún',empty_wishes:'Sin deseos aún',
-    empty_inv:'Sin movimientos aún',error_cargar:'Error al cargar',error_reintentar:'Desliza hacia abajo para reintentar',
+    empty_inv:'Sin movimientos aún',error_cargar:'Error al cargar',error_reintentar:'Vuelve a abrir esta pestaña para reintentar',
     toast_gasto_ok:'✓ Gasto registrado',toast_ingreso_ok:'✓ Ingreso registrado',
     toast_conexion:'Error de conexión',toast_importe_invalido:'Importe inválido',toast_nombre:'Introduce un nombre',
     enviando:'Enviando...',btn_confirmar:'Confirmar',
@@ -2054,7 +2055,7 @@ const I18N={
     toast_transferencia_reg:'✓ Transferencia registrada',toast_error_transferir:'Error al transferir',
     toast_intentalo:'Inténtalo',toast_registrada:'registrada',toast_aportacion_de:'✓ Aportación de',
     toast_importe_valido:'Introduce un importe válido',toast_registrada_ok:'✓ Registrado',
-    empty_movs_title:'Sin movimientos aún',empty_error_cargar:'Error al cargar',empty_error_sub:'Desliza hacia abajo para reintentar',
+    empty_movs_title:'Sin movimientos aún',empty_error_cargar:'Error al cargar',empty_error_sub:'Vuelve a abrir esta pestaña para reintentar',
     empty_cuentas_title:'Sin cuentas activas',empty_cuentas_sub:'Reactiva una cuenta o crea una nueva en Notion',
     empty_goals_title:'Sin metas aún',empty_goals_sub:'Pulsa ➕ para crear tu primera meta de ahorro',
     empty_wishes_title:'Sin deseos aún',empty_wishes_sub:'Pulsa ➕ para apuntar algo que quieras comprarte o regalar',
@@ -2993,45 +2994,6 @@ function showSuccessBurst(anim){
   }
   burstTimer=setTimeout(()=>{el.classList.remove('show');badge.getAnimations().forEach(a=>a.cancel());},1300);
 }
-/* ── PULL TO REFRESH ── */
-(function(){
-  let startY=0,pulling=false,triggered=false;
-  const ind=document.getElementById('ptrIndicator');
-  const sectionLoaders={inicio:loadInicio,movimientos:loadMovs,cuentas:loadAccounts,stats:loadStats,inversion:loadInversion};
-  document.addEventListener('touchstart',e=>{
-    if(window.scrollY>4)return;
-    if(document.querySelector('.modal-overlay.show'))return;
-    startY=e.touches[0].clientY;pulling=true;triggered=false;
-  },{passive:true});
-  document.addEventListener('touchmove',e=>{
-    if(!pulling)return;
-    const dy=e.touches[0].clientY-startY;
-    if(dy>0&&window.scrollY<=4){
-      ind.classList.add('pulling');
-      const dist=Math.min(70,dy*.5);
-      ind.style.transform=`translateX(-50%) translateY(${dist}px)`;
-      ind.querySelector('svg').style.transform=`rotate(${dist*4}deg)`;
-      if(dist>=60)triggered=true;
-    }
-  },{passive:true});
-  document.addEventListener('touchend',()=>{
-    if(!pulling)return;
-    pulling=false;
-    if(triggered){
-      ind.classList.add('loading');
-      ind.style.transform='translateX(-50%) translateY(50px)';
-      const active=document.querySelector('.section.active');
-      const name=active?active.id.replace('sec-',''):'inicio';
-      const fn=sectionLoaders[name];
-      Promise.resolve(fn&&fn()).finally(()=>{
-        setTimeout(()=>{ind.classList.remove('loading','pulling');ind.style.transform='translateX(-50%) translateY(-100%)';},400);
-      });
-    }else{
-      ind.classList.remove('pulling');ind.style.transform='translateX(-50%) translateY(-100%)';
-    }
-    triggered=false;
-  },{passive:true});
-})();
 /* Consulta a Notion para el módulo compartido de vencimientos */
 const consultarNotion=(db,body)=>nFetch('/databases/'+db+'/query','POST',body);
 /* Pagos, transferencias recurrentes y aportación mensual de hoy en Inicio (kashy-vencimientos.js, la misma lógica que

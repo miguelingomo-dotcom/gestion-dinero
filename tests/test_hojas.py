@@ -68,3 +68,28 @@ def test_editar_movimiento_compacto_con_logos(app):
     expect(app.toast()).to_contain_text("Movimiento actualizado")
     w = app.escrituras("PATCH")[-1]["cuerpo"]["properties"]
     assert w["Fuente de Gasto"]["relation"][0]["id"] == datos.CAT_RESTAURANTES
+
+
+ANCHO = """(id)=>{const m=document.querySelector('#'+id+' .modal'),r=m.getBoundingClientRect(),cs=getComputedStyle(m);
+  // Todo lo que no está dentro de una fila de chips queda dentro de la hoja; las filas, también (se deslizan por dentro)
+  const fuera=[...m.querySelectorAll('*')].filter(e=>{
+    if(e.closest('.chips-wrap,.fila-desliza')&&!e.matches('.chips-wrap,.fila-desliza'))return false;
+    const b=e.getBoundingClientRect();return b.width&&(b.right>r.right+.5||b.left<r.left-.5)}).map(e=>e.id||e.className||e.tagName);
+  const filas=[...m.querySelectorAll('.chips-wrap,.fila-desliza')].map(f=>getComputedStyle(f));
+  return {ancho:m.scrollWidth-m.clientWidth,fuera,deLado:cs.overflowX,gesto:cs.touchAction,
+    filasSeDeslizan:filas.every(f=>f.overflowX==='auto'&&f.touchAction.includes('pan-x')&&f.overscrollBehaviorX==='contain'),
+    pagina:document.documentElement.scrollWidth-innerWidth,hojaAncho:Math.round(r.width),pantalla:innerWidth}}"""
+
+
+@pytest.mark.parametrize("ancho", [390, 320], ids=["iphone", "estrecho"])
+@pytest.mark.parametrize("como", ["editar_gasto", "editar_ingreso", "editar_transferencia", "mover", "aportacion", "valor",
+                                  "confirmar", "ajustes"])
+def test_ninguna_hoja_es_mas_ancha_que_la_pantalla_ni_se_mueve_de_lado(app, como, ancho):
+    p = app.page
+    p.set_viewport_size({"width": ancho, "height": 700})
+    hoja = abrir_hoja(app, como)
+    p.wait_for_timeout(450)
+    r = p.evaluate(ANCHO, hoja)
+    assert r["ancho"] <= 0 and not r["fuera"] and r["pagina"] <= 0 and r["hojaAncho"] <= r["pantalla"], (como, ancho, r)
+    # La hoja solo se mueve en vertical; las filas de cuentas y categorías, de lado y sin arrastrar la hoja
+    assert r["deLado"] == "hidden" and r["gesto"] == "pan-y" and r["filasSeDeslizan"], (como, r)

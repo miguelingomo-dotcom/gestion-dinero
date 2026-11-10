@@ -182,7 +182,7 @@ def test_cuentas_ya_no_tiene_metas_ni_deseos(app):
     expect(p.locator("#sec-cuentas")).not_to_contain_text("Lista de deseos")
     for id in ["goalsList", "wishList", "goalOverlay", "goalAddOverlay", "wishOverlay", "budgetOverlay", "budgetList"]:
         expect(p.locator("#" + id)).to_have_count(0)
-    # Sin botones Recargar en ninguna cabecera: se recarga tirando hacia abajo
+    # Sin botones Recargar en ninguna cabecera (ni «tirar hacia abajo»): se refresca al cambiar de pestaña
     expect(p.locator('[aria-label="Recargar"]')).to_have_count(0)
 
 
@@ -234,3 +234,10 @@ def test_los_movimientos_de_la_cuenta_ocupan_todo_el_ancho(app):
     fila.wait_for()
     caja, tarjeta = fila.bounding_box(), app.page.locator("#accountCards").bounding_box()
     assert abs(caja["x"] - tarjeta["x"]) <= 1 and abs(caja["width"] - tarjeta["width"]) <= 1, (caja, tarjeta)
+
+
+
+def test_no_hay_tirar_hacia_abajo_para_recargar(app):
+    # Se quitó porque saltaba sin querer al desplazarse en Movimientos; los datos se refrescan al cambiar de pestaña
+    expect(app.page.locator("#ptrIndicator")).to_have_count(0)
+    assert app.page.evaluate("()=>document.querySelector('.ptr-indicator')") is None
