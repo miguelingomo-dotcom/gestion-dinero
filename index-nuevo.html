@@ -241,6 +241,15 @@ body{
 }
 .clave-input:focus{border-color:var(--accent);}
 .notif-wrap{margin-bottom:24px;}
+.ajustes-lbl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 2px 8px;}
+.modal .ajustes-lbl:first-of-type{margin-top:4px;}
+.sus-card.ajuste{margin:0 0 8px;}
+.modal .notif-wrap{margin-bottom:0;}
+.ajuste-tema{margin:0;flex-shrink:0;}
+.ajuste-tema .type-btn{padding:7px 14px;font-size:14px;}
+.ajuste-clave{width:100%;}
+.clave-cancelar{width:100%;margin-top:10px;}
+.clave-cancelar[hidden]{display:none;}
 .notif-prueba{width:100%;margin-top:10px;}
 .notif-prueba:disabled{opacity:.4;cursor:default;}
 .notif-switch{position:relative;width:51px;height:31px;flex-shrink:0;border:none;border-radius:100px;padding:0;cursor:pointer;
@@ -897,6 +906,7 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       <div class="header-left"><h1 data-i18n="h_inicio_title">Inicio</h1><p data-i18n="h_inicio_sub">Tu resumen financiero</p></div>
       <div class="header-right">
         <button class="icon-btn" id="kashyEyeBtn" onclick="window.kashyPrivacy&&window.kashyPrivacy()" aria-label="Ocultar saldos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg></button>
+        <button class="icon-btn" id="btnAjustes" onclick="openAjustes()" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
         <button class="icon-btn" onclick="showSec('stats',-1)" aria-label="Stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2v10h10A10 10 0 0 0 12 2z"/></svg></button>
         <button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
       </div>
@@ -1128,15 +1138,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="card-title" style="margin:20px 20px 10px;" data-i18n="transf_recurrentes">Transferencias recurrentes</div>
     <div class="reg-wrap" style="margin-bottom:10px;"><div id="transfRecList"></div></div>
 
-    <div class="card-title" style="margin:20px 20px 10px;" data-i18n="notif_titulo">Notificaciones</div>
-    <div class="reg-wrap notif-wrap">
-      <div class="sus-card" style="margin:0;">
-        <div class="sus-icon">🔔</div>
-        <div class="sus-info"><div class="sus-name" id="notifNombre" data-i18n="notif_nombre">Aviso diario</div><div class="sus-meta" id="notifMeta">Entre las 9:00 y las 9:59, si vence algo</div></div>
-        <div class="sus-right"><button type="button" class="notif-switch" id="notifSwitch" role="switch" aria-checked="false" aria-labelledby="notifNombre" onclick="toggleNotificaciones()"><span></span></button></div>
-      </div>
-      <button type="button" class="acc-action notif-prueba" id="notifPrueba" onclick="probarNotificacion()" disabled data-i18n="notif_prueba">Enviar notificación de prueba</button>
-    </div>
   </div>
 
   <div class="section" id="sec-inversion">
@@ -1185,7 +1186,8 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <label class="clave-lbl" for="claveInput" data-i18n="clave_lbl">Clave de acceso</label>
     <input class="clave-input" id="claveInput" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
     <div class="clave-error" id="claveError" role="alert"></div>
-    <button class="submit-btn" type="submit" data-i18n="clave_btn">Entrar</button>
+    <button class="submit-btn" type="submit" id="claveBtn" data-i18n="clave_btn">Entrar</button>
+    <button class="acc-action clave-cancelar" type="button" id="claveCancelar" hidden>Cancelar</button>
   </form>
 </div>
 
@@ -1291,6 +1293,39 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="modal-btns" style="margin-top:6px;">
       <button class="modal-cancel" onclick="closeEdit()" data-i18n="btn_cancelar">Cancelar</button>
       <button class="modal-confirm" onclick="saveEdit()" data-i18n="btn_guardar">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── AJUSTES ── -->
+<div class="modal-overlay" id="ajustesOverlay">
+  <div class="modal" role="dialog" aria-labelledby="ajustesTitulo">
+    <div class="modal-title" id="ajustesTitulo">Ajustes</div>
+    <div class="ajustes-lbl">Apariencia</div>
+    <div class="sus-card ajuste">
+      <div class="sus-info"><div class="sus-name">Tema</div></div>
+      <div class="type-toggle ajuste-tema" role="group" aria-label="Tema">
+        <button type="button" class="type-btn" id="temaClaro" onclick="ponerTema(false)" aria-pressed="false">Claro</button>
+        <button type="button" class="type-btn" id="temaOscuro" onclick="ponerTema(true)" aria-pressed="false">Oscuro</button>
+      </div>
+    </div>
+    <div class="sus-card ajuste">
+      <div class="sus-info"><div class="sus-name" id="privNombre">Ocultar importes</div><div class="sus-meta">Igual que el ojo de Inicio</div></div>
+      <div class="sus-right"><button type="button" class="notif-switch" id="privSwitch" role="switch" aria-checked="false" aria-labelledby="privNombre" onclick="window.kashyPrivacy&&window.kashyPrivacy()"><span></span></button></div>
+    </div>
+    <div class="ajustes-lbl" data-i18n="notif_titulo">Notificaciones</div>
+    <div class="notif-wrap">
+      <div class="sus-card ajuste">
+        <div class="sus-icon">🔔</div>
+        <div class="sus-info"><div class="sus-name" id="notifNombre" data-i18n="notif_nombre">Aviso diario</div><div class="sus-meta" id="notifMeta">Entre las 9:00 y las 9:59, si vence algo</div></div>
+        <div class="sus-right"><button type="button" class="notif-switch" id="notifSwitch" role="switch" aria-checked="false" aria-labelledby="notifNombre" onclick="toggleNotificaciones()"><span></span></button></div>
+      </div>
+      <button type="button" class="acc-action notif-prueba" id="notifPrueba" onclick="probarNotificacion()" disabled data-i18n="notif_prueba">Enviar notificación de prueba</button>
+    </div>
+    <div class="ajustes-lbl">Acceso</div>
+    <button type="button" class="acc-action ajuste-clave" id="btnCambiarClave" onclick="cambiarClave()">Cambiar clave</button>
+    <div class="modal-btns" style="margin-top:18px;">
+      <button class="modal-cancel" onclick="closeAjustes()" style="flex:1;" data-i18n="btn_cerrar">Cerrar</button>
     </div>
   </div>
 </div>
@@ -3040,6 +3075,39 @@ function openEditMovement(pageId){
 }
 function selEditAcc(id,el){editingAccId=id;el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
 function selEditCat(id,el){editingCatId=id;el.parentElement.querySelectorAll('.cat-item').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
+/* ── AJUSTES: tema, privacidad, notificaciones y clave ── */
+function pintarAjustes(){
+  const c=document.getElementById('temaClaro'),o=document.getElementById('temaOscuro');
+  c.classList.toggle('active',!isDark);o.classList.toggle('active',isDark);
+  c.setAttribute('aria-pressed',String(!isDark));o.setAttribute('aria-pressed',String(isDark));
+}
+function openAjustes(){pintarAjustes();document.getElementById('ajustesOverlay').classList.add('show');}
+function closeAjustes(){document.getElementById('ajustesOverlay').classList.remove('show');}
+function ponerTema(oscuro){if(oscuro!==isDark)toggleTheme();pintarAjustes();}
+/* Cambiar la clave: la misma pantalla que al entrar, con Cancelar. La nueva se comprueba al momento
+   refrescando los datos: si el servidor la rechaza, la app la vuelve a pedir como siempre */
+function cambiarClave(){
+  if(claveEspera)return;
+  closeAjustes();
+  const pantalla=document.getElementById('claveScreen'),input=document.getElementById('claveInput');
+  const titulo=document.getElementById('claveTitulo'),sub=document.querySelector('.clave-sub');
+  const btn=document.getElementById('claveBtn'),cancelar=document.getElementById('claveCancelar');
+  const textos=[titulo.textContent,sub.textContent,btn.textContent];
+  const restaurar=()=>{[titulo.textContent,sub.textContent,btn.textContent]=textos;cancelar.hidden=true;pantalla.classList.remove('show');
+    document.getElementById('claveForm').onsubmit=null;};
+  titulo.textContent='Cambiar clave';sub.textContent='La nueva clave sustituye a la guardada en este dispositivo.';btn.textContent='Guardar';
+  document.getElementById('claveError').textContent='';input.value='';cancelar.hidden=false;
+  pantalla.classList.add('show');input.focus({preventScroll:true});
+  cancelar.onclick=restaurar;
+  document.getElementById('claveForm').onsubmit=e=>{
+    e.preventDefault();
+    const v=input.value.trim();
+    if(!v){input.focus();return;}
+    guardarClave(v);input.blur();restaurar();
+    showToast('✓ Clave cambiada','success');
+    refrescarTrasEscritura();
+  };
+}
 function closeEdit(){document.getElementById('editOverlay').classList.remove('show');}
 async function saveEdit(){
   const amt=parseAmt(document.getElementById('editAmt').value);
@@ -4197,7 +4265,7 @@ function closeInvModal(){document.getElementById('invOverlay').classList.remove(
 (function(){
   const CIERRES={invOverlay:'closeInvModal',
     transferOverlay:'closeTransfer',editOverlay:'closeEdit',trEditOverlay:'closeEditTransfer',
-    accionOverlay:'cerrarAccion'};
+    accionOverlay:'cerrarAccion',ajustesOverlay:'closeAjustes'};
   function cerrar(ov){const fn=window[CIERRES[ov.id]];if(typeof fn==='function')fn();else ov.classList.remove('show');}
   document.querySelectorAll('.modal-overlay').forEach(ov=>{
     const modal=ov.querySelector('.modal');
@@ -4406,6 +4474,8 @@ async function saveInv(){
   var ICONO_VER="<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"width:17px;height:17px\"><path d=\"M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"2.6\"/></svg>",ICONO_OCULTO="<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"width:17px;height:17px\"><path d=\"M3 3l18 18\"/><path d=\"M10.6 6.1A9.7 9.7 0 0 1 12 5.5c6.4 0 10 6.5 10 6.5a17 17 0 0 1-3.4 4.1\"/><path d=\"M6.4 7.9A17 17 0 0 0 2 12s3.6 6.5 10 6.5a9.9 9.9 0 0 0 3.4-.6\"/><path d=\"M9.6 9.7a2.6 2.6 0 0 0 3.6 3.7\"/></svg>";
   function pintarOjo(activo){
     document.body.classList.toggle('kashy-privado',activo);
+    var sw=document.getElementById('privSwitch');
+    if(sw){sw.classList.toggle('on',activo);sw.setAttribute('aria-checked',activo?'true':'false');}
     ojos.forEach(function(b){
       b.innerHTML=activo?ICONO_OCULTO:ICONO_VER;
       b.setAttribute('aria-label',activo?t('aria_mostrar_saldos'):t('aria_ocultar_saldos'));

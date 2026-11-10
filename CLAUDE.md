@@ -16,7 +16,7 @@ Run the suite before every commit: `tests/.venv/bin/pytest tests` from the proje
 
 ## Files
 
-- `index-nuevo.html`: **the version in use; make all changes here by default.** It is one file of about 3.5k lines that holds all CSS, markup, and JS (no framework, no modules). It adds features the old version lacks: a splash screen, a privacy "eye" toggle that hides amounts, swipe gestures, and category chips for filtering movements. It used to have a WebAuthn/passkey (Face ID) app lock; that was removed and the app now opens straight to Inicio.
+- `index-nuevo.html`: **the version in use; make all changes here by default.** It is one file of about 3.5k lines that holds all CSS, markup, and JS (no framework, no modules). It adds features the old version lacks: a splash screen, a privacy "eye" toggle that hides amounts, swipe gestures, and category chips for filtering movements. It used to have a WebAuthn/passkey (Face ID) app lock; that was removed and the app now opens straight to Inicio. The gear on Inicio opens the Ajustes sheet (`openAjustes`): theme, privacy, the notification toggle and test button, and Cambiar clave.
 - `index.html`: the older version, kept for reference. Don't edit it unless asked.
 - The owner updates files by uploading them through GitHub's web UI, which is why the history shows repeated "Delete index-nuevo.html" / "Add files via upload" commits.
 - `api/query.js`, `api/page.js`, `api/delete.js`: thin CORS-enabled proxies to Notion (`Notion-Version: 2022-06-28`):
@@ -45,6 +45,6 @@ Run the suite before every commit: `tests/.venv/bin/pytest tests` from the proje
 
 ## Security note
 
-Every `/api/*` endpoint requires the shared secret in the `X-Kashy-Key` header, compared in constant time with the `KASHY_KEY` Vercel env var (`api/_auth.js`). It answers 401 with a wrong or missing key and 500 if the variable is not set. `index-nuevo.html` asks for the key once, stores it in localStorage, and its `fetch` wrapper adds it to every `/api/` call and asks again on a 401. `/api/gasto` and `/api/history` forward the key when they call their own deployment. Never cache an authenticated response in the CDN: it would be served without running the check.
+Every `/api/*` endpoint requires the shared secret in the `X-Kashy-Key` header, compared in constant time with the `KASHY_KEY` Vercel env var (`api/_auth.js`). It answers 401 with a wrong or missing key and 500 if the variable is not set. `index-nuevo.html` asks for the key once, stores it in localStorage (it can be changed from Ajustes › Cambiar clave), and its `fetch` wrapper adds it to every `/api/` call and asks again on a 401. `/api/gasto` and `/api/history` forward the key when they call their own deployment. Never cache an authenticated response in the CDN: it would be served without running the check.
 
 The Notion token lives only in the `NOTION_TOKEN` Vercel env var and `api/_notion.js` reads it; if Notion rejects it the proxies answer 502, never 401, so the app doesn't ask for the key by mistake. Never put a token in the code: the old one remains in the git history, so it must stay revoked.

@@ -36,7 +36,7 @@ def estado(app):
 
 def test_al_abrir_no_pide_permiso_y_esta_apagado(abrir):
     app = abrir(antes=con_push())
-    app.ir("cuentas")
+    app.abrir_ajustes()
     expect(interruptor(app)).to_have_attribute("aria-checked", "false")
     expect(app.page.locator("#notifPrueba")).to_be_disabled()
     expect(app.page.locator("#notifMeta")).to_have_text("Entre las 9:00 y las 9:59, si vence algo")
@@ -46,7 +46,7 @@ def test_al_abrir_no_pide_permiso_y_esta_apagado(abrir):
 
 def test_activar_pide_permiso_suscribe_y_guarda(abrir):
     app = abrir(antes=con_push())
-    app.ir("cuentas")
+    app.abrir_ajustes()
     interruptor(app).click()
     expect(app.toast()).to_contain_text("Notificaciones activadas")
     expect(interruptor(app)).to_have_attribute("aria-checked", "true")
@@ -60,7 +60,7 @@ def test_activar_pide_permiso_suscribe_y_guarda(abrir):
 def test_permiso_denegado_no_suscribe(abrir):
     app = abrir(antes=con_push())
     app.page.evaluate("()=>{window.__push.respuesta='denied'}")
-    app.ir("cuentas")
+    app.abrir_ajustes()
     interruptor(app).click()
     expect(app.toast()).to_contain_text("Ajustes › Notificaciones")
     expect(interruptor(app)).to_have_attribute("aria-checked", "false")
@@ -70,7 +70,7 @@ def test_permiso_denegado_no_suscribe(abrir):
 def test_desactivar_da_de_baja_en_el_iphone_y_en_el_servidor(abrir):
     app = abrir(antes=con_push("granted", "https://push.example/vieja"))
     app.push["suscripcion"] = {"endpoint": "https://push.example/vieja"}
-    app.ir("cuentas")
+    app.abrir_ajustes()
     expect(interruptor(app)).to_have_attribute("aria-checked", "true")
     interruptor(app).click()
     expect(app.toast()).to_contain_text("Notificaciones desactivadas")
@@ -80,7 +80,7 @@ def test_desactivar_da_de_baja_en_el_iphone_y_en_el_servidor(abrir):
 
 def test_al_abrir_reenvia_la_suscripcion_si_el_servidor_no_la_tiene(abrir):
     app = abrir(antes=con_push("granted", "https://push.example/movil"))
-    app.ir("cuentas")
+    app.abrir_ajustes()
     expect(interruptor(app)).to_have_attribute("aria-checked", "true")
     app.page.wait_for_load_state("networkidle")
     assert app.push["suscripcion"]["endpoint"] == "https://push.example/movil"
@@ -103,7 +103,7 @@ def test_al_abrir_no_reescribe_si_ya_coincide(abrir):
 def test_boton_de_prueba(abrir):
     app = abrir(antes=con_push("granted", "https://push.example/movil"))
     app.push["suscripcion"] = {"endpoint": "https://push.example/movil"}
-    app.ir("cuentas")
+    app.abrir_ajustes()
     expect(app.page.locator("#notifPrueba")).to_be_enabled()
     app.page.locator("#notifPrueba").click()
     expect(app.toast()).to_contain_text("Enviada")
@@ -114,7 +114,7 @@ def test_prueba_con_suscripcion_caducada_apaga_el_interruptor(abrir):
     app = abrir(antes=con_push("granted", "https://push.example/movil"))
     app.push["suscripcion"] = {"endpoint": "https://push.example/movil"}
     app.push["codigo_prueba"] = 410
-    app.ir("cuentas")
+    app.abrir_ajustes()
     app.page.locator("#notifPrueba").click()
     expect(app.toast()).to_contain_text("vuelve a activarlas")
     expect(interruptor(app)).to_have_attribute("aria-checked", "false")
@@ -123,7 +123,7 @@ def test_prueba_con_suscripcion_caducada_apaga_el_interruptor(abrir):
 
 def test_sin_soporte_explica_que_hay_que_instalarla(abrir):
     app = abrir(antes=lambda page: page.add_init_script("delete window.PushManager"))
-    app.ir("cuentas")
+    app.abrir_ajustes()
     expect(interruptor(app)).to_be_disabled()
     expect(app.page.locator("#notifMeta")).to_contain_text("pantalla de inicio")
 
@@ -154,7 +154,7 @@ def test_si_la_prueba_falla_muestra_el_motivo(abrir):
     app = abrir(antes=con_push("granted", "https://push.example/movil"))
     app.push["suscripcion"] = {"endpoint": "https://push.example/movil"}
     app.push["codigo_prueba"] = 502
-    app.ir("cuentas")
+    app.abrir_ajustes()
     app.page.locator("#notifPrueba").click()
     expect(app.toast()).to_have_text("No se pudo enviar: El servicio push respondió 403")
     expect(interruptor(app)).to_have_attribute("aria-checked", "true")

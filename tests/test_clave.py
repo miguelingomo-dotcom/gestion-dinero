@@ -12,7 +12,7 @@ def pantalla(app):
 
 def introducir(app, clave):
     app.page.locator("#claveInput").fill(clave)
-    app.page.locator("#claveForm button").click()
+    app.page.locator("#claveBtn").click()
 
 
 def test_primer_arranque_pide_la_clave_y_no_llama_a_la_api_sin_ella(abrir):

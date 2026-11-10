@@ -55,6 +55,12 @@ class App:
             raise ValueError(seccion)
         expect(self.page.locator("#sec-" + seccion)).to_have_class(re.compile(r"\bactive\b"))
 
+    def abrir_ajustes(self):
+        """Hoja de Ajustes desde el engranaje de Inicio (tema, privacidad, notificaciones y clave)."""
+        self.ir("inicio")
+        self.page.locator("#btnAjustes").click()
+        expect(self.page.locator("#ajustesOverlay")).to_have_class(re.compile(r"\bshow\b"))
+
     def toast(self):
         return self.page.locator("#toast")
 
