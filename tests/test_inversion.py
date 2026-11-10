@@ -145,3 +145,18 @@ def test_editar_aportacion_avisa_si_falla_la_transferencia(app):
     editar(app, datos.AP_ENLAZADA, "180", "2026-10-25")
     expect(app.toast()).to_contain_text("no se pudo actualizar la transferencia")
     assert app.notion.pagina(datos.AP_ENLAZADA)["properties"]["InvImporte"]["number"] == 180
+
+
+def test_rediseno_formato_espanol_e_iconos(app):
+    p = app.page
+    app.ir("inversion")
+    expect(p.locator("#invPct")).to_have_text(re.compile(r"^[+-]\d+,\d %$"))
+    expect(p.locator("#invValorActual .dec")).to_have_text(re.compile(r"^,\d\d €$"))
+    filas = p.locator("#invHistList .mov-item")
+    expect(filas.first).to_be_visible()
+    # Aportaciones con flecha verde y valores de cartera con la gráfica morada; sin emojis
+    expect(p.locator("#invHistList .mov-icon .kficha.cat")).to_have_count(filas.count())
+    assert not [t for t in p.locator("#invHistList .mov-icon").all_inner_texts() if t.strip()]
+    # El ISIN es un botón para copiarlo
+    expect(p.locator("#invFondos .fondo-isin").first).to_have_attribute("aria-label", re.compile(r"Copiar ISIN"))
+    expect(p.locator("#invAportMensualLbl")).to_have_text("150,00 €")

@@ -121,3 +121,24 @@ def test_ningun_importe_de_cuentas_se_corta(abrir):
         cortadas = p.evaluate(CORTADAS.replace(".hero-mini,", ".account-card-head,.acc-mov-row,.sus-card,.hero-mini,"), sel)
         assert not cortadas, (ancho, cortadas)
         assert p.evaluate("()=>document.documentElement.scrollWidth<=innerWidth")
+
+
+def _inv_enorme(notion):
+    datos.valor_cartera(notion, "S&P 500", 98765432.1, "2026-11-10")
+
+
+def test_ningun_importe_de_inversion_se_corta(abrir):
+    app = abrir(mas=_inv_enorme)
+    p = app.page
+    app.ir("inversion")
+    p.wait_for_function("()=>document.getElementById('invValorActual').dataset.rawVal>9e7", timeout=4000)
+    sel = "#sec-inversion .hero-amount,#sec-inversion .hero-mini-val,#sec-inversion .fondo-val,#invHistList .mov-amount"
+    for ancho in [390, 320]:
+        p.set_viewport_size({"width": ancho, "height": 760})
+        p.wait_for_timeout(700)
+        cortadas = p.evaluate(CORTADAS.replace(".hero-mini,", ".fondo-head,.mov-item,.hero-mini,"), sel)
+        assert not cortadas, (ancho, cortadas)
+        # El ISIN se ve entero aunque el rendimiento sea enorme (este pasa a la línea de abajo)
+        isin = p.evaluate("()=>[...document.querySelectorAll('#invFondos .fondo-isin')].every(e=>e.scrollWidth<=e.clientWidth+1&&e.textContent.trim().length===12)")
+        assert isin, ancho
+        assert p.evaluate("()=>document.documentElement.scrollWidth<=innerWidth")
