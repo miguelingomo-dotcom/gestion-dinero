@@ -103,7 +103,7 @@ def responder_push(app, metodo, url, cuerpo):
         if not p["suscripcion"]:
             return 409, {"error": "Sin suscripción"}
         p["pruebas"] += 1
-        return p["codigo_prueba"], {}
+        return p["codigo_prueba"], ({} if p["codigo_prueba"] == 200 else {"error": "El servicio push respondió 403"})
     p["suscripcion"] = cuerpo["subscription"]
     p["guardados"] += 1
     return 200, {"ok": True}

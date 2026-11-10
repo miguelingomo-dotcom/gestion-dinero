@@ -45,7 +45,11 @@ export default async function handler(req, res) {
         res.status(410).json({ error: 'La suscripción ya no es válida' });
         return;
       }
-      if (estado < 200 || estado >= 300) { res.status(502).json({ error: 'El servicio push respondió ' + estado }); return; }
+      if (estado < 200 || estado >= 300) {
+        console.error('push de prueba rechazado:', estado);
+        res.status(502).json({ error: 'El servicio push respondió ' + estado });
+        return;
+      }
       res.status(200).json({ ok: true });
       return;
     }
@@ -55,6 +59,7 @@ export default async function handler(req, res) {
     await guardarAjustes(ajustes, { suscripcion: { endpoint: s.endpoint, keys: { p256dh: s.keys.p256dh, auth: s.keys.auth } } });
     res.status(200).json({ ok: true });
   } catch (e) {
+    console.error('api/push:', e.message || e);
     res.status(502).json({ error: String(e.message || e) });
   }
 }

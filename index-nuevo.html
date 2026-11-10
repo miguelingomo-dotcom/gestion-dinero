@@ -1595,7 +1595,7 @@ const I18N={
     notif_no_disponible:'Añade Ka$hy a la pantalla de inicio para activarlas',notif_prueba:'Enviar notificación de prueba',
     notif_activadas:'✓ Notificaciones activadas',notif_desactivadas:'Notificaciones desactivadas',
     notif_denegado:'Bloqueadas: actívalas en Ajustes › Notificaciones › Ka$hy',notif_error:'No se pudo cambiar. Inténtalo de nuevo',
-    notif_prueba_ok:'✓ Enviada: llegará en unos segundos',notif_caducada:'La suscripción ya no vale: vuelve a activarlas',
+    notif_prueba_ok:'✓ Enviada: llegará en unos segundos',notif_prueba_fallo:'No se pudo enviar',notif_caducada:'La suscripción ya no vale: vuelve a activarlas',
     cobros_hoy:'⚠️ Cobros hoy',transf_hoy:'⇄ Transferencias hoy',importe_a_elegir:'importe a elegir',
     ahorrando_bien:'Estás ahorrando bien 💪',cuidado_gastos:'Cuidado con los gastos ⚠️',
     tasa_excelente:'De cada 100€ que ingresas, ahorras {t}€ — excelente 🎯',
@@ -1706,7 +1706,7 @@ const I18N={
     notif_no_disponible:'Add Ka$hy to your Home Screen to turn them on',notif_prueba:'Send test notification',
     notif_activadas:'✓ Notifications on',notif_desactivadas:'Notifications off',
     notif_denegado:'Blocked: turn them on in Settings › Notifications › Ka$hy',notif_error:'Couldn\'t change it. Please try again',
-    notif_prueba_ok:'✓ Sent: it should arrive in a few seconds',notif_caducada:'The subscription expired: turn them on again',
+    notif_prueba_ok:'✓ Sent: it should arrive in a few seconds',notif_prueba_fallo:'Couldn\'t send it',notif_caducada:'The subscription expired: turn them on again',
     cobros_hoy:'⚠️ Due today',transf_hoy:'⇄ Transfers today',importe_a_elegir:'choose amount',
     ahorrando_bien:'You\'re saving well 💪',cuidado_gastos:'Watch your spending ⚠️',
     tasa_excelente:'For every €100 you earn, you save €{t} — excellent 🎯',
@@ -2082,7 +2082,11 @@ async function probarNotificacion(){
     const r=await fetch('/api/push?prueba=1',{method:'POST'});
     if(r.ok)showToast(t('notif_prueba_ok'),'success');
     else if(r.status===410||r.status===409){pintarNotif(false);showToast(t('notif_caducada'),'error');return;}
-    else showToast(t('notif_error'),'error');
+    else{
+      // El motivo que da el servidor (claves VAPID, respuesta de Apple...), para poder arreglarlo
+      let motivo='';try{motivo=(await r.json()).error||'';}catch(e){}
+      showToast(t('notif_prueba_fallo')+(motivo?': '+motivo:''),'error');
+    }
   }catch(e){showToast(t('toast_conexion'),'error');}
   b.disabled=document.getElementById('notifSwitch').getAttribute('aria-checked')!=='true';
 }

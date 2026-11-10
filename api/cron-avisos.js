@@ -52,10 +52,15 @@ export default async function handler(req, res) {
       res.status(200).json({ enviado: false, motivo: 'suscripción caducada: borrada' });
       return;
     }
-    if (estado < 200 || estado >= 300) { res.status(502).json({ error: 'El servicio push respondió ' + estado }); return; }
+    if (estado < 200 || estado >= 300) {
+      console.error('aviso diario rechazado:', estado);
+      res.status(502).json({ error: 'El servicio push respondió ' + estado });
+      return;
+    }
     await guardarAjustes(ajustes, { ultimoEnvio: hoy, ...(cartera ? { carteraAvisada: cartera.clave } : {}) });
     res.status(200).json({ enviado: true, hoy });
   } catch (e) {
+    console.error('api/cron-avisos:', e.message || e);
     res.status(502).json({ error: String(e.message || e) });
   }
 }

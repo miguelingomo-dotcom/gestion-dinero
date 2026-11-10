@@ -148,3 +148,13 @@ def test_vercel_cron_en_la_franja_de_las_9_en_madrid():
     horas = sorted(c["schedule"] for c in v["crons"])
     assert horas == ["0 7 * * *", "0 8 * * *"]  # 9:00 en Madrid: 07 UTC en verano, 08 UTC en invierno
     assert all(c["path"].startswith("/api/cron-avisos") for c in v["crons"])
+
+
+def test_si_la_prueba_falla_muestra_el_motivo(abrir):
+    app = abrir(antes=con_push("granted", "https://push.example/movil"))
+    app.push["suscripcion"] = {"endpoint": "https://push.example/movil"}
+    app.push["codigo_prueba"] = 502
+    app.ir("cuentas")
+    app.page.locator("#notifPrueba").click()
+    expect(app.toast()).to_have_text("No se pudo enviar: El servicio push respondió 403")
+    expect(interruptor(app)).to_have_attribute("aria-checked", "true")
