@@ -80,3 +80,22 @@ def test_los_saldos_del_carrusel_nunca_se_cortan(abrir):
         # Todas las tarjetas miden lo mismo: un nombre largo no las estira
         anchos = p.evaluate("()=>[...document.querySelectorAll('#quickAccounts .qa-card')].map(c=>Math.round(c.getBoundingClientRect().width))")
         assert len(set(anchos)) == 1, anchos
+
+
+def _movs_enormes(notion):
+    datos.gasto(notion, "Casa de la playa con jardín y piscina", "2026-11-14", 98765432.1)
+    datos.ingreso(notion, "Premio", "2026-11-13", 12345678.9)
+
+
+def test_ningun_importe_de_movimientos_se_corta(abrir):
+    app = abrir(mas=_movs_enormes)
+    p = app.page
+    app.ir("movimientos")
+    expect(app.fila_mov("Casa de la playa")).to_contain_text("98.765.432,10 €")
+    sel = "#recentMovs .mov-amount,#recentMovs .mov-day-bal"
+    for ancho in [390, 320]:
+        p.set_viewport_size({"width": ancho, "height": 760})
+        p.wait_for_timeout(300)
+        cortadas = p.evaluate(CORTADAS.replace(".hero-mini,", ".mov-item,.mov-daygroup,.hero-mini,"), sel)
+        assert not cortadas, (ancho, cortadas)
+        assert p.evaluate("()=>document.documentElement.scrollWidth<=innerWidth")

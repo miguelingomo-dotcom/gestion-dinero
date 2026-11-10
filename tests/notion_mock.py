@@ -38,6 +38,8 @@ def _cumple(pagina, filtro):
         return any(_cumple(pagina, f) for f in filtro["or"])
     valor = pagina["properties"].get(filtro["property"], {})
     if "title" in filtro:
+        if "contains" in filtro["title"]:  # como Notion: sin distinguir mayúsculas
+            return filtro["title"]["contains"].lower() in _texto(valor.get("title")).lower()
         return _texto(valor.get("title")) == filtro["title"]["equals"]
     if "rich_text" in filtro:
         return _texto(valor.get("rich_text")) == filtro["rich_text"]["equals"]
