@@ -8,7 +8,7 @@ Propuesta para que Ka$hy se sienta como una app de finanzas nativa del nivel de 
 |---|---|---|
 | Tipografía | Fuente de sistema o propia muy cuidada, pocos tamaños, jerarquía por peso | SF Pro (fuente del sistema) con 7 tamaños fijos; jerarquía con peso y color, no con tamaño |
 | Números | Cifra principal enorme, decimales más pequeños, cifras de ancho fijo | Patrimonio a 48 pt con los decimales a 28 pt en gris; `tabular-nums` en todas las cantidades |
-| Color | Base neutra casi monocroma; el color solo significa algo | Fondo y superficies neutras; un único acento (morado Ka$hy) para lo pulsable y lo seleccionado; verde solo para ingresos y subidas; rojo solo para errores, borrar y saldos negativos. **Los gastos van en el color del texto, no en rojo** |
+| Color | Base neutra casi monocroma; el color solo significa algo | Fondo y superficies neutras. Importes como en la app actual: **gastos en rojo, ingresos en verde y transferencias en morado Ka$hy**. El morado es también el color de lo pulsable y lo seleccionado |
 | Espacio | Mucho aire, márgenes constantes, nada pegado | Escala de 4 px; márgenes laterales de 16 y 20 px |
 | Tarjetas | Pocas, grandes, radio generoso; agrupan, no decoran | Listas agrupadas (estilo iOS) con separadores finos sangrados; sombras casi nulas en claro y ninguna en oscuro |
 | Listas | Filas de 60-64 pt con icono en ficha, título, subtítulo e importe a la derecha | Fila estándar: ficha de 40 pt, título 16 pt, subtítulo 13 pt en gris, importe 16 pt alineado a la derecha |
@@ -27,9 +27,9 @@ Propuesta para que Ka$hy se sienta como una app de finanzas nativa del nivel de 
 | `--fill` | gris al 12 % | gris al 24 % | Botones secundarios, chips, buscador, ficha neutra |
 | `--text` / `--text-2` / `--text-3` | `#0B0B0F` / `#62626E` / `#8E8E99` | `#F4F4F6` / `#A1A1AC` / `#73737E` | Texto principal, secundario y terciario |
 | `--separator` | gris al 16 % | gris al 42 % | Separadores de 0,5 px |
-| `--accent` | `#5B4CEB` | `#A197FF` | Acción principal, selección, gráfica |
+| `--accent` | `#5B4CEB` | `#A197FF` | Acción principal, selección, gráfica, importes de transferencias |
 | `--positive` | `#0A8A4A` | `#3DD68C` | Ingresos, subidas |
-| `--negative` | `#D0342C` | `#FF7A70` | Borrar, errores, saldo negativo |
+| `--negative` | `#D0342C` | `#FF7A70` | Gastos, borrar, errores, saldo negativo |
 | `--warning` | `#B26B00` | `#FFC247` | Avisos («Hoy vence») |
 
 Las barras superior e inferior usan un material translúcido (`backdrop-filter`) con el fondo debajo; con «Reducir transparencia» pasan a ser opacas.
@@ -63,7 +63,7 @@ Las barras superior e inferior usan un material translúcido (`backdrop-filter`)
 Con «Reducir movimiento», todo pasa a ser instantáneo o a un simple fundido.
 
 ## 3. Componentes
-- **Cabecera:** se pliega al hacer scroll y muestra el título pequeño (en Inicio, el patrimonio redondeado).
+- **Cabecera:** el nombre de la pantalla a la izquierda y, a la derecha, el ojo (ocultar saldos) y el botón de tema (luna o sol), como en la app actual. Al hacer scroll se pliega y muestra el título pequeño (en Inicio, el patrimonio redondeado).
 - **Fila de lista:** ficha, título y subtítulo, e importe. Los grupos se cabecean por día, con el balance del día a la derecha.
 - **Ficha:** categoría (icono Lucide sobre su color al 12 %), marca (logo sobre su color oficial) o inicial (letra sobre el color del banco).
 - **Chips de filtro:** píldoras grises; el seleccionado se invierte (texto sobre fondo de texto).
@@ -107,15 +107,58 @@ Con «Reducir movimiento», todo pasa a ser instantáneo o a un simple fundido.
 | Transferencia | `arrow-left-right` | avance | todo |
 | Efectivo | `banknote` | flote | todo |
 
-### Marcas y bancos: Simple Icons (licencia CC0)
-- **Hay logo oficial de:** Spotify, DAZN, IKEA, iCloud, Claude y Revolut. Cada uno va sobre su color oficial de Simple Icons.
-- **No están** en Simple Icons: Ibercaja, Sabadell, MyInvestor, Openbank y Pluxee. Llevan su inicial sobre un color de la marca. Los del demo son **provisionales**: no los he comprobado en fuentes oficiales, y en la fase 2 se fijarán a partir del manual de marca de cada banco (o de los `BANK_COLORS` actuales de la app). No se dibuja ningún logo a mano.
-- **Licencia:** los SVG de Simple Icons son de dominio público, pero las marcas siguen siendo de sus dueños. Se usan solo para identificar el servicio en una app personal y sin modificar su forma.
+### Logos de comercios y bancos
+
+**Regla:** si el nombre de un movimiento contiene un comercio conocido, la ficha muestra su logo; si no, el icono de su categoría. La lista va **dentro de la app**: no se consulta ninguna API de logos ni se carga nada externo, así que nadie sabe qué comercios usas.
+
+**Cómo se reconoce el comercio:**
+- Se ignoran mayúsculas, tildes, emojis y signos («McDonald’s» = «mcdonalds»).
+- Se buscan palabras enteras, así que «desayunike» no es Nike.
+- Si aparecen dos comercios, gana el primero: «mercadona nike» es Mercadona.
+- Las marcas de una palabra admiten **una errata**: «mercadoan», «spotfy», «vintde». En marcas de menos de 7 letras solo cuenta una letra cambiada o dos intercambiadas, para que «consumo» no sea Consum.
+
+**Comercios encontrados en tus movimientos de Notion** (solo lectura) y su logo:
+
+| Comercio | Cómo lo escribes | Logo |
+|---|---|---|
+| Vinted | vinted, vintedada, «zapas vinted»… | Simple Icons |
+| Mercadona | mercadona, «compra mercadona»… | Web oficial (favicon) |
+| DAZN | dazn, dazn fútbol, dazn basket | Simple Icons |
+| McDonald's | mcdonalds, mcdonald, mcdonald’s, macdonalds, mcdon, macdon, mcdo, mcd, mackies, mc | Simple Icons |
+| Spotify · iCloud · Claude · IKEA | igual que su nombre | Simple Icons |
+| AliExpress | aliexpress, ali express | Simple Icons |
+| Nike | nike (palabra entera) | Simple Icons |
+| Funko | funko, funkos | Web oficial (favicon) |
+| EA Play | ea play, ea play pro | Simple Icons (EA) |
+| Alcampo | alcampo | Web oficial (favicon) |
+| KFC · Zara · Starbucks · PayPal · Klarna · Airbnb | igual que su nombre | Simple Icons |
+| Google (AI Pro) | google | Simple Icons |
+| Winamax | winamax | Web oficial (icono de app) |
+| Consum | consum | Web oficial (favicon) |
+| Muerde la Pasta | muerde la pasta | Web oficial (icono de app) |
+| Panini | panini | Web oficial (favicon) |
+| Decathlon · Primark · Amazon | igual que su nombre | **Sin logo: inicial.** Sus webs bloquearon la descarga (403) |
+
+Sin comercio, con icono de categoría: «pan», «gasolina», «desayuno», «sushi», «gym», «awela», «nómina», «boca te lía», «aires burger», «wina», etc. Bares y restaurantes locales no tienen logo público, y «wina» o «bet» no se asocian a ninguna casa de apuestas porque no siempre lo son.
+
+**Bancos y cuentas (logo oficial descargado de su propia web, guardado dentro de la app):**
+
+| Cuenta | Fuente |
+|---|---|
+| Ibercaja | Icono de www.ibercaja.es (`/favicon.ico`, 128 px) |
+| Sabadell | Icono de app de www.bancsabadell.com (`apple-icon-180x180.png`) |
+| MyInvestor y MyInvestor Remunerada | Icono de app de myinvestor.es (`myinvestor_apple-touch-icon` de cdn.myinvestor.es) |
+| Openbank (Corriente y Ahorro) | Símbolo (la llave) recortado del logo oficial de www.openbank.es (`Logo_Web_8_0.svg`), sin redibujar |
+| Pluxee | Icono de app de www.pluxee.es (`apple-touch-icon-152x152.png`) |
+| Revolut (Personal y Compartida) | Simple Icons |
+| Efectivo | Icono Lucide `banknote` |
+
+**Licencias:** Lucide (ISC) y Simple Icons (CC0). Los logos de las webs oficiales son marcas de sus dueños; se usan sin modificar (solo redimensionados, y en Openbank recortado el símbolo) y únicamente para identificar el comercio o el banco en una app personal.
 
 ### Emojis guardados en Notion
 - Los nombres de Notion se quedan como están («🎵 Spotify», «🤖 Claude Pro»), porque `kashy-vencimientos.js` y el registro de cuotas dependen del nombre exacto.
 - La app quita el emoji solo al mostrar el nombre y elige el icono así: (1) si el nombre contiene una marca conocida, su logo; (2) si no, el icono de su categoría, según el id de la relación «Fuente de Gasto/Ingreso»; (3) si tampoco hay categoría, `wallet`.
-- Las cuentas se identifican por su id, no por el emoji de su nombre.
+- Las cuentas se identifican por su id, no por el emoji de su nombre, y cada una lleva el logo de su banco.
 - Los emojis de las constantes de la app (`GASTOS`, `INGRESOS`, `CUENTAS`) pasan a ser nombres de icono.
 
 ## 5. Fase 2 (cuando des el visto bueno)
