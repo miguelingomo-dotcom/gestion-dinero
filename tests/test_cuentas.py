@@ -225,3 +225,12 @@ def test_cuentas_con_logo_del_banco(app):
     expect(app.cuenta("Ibercaja").locator(".account-card-head .kficha.logo img")).to_have_count(1)
     expect(app.cuenta("Revolut Personal").locator(".account-card-head .kficha.marca")).to_have_count(1)
     expect(app.cuenta("Efectivo").locator(".account-card-head .kficha.cat")).to_have_count(1)
+
+
+def test_los_movimientos_de_la_cuenta_ocupan_todo_el_ancho(app):
+    app.ir("cuentas")
+    t = app.desplegar_cuenta("Ibercaja")
+    fila = t.locator(".acc-mov-row").first
+    fila.wait_for()
+    caja, tarjeta = fila.bounding_box(), app.page.locator("#accountCards").bounding_box()
+    assert abs(caja["x"] - tarjeta["x"]) <= 1 and abs(caja["width"] - tarjeta["width"]) <= 1, (caja, tarjeta)

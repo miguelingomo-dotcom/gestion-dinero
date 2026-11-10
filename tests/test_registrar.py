@@ -140,8 +140,12 @@ def test_pagos_con_logo_y_formato_espanol(app):
     spotify = p.locator(".sus-card-wrap", has=p.locator(".sus-name", has_text="Spotify"))
     expect(spotify.locator(".sus-icon .kficha.marca svg")).to_have_count(1)
     expect(spotify.locator(".sus-amount")).to_have_text("-20,99 €")
-    letra = p.locator(".sus-card-wrap", has=p.locator(".sus-name", has_text="Letra Coche"))
-    expect(letra.locator(".sus-icon .kficha.cat")).to_have_count(1)
+    # Las dos de Coche llevan el logo de Hyundai (tu coche); el resto sin marca, el icono de su categoría
+    for nombre in ["Letra Coche", "Revisiones Coche"]:
+        coche = p.locator(".sus-card-wrap", has=p.locator(".sus-name", has_text=nombre))
+        expect(coche.locator(".sus-icon .kficha.marca svg")).to_have_count(1)
+    vinilos = p.locator(".sus-card-wrap", has=p.locator(".sus-name", has_text="Vinilos"))
+    expect(vinilos.locator(".sus-icon .kficha.cat")).to_have_count(1)
     # Cuentas con su logo, sin emojis
     expect(p.locator("#accountChips .chip", has_text="Ibercaja").locator(".kficha.logo")).to_have_count(1)
 
@@ -179,3 +183,16 @@ def test_cada_barra_de_cuotas_va_del_color_de_su_categoria(app):
     assert coche == "rgb(59, 123, 217)"   # Coche #3B7BD9
     assert ikea == "rgb(46, 140, 140)"    # Hogar #2E8C8C
     assert vinilos == "rgb(123, 92, 224)"  # Ocio #7B5CE0
+
+
+def test_la_categoria_coche_lleva_el_logo_de_hyundai(app):
+    p = app.page
+    app.ir("registrar")
+    coche = p.locator('#catGrid .cat-item[data-cat="%s"]' % datos.CAT_COCHE)
+    expect(coche.locator(".cat-circle path")).to_have_count(1)  # el logo, no el icono del coche
+    assert coche.evaluate("e=>getComputedStyle(e.querySelector('.cat-circle')).backgroundColor") == "rgb(0, 44, 94)"
+    coche.click()
+    expect(coche).to_have_class("cat-item selected")
+    # En Movimientos, «Seguro» (categoría Coche) también
+    app.ir("movimientos")
+    expect(app.fila_mov("Seguro").locator(".mov-icon .kficha.marca")).to_have_count(1)
