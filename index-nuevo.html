@@ -1858,8 +1858,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('invAportMensualLbl').textContent=INV_APORTACION_MENSUAL;
   document.getElementById('invAportDiaLbl').textContent=INV_APORTACION_DIA;
   // Sin tiempo mínimo: el splash se va en cuanto Inicio tiene datos que pintar (tope de 1,2 s si la red va lenta)
+  // El logo se ve hasta que llegan los datos (como mucho 1,2 s), también con datos guardados: debajo ya están pintados
   const carga=Promise.all([loadInicio().catch(()=>{}),loadAccounts()]);
-  Promise.race([cachePantalla['v|total']!=null?Promise.resolve():carga,new Promise(r=>setTimeout(r,1200))])
+  Promise.race([carga,new Promise(r=>setTimeout(r,1200))])
     .then(()=>{document.getElementById('splashScreen').classList.add('hide');});
   loadCuentasActivas();
   loadInversion();

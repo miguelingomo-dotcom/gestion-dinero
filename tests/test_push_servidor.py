@@ -22,4 +22,4 @@ def test_notificaciones_en_el_servidor():
         os.symlink(RAIZ / "node_modules", t / "node_modules")
         r = subprocess.run(["node", str(RAIZ / "tests" / "push_servidor.mjs"), str(t)], capture_output=True, text=True, timeout=120)
     assert r.returncode == 0, r.stdout + r.stderr
-    assert "pruebas: 20" in r.stdout, r.stdout
+    assert "pruebas: 21" in r.stdout, r.stdout

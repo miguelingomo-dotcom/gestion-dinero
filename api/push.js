@@ -5,7 +5,7 @@
 //   DELETE           → borra la suscripción
 import { autorizado } from './_auth.js';
 import { leerAjustes, guardarAjustes } from './_ajustes.js';
-import { enviarPush, vapidListo, suscripcionCaducada } from './_push.js';
+import { enviarPush, vapidListo, suscripcionCaducada, clavePublica } from './_push.js';
 
 export const config = { api: { bodyParser: true } };
 
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   try {
     const ajustes = await leerAjustes();
     if (req.method === 'GET') {
-      res.status(200).json({ publicKey: process.env.VAPID_PUBLIC_KEY, suscrito: !!ajustes.suscripcion,
+      res.status(200).json({ publicKey: clavePublica(), suscrito: !!ajustes.suscripcion,
         endpoint: ajustes.suscripcion ? ajustes.suscripcion.endpoint : null });
       return;
     }

@@ -244,6 +244,19 @@ await ok('push: clave pública, guardar, probar, caducada y borrar', async () =>
   process.env.VAPID_PRIVATE_KEY = vapid.privateKey;
 });
 
+await ok('claves copiadas con espacios, saltos de línea o «=» final: se limpian y la prueba sale', async () => {
+  reiniciar(); ahora('2026-07-23T12:00:00Z');
+  const pub = process.env.VAPID_PUBLIC_KEY, priv = process.env.VAPID_PRIVATE_KEY;
+  process.env.VAPID_PUBLIC_KEY = ' ' + pub + '=\n'; process.env.VAPID_PRIVATE_KEY = priv + ' \n'; process.env.VAPID_SUBJECT = ' https://kashy.test\n';
+  try {
+    assert.equal((await llamarPush('GET')).cuerpo.publicKey, pub);
+    await llamarPush('POST', { body: { subscription: SUB } });
+    const r = await llamarPush('POST', { query: { prueba: '1' } });
+    assert.equal(r.codigo, 200, JSON.stringify(r.cuerpo));
+    assert.equal(leer(envios[0]).title, 'Ka$hy · Prueba');
+  } finally { process.env.VAPID_PUBLIC_KEY = pub; process.env.VAPID_PRIVATE_KEY = priv; process.env.VAPID_SUBJECT = 'mailto:prueba@example.com'; }
+});
+
 // ── Service worker ──
 await ok('sw: muestra la notificación sin tag, no cierra nada, abre Inicio y no intercepta peticiones', async () => {
   const oyentes = {}, mostradas = [], abiertas = [], mensajes = [];

@@ -57,7 +57,8 @@ def test_al_abrir_la_app_se_ve_lo_guardado_antes_de_que_responda_notion(abrir):
     p.wait_for_timeout(600)  # la caché se escribe en localStorage con un pequeño retardo
     p.evaluate("()=>sessionStorage.setItem('sin-red','1')")
     p.reload()
-    expect(p.locator("#splashScreen")).to_have_class(re.compile(r"\bhide\b"), timeout=400)
+    # Sin red el logo se va a los 1,2 s, y debajo ya están los datos guardados
+    expect(p.locator("#splashScreen")).to_have_class(re.compile(r"\bhide\b"), timeout=2000)
     expect(p.locator("#totalAmount")).to_have_text("5925,00 €")
     expect(p.locator("#resGasto")).to_have_text("-144,50 €")
     expect(p.locator("#quickAccounts .qa-card", has_text="Ibercaja")).to_contain_text("2790,00 €")
