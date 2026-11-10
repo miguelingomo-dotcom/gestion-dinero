@@ -1457,7 +1457,8 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
   font-size:36px;font-weight:700;letter-spacing:-.03em;}
 #editOverlay .edit-importe .modal-input:focus{box-shadow:none;}
 #editOverlay .edit-importe span{font-family:var(--font-round);font-size:24px;font-weight:700;color:var(--muted2);}
-#editOverlay .edit-fila{display:grid;grid-template-columns:minmax(0,1fr) 148px;gap:8px;}
+/* La fecha («11 nov 2026» en el iPhone) necesita sitio: su columna nunca baja de 160 px; el nombre se ajusta */
+#editOverlay .edit-fila{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,.85fr);gap:8px;}
 #editOverlay .edit-campo{display:block;min-width:0;}
 #editOverlay .edit-campo>span{display:block;margin:8px 4px 6px;font-size:13px;font-weight:600;color:var(--muted);}
 #editOverlay .edit-campo .modal-select,#editOverlay .edit-campo .modal-input{width:100%;}
@@ -1502,6 +1503,20 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
 .nav-add:active{opacity:1;transform:scale(.94);}
 .nav-add svg.ki{width:26px;height:26px;stroke:currentColor;}
 @media (prefers-reduced-transparency:reduce){.nav{background:var(--page);backdrop-filter:none;-webkit-backdrop-filter:none;}}
+
+/* ══ CAMPOS DE FECHA: iguales que los de texto de al lado ══
+   Sin la apariencia nativa, iOS coloca el texto de la fecha con su propia altura de línea: se fija la del campo para
+   que quede centrado en vertical, con el mismo relleno, letra y caja que «Nombre», y sin ancho mínimo propio */
+.modal input[type=date],#sec-registrar .field input[type=date]{display:block;width:100%;min-width:0;margin:0;border:0;-webkit-appearance:none;appearance:none;
+  padding:0 14px;text-align:left;font-family:var(--font);font-size:17px;font-weight:400;letter-spacing:0;color:var(--text);box-sizing:border-box;}
+.modal input[type=date]{height:46px;line-height:46px;border-radius:var(--r-md);background:var(--fill);font-weight:600;}
+#sec-registrar .field input[type=date]{height:50px;line-height:50px;padding:0 16px;font-weight:500;border-radius:var(--r-md);background:var(--surface);box-shadow:var(--sh-sm);}
+.modal input[type=date]::-webkit-date-and-time-value,#sec-registrar input[type=date]::-webkit-date-and-time-value{margin:0;min-height:0;line-height:inherit;text-align:left;}
+.modal input[type=date]::-webkit-datetime-edit,#sec-registrar input[type=date]::-webkit-datetime-edit{padding:0;line-height:inherit;}
+.modal input[type=date]::-webkit-datetime-edit-fields-wrapper,#sec-registrar input[type=date]::-webkit-datetime-edit-fields-wrapper{padding:0;}
+.modal input[type=date]::-webkit-calendar-picker-indicator,#sec-registrar input[type=date]::-webkit-calendar-picker-indicator{margin:0 0 0 6px;opacity:.55;}
+.modal input[type=date]:focus,#sec-registrar .field input[type=date]:focus{box-shadow:0 0 0 2px var(--accent);outline:none;}
+#sec-registrar #inputFecha{margin-top:8px;}
 </style>
 </head>
 <body>
@@ -1606,7 +1621,7 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
           <div class="chip" data-fecha="ayer" onclick="selFecha('ayer',this)">Ayer</div>
           <div class="chip" data-fecha="otra" onclick="selFecha('otra',this)">Otra</div>
         </div>
-        <input type="date" id="inputFecha" style="display:none;margin-top:8px;" onchange="fechaElegida(this.value)">
+        <input type="date" id="inputFecha" style="display:none;" onchange="fechaElegida(this.value)">
       </div>
       <button class="submit-btn" id="submitBtn" onclick="submitMovement()">Registrar Gasto</button>
       <div class="sus-section">
@@ -2543,6 +2558,7 @@ function showSec(name,idx){
   if(name==='cuentas')loadAccounts();
   if(name==='stats')loadStats();
   if(name==='inversion')loadInversion();
+  requestAnimationFrame(()=>contarAlEntrar(name));
 }
 
 /* ── UTILS ── */
@@ -2823,11 +2839,15 @@ function animateCounter(el,end,{prefix='',suffix='',decimals=2,duration=700}={})
   // Sin mostrarse (pestaña oculta): directamente el valor final. Nadie vería la animación, y un navegador puede congelarla
   if(!el.getClientRects().length){ponerCifra(el,prefix+fmt(end)+suffix);el.dataset.rawVal=end;return;}
   const startVal=parseFloat((el.dataset.rawVal||'0').replace(',','.'))||0;
-  if(Math.abs(startVal-end)<0.005){ponerCifra(el,prefix+fmt(end)+suffix);el.dataset.rawVal=end;autoFitAmount(el);return;}
+  if(Math.abs(startVal-end)<0.005){
+    if(el._hacia!=null&&Math.abs(el._hacia-end)<0.005)return; // ya cuenta hacia este valor al entrar en la pestaña
+    ponerCifra(el,prefix+fmt(end)+suffix);el.dataset.rawVal=end;autoFitAmount(el);return;}
+  const turno=el._turno=(el._turno||0)+1;el._hacia=null;
   // El tamaño se ajusta una sola vez con la cifra final; durante la cuenta solo cambia el texto
   ponerCifra(el,prefix+fmt(end)+suffix);autoFitAmount(el);
   const t0=performance.now();
   function step(t){
+    if(el._turno!==turno)return;
     const p=Math.min(1,(t-t0)/duration);
     const eased=1-Math.pow(1-p,3);
     const val=startVal+(end-startVal)*eased;
@@ -2836,6 +2856,31 @@ function animateCounter(el,end,{prefix='',suffix='',decimals=2,duration=700}={})
     else{ponerCifra(el,prefix+fmt(end)+suffix);el.dataset.rawVal=end;el.classList.add('count-pop');setTimeout(()=>el.classList.remove('count-pop'),300);}
   }
   requestAnimationFrame(step);
+}
+/* Al entrar en una pestaña, sus cifras principales cuentan desde 0 hasta su valor (600 ms). No al tocar la pestaña en la
+   que ya estás, ni al volver de una hoja, ni en los refrescos en segundo plano (no pasan por showSec), ni con «Reducir
+   movimiento». Si mientras cuenta llega otra cifra distinta, gana la nueva y esta animación se retira */
+const CIFRAS_AL_ENTRAR={inicio:'#totalAmount,#resGasto,#resIngreso,#resBalance',cuentas:'#accountCards .account-balance',
+  inversion:'#invValorActual,#invAportado,#invRendimiento,#invPct',stats:'#statBalance,#statGasto,#statIngreso,#rateNum'};
+function contarAlEntrar(nombre){
+  const sel=CIFRAS_AL_ENTRAR[nombre];if(!sel||animReducido())return;
+  document.querySelectorAll(sel).forEach(el=>{
+    const final=el.textContent.trim(),m=final.match(/^([+\-−]?)\s*(\d[\d.]*(?:,\d+)?)\s*(.*)$/);
+    if(!m||!el.getClientRects().length)return;
+    const valor=parseFloat(m[2].replace(/\./g,'').replace(',','.'));if(!(valor>0))return;
+    const dec=(m[2].split(',')[1]||'').length;
+    const texto=v=>m[1]+(dec===2?fmt(v):v.toLocaleString('es-ES',{minimumFractionDigits:dec,maximumFractionDigits:dec}))+(m[3]?' '+m[3]:'');
+    const turno=el._turno=(el._turno||0)+1;el._hacia=valor;
+    const t0=performance.now();let escrito=null;
+    (function paso(t){
+      if(el._turno!==turno)return;
+      // Otro código escribió otra cifra (datos nuevos): se queda la suya
+      if(escrito!==null&&el.textContent.trim()!==escrito&&el.textContent.trim()!==final){el._hacia=null;return;}
+      const p=Math.min(1,(t-t0)/600),v=valor*(1-Math.pow(1-p,3));
+      escrito=p<1?texto(v):final;ponerCifra(el,escrito);el.dataset.rawVal=p<1?v:valor;
+      if(p<1)requestAnimationFrame(paso);else el._hacia=null;
+    })(t0);
+  });
 }
 function setMes(){const m=new Date().toLocaleDateString(LANG==='en'?'en-GB':'es-ES',{month:'long'});document.getElementById('mesActual').textContent=m.charAt(0).toUpperCase()+m.slice(1);}
 /* ── Animaciones de categoría (las mismas de animaciones-demo.html) ──

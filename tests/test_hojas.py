@@ -93,3 +93,40 @@ def test_ninguna_hoja_es_mas_ancha_que_la_pantalla_ni_se_mueve_de_lado(app, como
     assert r["ancho"] <= 0 and not r["fuera"] and r["pagina"] <= 0 and r["hojaAncho"] <= r["pantalla"], (como, ancho, r)
     # La hoja solo se mueve en vertical; las filas de cuentas y categorías, de lado y sin arrastrar la hoja
     assert r["deLado"] == "hidden" and r["gesto"] == "pan-y" and r["filasSeDeslizan"], (como, r)
+
+
+ESTILO = """([fecha,texto])=>{const f=document.getElementById(fecha),t=document.getElementById(texto);
+  const cf=getComputedStyle(f),ct=getComputedStyle(t),bf=f.getBoundingClientRect(),bt=t.getBoundingClientRect(),caja=f.parentElement.getBoundingClientRect();
+  const props=['height','paddingLeft','paddingRight','fontSize','fontWeight','borderTopLeftRadius','backgroundColor','color'];
+  return {distintos:props.filter(k=>cf[k]!==ct[k]).map(k=>k+': '+cf[k]+' ≠ '+ct[k]),
+    centrado:cf.lineHeight===cf.height,alineados:Math.abs(bf.top-bt.top)<=1||Math.abs(bf.bottom-bt.bottom)<=1||bf.top>=bt.bottom,
+    dentro:bf.right<=caja.right+.5&&bf.left>=caja.left-.5&&bf.right<=innerWidth,
+    // El texto de la fecha no informa de su ancho: se exige sitio para «11 nov 2026» o «11/10/2026» y el icono del calendario
+    cortado:f.scrollWidth>f.clientWidth+1||f.clientWidth-parseFloat(cf.paddingLeft)-parseFloat(cf.paddingRight)<125}}"""
+
+
+@pytest.mark.parametrize("ancho", [390, 320], ids=["iphone", "estrecho"])
+@pytest.mark.parametrize("como,fecha,texto", [("editar_gasto", "editDate", "editName"), ("editar_transferencia", "trEditDate", "trEditAmt"),
+                                              ("aportacion", "invDate", "invAmt")], ids=["movimiento", "transferencia", "inversion"])
+def test_las_fechas_de_las_hojas_son_como_sus_campos_vecinos(app, como, fecha, texto, ancho):
+    p = app.page
+    p.set_viewport_size({"width": ancho, "height": 700})
+    abrir_hoja(app, como)
+    p.wait_for_timeout(450)
+    r = p.evaluate(ESTILO, [fecha, texto])
+    # Mismo alto, relleno, letra, caja y colores que «Nombre» (en las otras hojas, el importe solo difiere en la letra)
+    distintos = [d for d in r["distintos"] if como == "editar_gasto" or not d.startswith(("fontSize", "fontWeight"))]
+    assert not distintos and r["centrado"] and r["dentro"] and not r["cortado"], (como, ancho, r)
+    if como == "editar_gasto":
+        assert r["alineados"], r
+
+
+@pytest.mark.parametrize("ancho", [390, 320], ids=["iphone", "estrecho"])
+def test_la_fecha_otra_de_registrar_es_como_el_campo_nombre(app, ancho):
+    p = app.page
+    p.set_viewport_size({"width": ancho, "height": 760})
+    app.ir("registrar")
+    p.locator('#fechaChips [data-fecha="otra"]').click()
+    expect(p.locator("#inputFecha")).to_be_visible()
+    r = p.evaluate(ESTILO, ["inputFecha", "inputName"])
+    assert not r["distintos"] and r["centrado"] and r["dentro"] and not r["cortado"], (ancho, r)
