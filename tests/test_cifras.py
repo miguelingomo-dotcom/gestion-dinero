@@ -142,3 +142,17 @@ def test_ningun_importe_de_inversion_se_corta(abrir):
         isin = p.evaluate("()=>[...document.querySelectorAll('#invFondos .fondo-isin')].every(e=>e.scrollWidth<=e.clientWidth+1&&e.textContent.trim().length===12)")
         assert isin, ancho
         assert p.evaluate("()=>document.documentElement.scrollWidth<=innerWidth")
+
+
+def test_ningun_importe_de_estadisticas_se_corta(abrir):
+    app = abrir(mas=_movs_enormes)
+    p = app.page
+    app.ir("stats")
+    expect(p.locator("#statGasto")).to_contain_text("98.765.")
+    sel = "#sec-stats .hero-amount,#sec-stats .hero-mini-val,#sec-stats .res-val,#sec-stats .chart-val,#sec-stats .top-amount,#sec-stats .rate-number"
+    for ancho in [390, 320]:
+        p.set_viewport_size({"width": ancho, "height": 760})
+        p.wait_for_timeout(700)
+        cortadas = p.evaluate(CORTADAS.replace(".hero-mini,", ".res-item,.top-item,.chart-row,.rate-card,.stat-hero,.hero-mini,"), sel)
+        assert not cortadas, (ancho, cortadas)
+        assert p.evaluate("()=>document.documentElement.scrollWidth<=innerWidth")
