@@ -57,7 +57,6 @@ def sembrar(n):
     datos.sembrar(n)
     n.anadir('cuentas',{'Nombre':datos.titulo('Vacaciones'),'Cuenta o Meta':{'select':{'name':'Meta'}},'Objetivo':{'number':1000},'AhorradoActual':{'number':250},'Emoji':{'rich_text':[{'plain_text':'🎯'}]}})
     n.anadir('cuentas',{'Nombre':datos.titulo('Bici'),'Tipo':{'select':{'name':'Wish List'}},'Precio':{'number':300},'Emoji':{'rich_text':[{'plain_text':'🚲'}]}})
-    n.bases[datos.BASES['budget']].append({'object':'page','id':'e'*32,'created_time':'2026-01-01T00:00:00.000Z','archived':False,'in_trash':False,'properties':{'Nombre':datos.titulo('Super'),'Limite':{'number':200},'CategoriaId':{'rich_text':[{'plain_text':datos.CAT_SUPER}]}}})
 PASOS=[
  ('inicio',"showSec('inicio',0)"),('desglose',"togglePatBreakdown()"),('movs',"showSec('movimientos',1)"),
  ('editmov',"openEditMovement('%s')"%datos.MOV_MERCADONA),('cierraedit',"closeEdit()"),
@@ -66,9 +65,8 @@ PASOS=[
  ('cuentas',"showSec('cuentas',2)"),('inactivas',"toggleInactivas()"),
  ('expandida',"document.querySelector('#accountCards .account-card-head').click()"),
  ('transfer',"showTransfer('%s','Ibercaja','%s',150)"%(datos.IBERCAJA,datos.REMUNERADA)),('cierrat',"closeTransfer()"),
- ('metanueva',"openNewGoal()"),('cierrag',"closeGoalModal()"),('deseo',"openNewWish()"),('cierraw',"closeWishModal()"),
  ('inversion',"showSec('inversion',3)"),('valor',"openInvModal('Valor Cartera')"),('cierrai',"closeInvModal()"),
- ('stats',"showSec('stats',-1)"),('presup',"typeof openBudgetManager==='function'&&openBudgetManager()"),('cierrab',"typeof closeBudgetManager==='function'&&closeBudgetManager()"),
+ ('stats',"showSec('stats',-1)"),
  ('toast',"showToast('hola','success')"),('toasterr',"showToast('mal','error')"),('toastacc',"showToast('x','',{texto:'Deshacer',fn:()=>{}})"),
  ('accion',"hojaAccion({titulo:'t',texto:'x',confirmar:'y',peligro:true})"),('cierraacc',"cerrarAccion(false)"),
  ('burst',"showSuccessBurst()"),('privado',"window.kashyPrivacy()"),('sinprivado',"window.kashyPrivacy()"),

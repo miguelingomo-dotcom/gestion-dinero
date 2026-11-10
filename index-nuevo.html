@@ -351,37 +351,6 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .acc-movs-viewall{
   display:block;text-align:center;font-size:12px;color:var(--accent);font-weight:700;padding:10px 0 2px;cursor:pointer;
 }
-/* ── WISH CARDS ── */
-.wish-card{padding:14px;margin:0 20px 10px;display:flex;gap:12px;}
-.wish-card.bought{opacity:.55;}
-.wish-emoji{width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
-.wish-body{flex:1;min-width:0;}
-.wish-top-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
-.wish-name{font-weight:700;color:var(--text);}
-.wish-meta-row{display:flex;gap:6px;margin:4px 0 10px;flex-wrap:wrap;}
-.wish-badge{font-size:11px;font-weight:600;background:var(--surface2);color:var(--muted);padding:3px 9px;border-radius:100px;}
-.wish-badge.gift{background:rgba(236,72,153,.12);color:#ec4899;}
-.wish-bottom-row{display:flex;align-items:center;justify-content:space-between;}
-.wish-price{color:var(--text);}
-.wish-buy-btn{
-  background:var(--green);color:var(--on-green);border:none;padding:8px 14px;font-size:12px;font-weight:700;
-  cursor:pointer;transition:transform var(--dur-fast) var(--ease);border-radius:11px;
-}
-.wish-buy-btn:active{transform:scale(.94);}
-.wish-bought-tag{font-size:12px;font-weight:700;color:var(--green);}
-.sec-header{padding:24px 20px 14px;}
-.goal-card{padding:18px 20px;margin:0 20px 10px;}
-.goal-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.goal-emoji{font-size:24px;width:36px;flex-shrink:0;}
-.goal-name{font-size:15px;font-weight:700;flex:1;}
-.goal-menu{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px;}
-.goal-amounts{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
-.goal-saved{color:var(--accent);}
-.goal-target{font-size:13px;color:var(--muted);}
-.goal-bar{height:8px;border-radius:100px;overflow:hidden;margin-bottom:8px;}
-.goal-bar-fill{height:100%;border-radius:100px;transition:width .6s ease;background:linear-gradient(90deg,#6b5ef0,var(--accent));}
-.goal-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:12px;}
-.goal-actions{display:flex;gap:8px;}
 .acc-action{flex:1;padding:9px;font-size:13px;font-weight:600;cursor:pointer;}
 .acc-action:first-child{background:var(--accent-bg);color:var(--accent-text);border-color:var(--accent-bg);}
 .acc-action:active{opacity:.7;}
@@ -461,7 +430,7 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 @keyframes secFade{from{opacity:0;}to{opacity:1;}}
 .section.active{display:block;animation:secFade .15s var(--ease-out) both;}
 /* Tarjetas/filas de listas: entrada escalonada al renderizar */
-.mov-item,.sus-card,.account-card,.goal-card{animation:slideInItem var(--dur-base) var(--ease) both;}
+.mov-item,.sus-card,.account-card{animation:slideInItem var(--dur-base) var(--ease) both;}
 .mov-list .mov-item:nth-child(1){animation-delay:.02s;}
 .mov-list .mov-item:nth-child(2){animation-delay:.05s;}
 .mov-list .mov-item:nth-child(3){animation-delay:.08s;}
@@ -469,7 +438,7 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .mov-list .mov-item:nth-child(5){animation-delay:.14s;}
 .mov-list .mov-item:nth-child(n+6){animation-delay:.16s;}
 /* Feedback táctil global: cualquier elemento pulsable se encoge levemente */
-.chip,.cat-item .cat-circle,.icon-btn,.submit-btn,.sus-btn,.acc-action,.nav-add,.modal-cancel,.modal-confirm,.account-card,.goal-card,.mov-item,.sus-card,.period-btn,.type-btn,.export-btn{
+.chip,.cat-item .cat-circle,.icon-btn,.submit-btn,.sus-btn,.acc-action,.nav-add,.modal-cancel,.modal-confirm,.account-card,.mov-item,.sus-card,.period-btn,.type-btn,.export-btn{
   transition:transform var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease),background var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
 }
 .chip:active,.icon-btn:active,.submit-btn:active,.sus-btn:active,.acc-action:active,.nav-add:active,.modal-cancel:active,.modal-confirm:active,.period-btn:active,.type-btn:active,.export-btn:active{
@@ -477,7 +446,7 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 }
 .cat-item:active .cat-circle{transform:scale(.92);}
 /* Filas y tarjetas: solo cambio de fondo (la escala queda para los botones) */
-.goal-card:active,.sus-card:active{background:var(--surface2);}
+.sus-card:active{background:var(--surface2);}
 .account-card:active{box-shadow:inset 0 0 0 999px rgba(0,0,0,.08),0 16px 30px rgba(0,0,0,.35);}
 /* ── SKELETON ── */
 .skeleton{
@@ -573,10 +542,7 @@ body,input,select,button,textarea{font-family:'Inter',-apple-system,'SF Pro Disp
 .hero-amount,.stat-hero .hero-amount{font-family:inherit;font-size:52px;font-weight:700;letter-spacing:-2.4px;}
 .account-balance{font-family:inherit;font-size:32px;font-weight:700;letter-spacing:-1.2px;color:#fff;}
 .rate-number{font-family:inherit;font-size:42px;font-weight:700;letter-spacing:-1.6px;}
-.amount-in{font-family:inherit;font-size:50px;font-weight:700;letter-spacing:-2.2px;}
-.goal-saved{font-family:inherit;font-size:22px;font-weight:700;letter-spacing:-.8px;}
-.wish-price{font-family:inherit;font-size:22px;font-weight:700;letter-spacing:-.8px;}
-.modal-title{font-family:inherit;font-size:19px;font-weight:700;letter-spacing:-.3px;}
+.amount-in{font-family:inherit;font-size:50px;font-weight:700;letter-spacing:-2.2px;}.modal-title{font-family:inherit;font-size:19px;font-weight:700;letter-spacing:-.3px;}
 .modal-amount{font-family:inherit;font-size:44px;font-weight:700;letter-spacing:-2px;}
 .modal-input{font-family:inherit;font-size:26px;font-weight:700;letter-spacing:-1px;}
 .sec-header h2{font-family:inherit;font-size:17px;font-weight:700;letter-spacing:-.3px;}
@@ -592,7 +558,7 @@ body,input,select,button,textarea{font-family:'Inter',-apple-system,'SF Pro Disp
 .lang-switch{background:var(--surface2);border:1px solid var(--border);box-shadow:none;}
 .lang-btn.active{background:var(--accent);color:var(--accent-text);}
 /* Tarjetas */
-.card,.rate-card,.trend-card,.pie-card,.bars-card,.top-card,#comparCard,#histCard,#budgetCard,#projCard,#fixedVarCard,#incomeCard,#activityCard{
+.card,.rate-card,.trend-card,.pie-card,.bars-card,.top-card,#comparCard,#histCard,#projCard,#fixedVarCard,#incomeCard,#activityCard{
   background:var(--surface);border:1px solid var(--border);border-radius:22px;box-shadow:none;
 }
 .card-title{font-size:15px;font-weight:700;letter-spacing:-.2px;color:var(--text);text-transform:none;}
@@ -610,7 +576,7 @@ body,input,select,button,textarea{font-family:'Inter',-apple-system,'SF Pro Disp
 .var-badge.down{border-color:color-mix(in srgb,var(--red) 30%,transparent);}
 /* Barras y resumen */
 .res-item{background:var(--surface2);border:1px solid var(--border);border-radius:16px;}
-.res-bar,.chart-bar-wrap,.goal-bar,.rate-bar,.top-bar-wrap,.pat-item-bar{border:none;background:var(--surface3);}
+.res-bar,.chart-bar-wrap,.rate-bar,.top-bar-wrap,.pat-item-bar{border:none;background:var(--surface3);}
 .chart-name{font-size:13.5px;font-weight:600;width:auto;flex:1;}
 .chart-val{font-size:13px;color:var(--text);font-weight:700;}
 /* Movimientos */
@@ -642,15 +608,15 @@ body,input,select,button,textarea{font-family:'Inter',-apple-system,'SF Pro Disp
 .account-card .acc-mov-row .amn-date{color:rgba(255,255,255,.72);}
 .account-card .acc-mov-row .amn-amt.g,.account-card .acc-mov-row .amn-amt.i{color:#fff;}
 .account-card .acc-movs-empty,.account-card .acc-movs-viewall{color:rgba(255,255,255,.85);}
-/* Metas, deseos y suscripciones */
-.goal-card,.wish-card,.sus-card,.susc-progress{
+/* Suscripciones */
+.sus-card,.susc-progress{
   background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:none;
 }
 .sus-card{border-radius:18px;}
 .sus-card.has-progress{border-radius:18px 18px 0 0;}
 .susc-progress{border-radius:0 0 18px 18px;border-top:1px dashed var(--border);}
-.sus-icon,.wish-emoji{background:var(--surface2);border:none;border-radius:13px;}
-.sus-name,.wish-name{font-size:14.5px;letter-spacing:-.2px;}
+.sus-icon{background:var(--surface2);border:none;border-radius:13px;}
+.sus-name{font-size:14.5px;letter-spacing:-.2px;}
 .sus-btn{background:var(--surface2);border:1px solid var(--border);border-radius:11px;font-weight:700;}
 .sus-sec-title{font-size:17px;font-weight:700;letter-spacing:-.3px;color:var(--text);text-transform:none;}
 /* Registrar */
@@ -672,9 +638,7 @@ body,input,select,button,textarea{font-family:'Inter',-apple-system,'SF Pro Disp
   background:var(--accent-bg);color:var(--accent-text);border-radius:18px;box-shadow:0 12px 26px rgba(107,94,240,.3);
 }
 .export-btn,.modal-cancel{background:var(--surface2);border:1px solid var(--border);border-radius:16px;}
-.acc-action{background:var(--surface2);border:1px solid var(--border);border-radius:13px;color:var(--text);}
-.goal-actions .acc-action:first-child{background:var(--accent);color:var(--accent-text);border-color:var(--accent);}
-#btnInactivas{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:14px;}
+.acc-action{background:var(--surface2);border:1px solid var(--border);border-radius:13px;color:var(--text);}#btnInactivas{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:14px;}
 /* Barra inferior de cristal */
 .nav{
   background:linear-gradient(180deg,color-mix(in srgb,var(--page) 35%,transparent),color-mix(in srgb,var(--page) 94%,transparent));
@@ -752,7 +716,7 @@ input:focus,input:focus-visible,select:focus,textarea:focus{outline:none;}
   transition:max-height var(--dur-base) var(--ease),opacity var(--dur-base) var(--ease);
 }
 .account-card.expanded .account-actions{max-height:60px;opacity:1;margin-top:12px;}
-body.kashy-privado .hero-amount,body.kashy-privado .hero-mini-val,body.kashy-privado .account-balance,body.kashy-privado .qa-bal,body.kashy-privado .mov-amount,body.kashy-privado .amn-amt,body.kashy-privado .res-val,body.kashy-privado .goal-saved,body.kashy-privado .chart-val,body.kashy-privado .sus-amount,body.kashy-privado .top-amount,body.kashy-privado .pat-item-val,body.kashy-privado .wish-price,body.kashy-privado #patVariation,body.kashy-privado .fondo-val,body.kashy-privado .fondo-rend,body.kashy-privado .mov-day-bal{
+body.kashy-privado .hero-amount,body.kashy-privado .hero-mini-val,body.kashy-privado .account-balance,body.kashy-privado .qa-bal,body.kashy-privado .mov-amount,body.kashy-privado .amn-amt,body.kashy-privado .res-val,body.kashy-privado .chart-val,body.kashy-privado .sus-amount,body.kashy-privado .top-amount,body.kashy-privado .pat-item-val,body.kashy-privado #patVariation,body.kashy-privado .fondo-val,body.kashy-privado .fondo-rend,body.kashy-privado .mov-day-bal{
   filter:blur(9px);user-select:none;pointer-events:none;transition:filter .25s ease;
 }
 /* Fondos de la cartera (Inversión) */
@@ -846,17 +810,16 @@ html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0!imp
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:pan-x pan-y;}
 html,body{overscroll-behavior:none;}
 /* Controles: sin selección de texto ni menú al mantener pulsado (los inputs no se tocan) */
-button,.chip,.cat-item,.account-card,.goal-card,.wish-card,.qa-card,.sus-card,.swipe-act{
+button,.chip,.cat-item,.account-card,.qa-card,.sus-card,.swipe-act{
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
 }
 button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation;}
 /* iOS amplía la página al enfocar un campo de menos de 16px; solo en pantallas táctiles para no cambiar el escritorio */
 @media (pointer:coarse){
   .field input,.field select,.modal-select{font-size:16px;}
-  input[id^="budgetInput_"]{font-size:16px!important;}
 }
 /* Listas ya mostradas: se actualizan sin volver a animar */
-.ya-animada .mov-item,.ya-animada .sus-card,.ya-animada .account-card,.ya-animada .goal-card{animation:none;}
+.ya-animada .mov-item,.ya-animada .sus-card,.ya-animada .account-card{animation:none;}
 /* Modales: suben desde abajo (300 ms) y se cierran más rápido (200 ms) */
 .modal-overlay.show{visibility:visible;opacity:1;pointer-events:auto;transition:opacity .3s var(--ease-out),visibility 0s;}
 .modal-overlay .modal{transform:translateY(100%);transition:transform .2s var(--ease-drawer);}
@@ -875,7 +838,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
   .toast,.toast.show{transform:translateX(-50%);}
   .pat-item-fill,.res-bar-fill,.rate-fill{transition:none;}
 }
-[data-theme="light"] .wish-badge.gift{color:#be185d;}
 /* ── Toast con «Deshacer» ── */
 .toast.con-accion{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:6px 6px 6px 18px;}
 .toast-accion{
@@ -889,15 +851,15 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
 /* ── Hoja de acción (sustituye a los diálogos nativos) ── */
 .modal-confirm.peligro{background:var(--red);color:var(--on-red);box-shadow:none;}
 /* ── Zonas táctiles de 44 px sin cambiar el tamaño visual ── */
-.icon-btn,.sus-btn,.pat-period,.period-btn,.type-btn,.acc-action,.wish-buy-btn,.goal-menu,.del-btn,.inv-date-link,.quick-accounts-head button,.acc-movs-viewall{
+.icon-btn,.sus-btn,.pat-period,.period-btn,.type-btn,.acc-action,.del-btn,.inv-date-link,.quick-accounts-head button,.acc-movs-viewall{
   position:relative;
 }
-.icon-btn::before,.sus-btn::before,.pat-period::before,.period-btn::before,.type-btn::before,.acc-action::before,.wish-buy-btn::before,.goal-menu::before,.del-btn::before,.inv-date-link::before,.quick-accounts-head button::before,.acc-movs-viewall::before{
+.icon-btn::before,.sus-btn::before,.pat-period::before,.period-btn::before,.type-btn::before,.acc-action::before,.del-btn::before,.inv-date-link::before,.quick-accounts-head button::before,.acc-movs-viewall::before{
   content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);
   transform:translate(-50%,-50%);
 }
 /* ── Cifras de ancho fijo: no bailan al contar ni al cambiar ── */
-.hero-amount,.hero-mini-val,.account-balance,.qa-bal,.mov-amount,.amn-amt,.res-val,.goal-saved,.goal-target,.chart-val,.sus-amount,.top-amount,.pat-item-val,.wish-price,.fondo-val,.fondo-rend,.modal-amount,.amount-in,.modal-input,.rate-number,.leg-pct,.alert-amount{
+.hero-amount,.hero-mini-val,.account-balance,.qa-bal,.mov-amount,.amn-amt,.res-val,.chart-val,.sus-amount,.top-amount,.pat-item-val,.fondo-val,.fondo-rend,.modal-amount,.amount-in,.modal-input,.rate-number,.leg-pct,.alert-amount{
   font-variant-numeric:tabular-nums;
 }
 /* ── Curva del patrimonio ── */
@@ -936,7 +898,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       <div class="header-right">
         <button class="icon-btn" id="kashyEyeBtn" onclick="window.kashyPrivacy&&window.kashyPrivacy()" aria-label="Ocultar saldos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg></button>
         <button class="icon-btn" onclick="showSec('stats',-1)" aria-label="Stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2v10h10A10 10 0 0 0 12 2z"/></svg></button>
-        <button class="icon-btn" onclick="loadInicio()" aria-label="Recargar" data-i18n-aria="aria_recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
         <button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
@@ -989,7 +950,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="header">
       <div class="header-left"><h1 data-i18n="h_movs_title">Movimientos</h1><p data-i18n="h_movs_sub">Historial de transacciones</p></div>
       <div class="header-right">
-        <button class="icon-btn" onclick="loadMovs()" aria-label="Recargar" data-i18n-aria="aria_recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
         <button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
@@ -1043,7 +1003,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       <div class="header-left"><h1 data-i18n="h_stats_title">Stats</h1><p data-i18n="h_stats_sub">Tu salud financiera</p></div>
       <div class="header-right">
         <button class="icon-btn" onclick="showSec('inicio',0)" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M15 18l-6-6 6-6"/></svg></button>
-        <button class="icon-btn" onclick="loadStats()" aria-label="Recargar" data-i18n-aria="aria_recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
         <button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
@@ -1071,13 +1030,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
       <div class="card-title" data-i18n="proyeccion_fin_mes">Proyección de fin de mes</div>
       <div class="rate-number" id="projNum">—</div>
       <div class="rate-desc" id="projDesc">—</div>
-    </div>
-    <div class="rate-card">
-      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
-        <span data-i18n="presupuestos">Presupuestos</span>
-        <button class="icon-btn" style="width:28px;height:28px;font-size:13px;" onclick="openBudgetManager()" aria-label="Presupuestos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
-      </div>
-      <div id="budgetList"><div class="loading" data-i18n="cargando">Cargando...</div></div>
     </div>
     <div class="rate-card">
       <div class="card-title" data-i18n="gastos_fijos_vs_var">Gastos fijos vs variables</div>
@@ -1165,7 +1117,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="header">
       <div class="header-left"><h1 data-i18n="h_cuentas_title">Cuentas</h1><p data-i18n="h_cuentas_sub">Tus saldos actuales</p></div>
       <div class="header-right">
-        <button class="icon-btn" onclick="loadAccounts()" aria-label="Recargar" data-i18n-aria="aria_recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
         <button class="icon-btn" onclick="toggleTheme()" aria-label="Cambiar tema" data-i18n-aria="aria_tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
@@ -1176,18 +1127,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div id="accountCardsInactive" style="display:none;"></div>
     <div class="card-title" style="margin:20px 20px 10px;" data-i18n="transf_recurrentes">Transferencias recurrentes</div>
     <div class="reg-wrap" style="margin-bottom:10px;"><div id="transfRecList"></div></div>
-
-    <div class="sec-header" style="display:flex;justify-content:space-between;align-items:center;">
-      <h2 data-i18n="metas_ahorro">Metas de ahorro</h2>
-      <button class="icon-btn" style="width:32px;height:32px;font-size:15px;" onclick="openNewGoal()">➕</button>
-    </div>
-    <div id="goalsList"><div class="loading" data-i18n="cargando">Cargando...</div></div>
-
-    <div class="sec-header" style="display:flex;justify-content:space-between;align-items:center;">
-      <h2 data-i18n="lista_deseos">Lista de deseos</h2>
-      <button class="icon-btn" style="width:32px;height:32px;font-size:15px;" onclick="openNewWish()">➕</button>
-    </div>
-    <div id="wishList"><div class="loading" data-i18n="cargando">Cargando...</div></div>
 
     <div class="card-title" style="margin:20px 20px 10px;" data-i18n="notif_titulo">Notificaciones</div>
     <div class="reg-wrap notif-wrap">
@@ -1200,64 +1139,10 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     </div>
   </div>
 
-  <!-- ── GOAL MODAL ── -->
-  <div class="modal-overlay" id="goalOverlay">
-    <div class="modal">
-      <div class="modal-title" data-i18n="nueva_meta">Nueva Meta</div>
-      <div class="modal-field-lbl" data-i18n="lbl_emoji">Emoji</div>
-      <input type="text" id="goalEmoji" class="modal-select" placeholder="🎯" maxlength="4" style="text-align:center;font-size:22px;">
-      <div class="modal-field-lbl" data-i18n="lbl_nombre_field">Nombre</div>
-      <input type="text" id="goalName" class="modal-select" placeholder="Ej: Viaje a Japón" data-i18n-placeholder="ejemplo_viaje">
-      <div class="modal-field-lbl" data-i18n="lbl_objetivo">Objetivo (€)</div>
-      <input type="text" id="goalTarget" class="modal-input" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">
-      <div class="modal-btns" style="margin-top:16px;">
-        <button class="modal-cancel" onclick="closeGoalModal()" data-i18n="btn_cancelar">Cancelar</button>
-        <button class="modal-confirm" onclick="saveGoal()" data-i18n="btn_guardar">Guardar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── ADD TO GOAL MODAL ── -->
-  <div class="modal-overlay" id="goalAddOverlay">
-    <div class="modal">
-      <div class="modal-title" data-i18n="anadir_meta_titulo">Añadir a la meta</div>
-      <div class="modal-detail" id="goalAddName">—</div>
-      <div class="modal-field-lbl" data-i18n="cantidad_anadir">Cantidad a añadir (€)</div>
-      <input type="text" id="goalAddAmt" class="modal-input" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">
-      <div class="modal-btns" style="margin-top:16px;">
-        <button class="modal-cancel" onclick="closeGoalAdd()" data-i18n="btn_cancelar">Cancelar</button>
-        <button class="modal-confirm ing" onclick="confirmGoalAdd()" data-i18n="btn_anadir">Añadir</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── WISH MODAL ── -->
-  <div class="modal-overlay" id="wishOverlay">
-    <div class="modal">
-      <div class="modal-title" data-i18n="nuevo_deseo">Nuevo Deseo</div>
-      <div class="modal-field-lbl" data-i18n="lbl_emoji">Emoji</div>
-      <input type="text" id="wishEmoji" class="modal-select" placeholder="🎁" maxlength="4" style="text-align:center;font-size:22px;">
-      <div class="modal-field-lbl" data-i18n="lbl_nombre_field">Nombre</div>
-      <input type="text" id="wishName" class="modal-select" placeholder="Ej: AirPods Pro" data-i18n-placeholder="ejemplo_airpods">
-      <div class="modal-field-lbl" data-i18n="lbl_precio">Precio (€)</div>
-      <input type="text" id="wishPrice" class="modal-input" placeholder="0.00" inputmode="decimal" oninput="sanitizeAmt(this)">
-      <div class="modal-field-lbl" data-i18n="lbl_tipo">Tipo</div>
-      <div class="type-toggle" style="margin-bottom:14px;">
-        <button class="type-btn active" id="wishTypeMe" onclick="selWishType('Para mi',this)" data-i18n="btn_para_mi">Para mí</button>
-        <button class="type-btn" id="wishTypeGift" onclick="selWishType('Regalo',this)" data-i18n="btn_regalo">🎁 Regalo</button>
-      </div>
-      <div class="modal-btns">
-        <button class="modal-cancel" onclick="closeWishModal()" data-i18n="btn_cancelar">Cancelar</button>
-        <button class="modal-confirm" onclick="saveWish()" data-i18n="btn_guardar">Guardar</button>
-      </div>
-    </div>
-  </div>
-
   <div class="section" id="sec-inversion">
     <div class="header">
       <div class="header-left"><h1 data-i18n="h_inversion_title">Inversión</h1><p data-i18n="h_inversion_sub">MyInvestor</p></div>
       <div class="header-right">
-        <button class="icon-btn" onclick="loadInversion()" aria-label="Recargar" data-i18n-aria="aria_recargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
       </div>
     </div>
     <div class="alert-banner" id="invReminderBannerInv" onclick="openInvModal('Valor Cartera')" style="cursor:pointer;"><div class="alert-title">📈 MyInvestor</div><div id="invReminderTextInv"></div></div>
@@ -1406,18 +1291,6 @@ button,a,[onclick],.chip,.cat-item,.qa-card,.swipe-act{touch-action:manipulation
     <div class="modal-btns" style="margin-top:6px;">
       <button class="modal-cancel" onclick="closeEdit()" data-i18n="btn_cancelar">Cancelar</button>
       <button class="modal-confirm" onclick="saveEdit()" data-i18n="btn_guardar">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── BUDGET MANAGER MODAL ── -->
-<div class="modal-overlay" id="budgetOverlay">
-  <div class="modal">
-    <div class="modal-title" data-i18n="gestionar_presupuestos">Gestionar Presupuestos</div>
-    <div class="modal-detail" style="margin-bottom:16px;" data-i18n="definir_limite">Define un límite mensual por categoría</div>
-    <div id="budgetManagerList" style="max-height:50vh;overflow-y:auto;"></div>
-    <div class="modal-btns" style="margin-top:16px;">
-      <button class="modal-cancel" onclick="closeBudgetManager()" style="flex:1;" data-i18n="btn_cerrar">Cerrar</button>
     </div>
   </div>
 </div>
@@ -1743,7 +1616,7 @@ function setLang(lang){
   const active=document.querySelector('.section.active');
   if(active){
     const name=active.id.replace('sec-','');
-    if(name==='cuentas'){loadAccounts();loadGoals();loadWishes();}
+    if(name==='cuentas')loadAccounts();
     else if(name==='inversion')loadInversion();
     else if(name==='movimientos')loadMovs();
     else if(name==='inicio')loadInicio();
@@ -1768,7 +1641,6 @@ function applyI18n(){
 const DB_ID='25e21c54013f817481d6cd37b0daa2b5';
 const CUENTAS_DB='25e21c54013f817e959ee75351072a94';
 const TRANSFER_DB='25e21c54013f813faceae0152856368e';
-const BUDGET_DB='64e0778f56e24f2696ff87013b656019';
 const MYINVESTOR_ACC_ID='3b821c54013f817088e9fe2e7a0a3707';
 // Fondos de la cartera MyInvestor. key = opción del select InvFondo en Notion; pct = reparto de cada aportación
 const FONDOS=[
@@ -1915,7 +1787,7 @@ function showSec(name,idx){
   if(name==='registrar')document.getElementById('inputAmt').focus({preventScroll:true});
   if(name==='inicio')loadInicio();
   if(name==='movimientos')loadMovs();
-  if(name==='cuentas'){loadAccounts();loadGoals();loadWishes();}
+  if(name==='cuentas')loadAccounts();
   if(name==='stats')loadStats();
   if(name==='inversion')loadInversion();
 }
@@ -2161,7 +2033,7 @@ function refrescarTrasEscritura(){
   const activa=((document.querySelector('.section.active')||{}).id||'').replace('sec-','');
   const tareas={
     inicio:()=>loadInicio(),
-    cuentas:()=>{loadAccounts();if(vista('goalsList'))loadGoals();if(vista('wishList'))loadWishes();},
+    cuentas:()=>loadAccounts(),
     movimientos:()=>{if(vista('recentMovs'))loadMovs(true);},
     inversion:()=>{if(vista('invHistList'))loadInversion();},
     stats:()=>{if(statsVista)loadStats();},
@@ -2384,7 +2256,7 @@ function showSuccessBurst(anim){
 (function(){
   let startY=0,pulling=false,triggered=false;
   const ind=document.getElementById('ptrIndicator');
-  const sectionLoaders={inicio:loadInicio,movimientos:loadMovs,cuentas:()=>{loadAccounts();loadGoals();loadWishes();},stats:loadStats,inversion:loadInversion};
+  const sectionLoaders={inicio:loadInicio,movimientos:loadMovs,cuentas:loadAccounts,stats:loadStats,inversion:loadInversion};
   document.addEventListener('touchstart',e=>{
     if(window.scrollY>4)return;
     if(document.querySelector('.modal-overlay.show'))return;
@@ -3516,8 +3388,6 @@ async function loadStats(){
     renderFixedVar(catMap,totalG);
     renderIncomeChart(incomeCatMap);
     renderActivity(actCount,expenseCount,maxExpense,totalG);
-    await loadBudgets();
-    renderBudgets(catMap);
 
     // Proyección + comparativa (solo para "Este mes")
     const projCard=document.getElementById('projCard');
@@ -3603,85 +3473,6 @@ function renderActivity(actCount,expenseCount,maxExpense,totalG){
   document.getElementById('actCount').textContent=actCount;
   document.getElementById('actAvg').textContent=fmt(avg)+' €';
   document.getElementById('actMax').textContent=fmt(maxExpense)+' €';
-}
-
-/* ── PRESUPUESTOS ── */
-let budgetsCache=[];
-async function loadBudgets(){
-  try{
-    const data=await nFetch('/databases/'+BUDGET_DB+'/query','POST',{});
-    budgetsCache=(data.results||[]).map(p=>({
-      pageId:p.id,
-      nombre:p.properties?.Nombre?.title?.[0]?.plain_text||'',
-      limite:p.properties?.Limite?.number||0,
-      categoriaId:p.properties?.CategoriaId?.rich_text?.[0]?.plain_text||''
-    }));
-  }catch(e){budgetsCache=[];}
-}
-function renderBudgets(catMap){
-  if(!budgetsCache.length){
-    document.getElementById('budgetList').innerHTML='<div class="loading">Sin presupuestos definidos. Pulsa ⚙️ para crear uno.</div>';
-    return;
-  }
-  document.getElementById('budgetList').innerHTML=budgetsCache.map(b=>{
-    const cat=GASTOS.find(c=>c.id===b.categoriaId);
-    const spent=cat?(catMap[cat.name]?.total||0):0;
-    const pct=b.limite>0?Math.min((spent/b.limite)*100,100):0;
-    const over=spent>b.limite;
-    const color=over?'var(--red)':pct>80?'var(--yellow)':'var(--green)';
-    return`<div style="margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-        <span style="font-size:13px;font-weight:600;">${cat?cat.emoji:'💶'} ${cat?cat.name:'?'}</span>
-        <span style="font-size:13px;font-weight:700;color:${color};">${fmt(spent)} / ${fmt(b.limite)} €</span>
-      </div>
-      <div class="rate-bar" style="margin-bottom:0;"><div class="rate-fill" style="transform:${barScale(pct)};background:${color};"></div></div>
-    </div>`;
-  }).join('');
-}
-function openBudgetManager(){
-  document.getElementById('budgetManagerList').innerHTML=GASTOS.map(c=>{
-    const existing=budgetsCache.find(b=>b.categoriaId===c.id);
-    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
-      <span style="font-size:18px;width:26px;">${c.emoji}</span>
-      <span style="font-size:13px;font-weight:600;flex:1;">${dispName(c)}</span>
-      <input type="text" placeholder="0" value="${existing?existing.limite:''}" inputmode="decimal" id="budgetInput_${c.id}" style="width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--text);font-size:13px;text-align:right;" oninput="sanitizeAmt(this)" onchange="saveBudgetInput('${c.id}','${dispName(c)}',this.value)">
-    </div>`;
-  }).join('');
-  document.getElementById('budgetOverlay').classList.add('show');
-}
-function closeBudgetManager(){
-  document.getElementById('budgetOverlay').classList.remove('show');
-  loadStats();
-}
-async function saveBudgetInput(catId,catName,value){
-  const limite=parseAmt(value);
-  const existing=budgetsCache.find(b=>b.categoriaId===catId);
-  try{
-    if(!limite||limite<=0){
-      if(existing){
-        await fetch('/api/delete?pageId='+existing.pageId,{method:'DELETE'});
-        budgetsCache=budgetsCache.filter(b=>b.categoriaId!==catId);
-        showToast(t('toast_presupuesto_eliminado'),'success');
-      }
-      return;
-    }
-    if(existing){
-      await fetch('/api/page?pageId='+existing.pageId,{
-        method:'PATCH',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({properties:{Limite:{number:limite}}})
-      });
-      existing.limite=limite;
-    }else{
-      const res=await nFetch('/pages','POST',{parent:{database_id:BUDGET_DB},properties:{
-        Nombre:{title:[{text:{content:catName}}]},
-        Limite:{number:limite},
-        CategoriaId:{rich_text:[{text:{content:catId}}]}
-      }});
-      if(res.id)budgetsCache.push({pageId:res.id,nombre:catName,limite,categoriaId:catId});
-    }
-    showToast(t('toast_presupuesto_guardado'),'success');
-  }catch(e){showToast(t('toast_error_guardar'),'error');}
 }
 
 /* ── COMPARATIVA MES A MES ── */
@@ -4040,197 +3831,6 @@ async function cargarMovsCuenta(pageId){
   },true);
   document.addEventListener('contextmenu',e=>{if(e.target.closest('.acc-mov-row'))e.preventDefault();});
 })();
-/* ── METAS DE AHORRO (viven en CUENTAS_DB, Cuenta o Meta='Meta') ── */
-let goalsCache=[],editingGoalId=null;
-async function loadGoals(){
-  const pet=nuevaPeticion('metas');
-  mostrarGuardado('goalsList','metas',skeletonCards(2));
-  try{
-    const data=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'Cuenta o Meta',select:{equals:'Meta'}}});
-    if(!vigente('metas',pet))return;
-    if(!data||!data.results)throw new Error('consulta fallida'); // un error de Notion no es «sin datos»: se conserva lo que se ve
-    goalsCache=data.results.map(p=>({
-      id:p.id,
-      nombre:p.properties?.Nombre?.title?.[0]?.plain_text||'—',
-      objetivo:p.properties?.Objetivo?.number||0,
-      ahorrado:p.properties?.AhorradoActual?.number||0,
-      emoji:p.properties?.Emoji?.rich_text?.[0]?.plain_text||'🎯',
-    }));
-    if(!goalsCache.length){
-      pintar('goalsList','metas',emptyState('🎯',t('empty_goals_title'),t('empty_goals_sub')));
-      return;
-    }
-    pintar('goalsList','metas',goalsCache.map(g=>{
-      const pct=g.objetivo>0?Math.min(100,(g.ahorrado/g.objetivo*100)):0;
-      return`<div class="goal-card">
-        <div class="goal-top">
-          <div class="goal-emoji">${g.emoji}</div>
-          <div class="goal-name">${g.nombre}</div>
-          <button class="del-btn" onclick="deleteGoal('${g.id}',this)">🗑️</button>
-        </div>
-        <div class="goal-amounts"><span class="goal-saved">${fmt(g.ahorrado)} €</span> <span class="goal-target">de ${fmt(g.objetivo)} €</span></div>
-        <div class="res-bar"><div class="res-bar-fill" style="transform:${barScale(pct)}"></div></div>
-        <div class="goal-actions">
-          <button class="acc-action" style="flex:1;" onclick="openGoalAdd('${g.id}','${g.nombre.replace(/'/g,"\\'")}')">➕ ${t('btn_anadir')}</button>
-        </div>
-      </div>`;
-    }).join(''));
-  }catch(e){if(vigente('metas',pet))pintarError('goalsList','metas',emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub')));}
-}
-function openNewGoal(){
-  document.getElementById('goalEmoji').value='🎯';
-  document.getElementById('goalName').value='';
-  document.getElementById('goalTarget').value='';
-  document.getElementById('goalOverlay').classList.add('show');
-}
-function closeGoalModal(){document.getElementById('goalOverlay').classList.remove('show');}
-async function saveGoal(){
-  const emoji=document.getElementById('goalEmoji').value.trim()||'🎯';
-  const nombre=document.getElementById('goalName').value.trim();
-  const objetivo=parseAmt(document.getElementById('goalTarget').value)||0;
-  if(!nombre){showToast(t('toast_nombre'),'error');return;}
-  if(objetivo<=0){showToast(t('toast_introduce_objetivo'),'error');return;}
-  closeGoalModal();
-  try{
-    const data=await nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
-      Nombre:{title:[{text:{content:nombre}}]},
-      'Cuenta o Meta':{select:{name:'Meta'}},
-      Objetivo:{number:objetivo},
-      AhorradoActual:{number:0},
-      Emoji:{rich_text:[{text:{content:emoji}}]},
-    }});
-    if(data.id){showSuccessBurst();showToast(t('toast_meta_creada'),'success');loadGoals();}
-    else{showToast('Error: '+(data.message||t('toast_no_pudo_crear')),'error');console.error('Goal create error:',data);}
-  }catch(e){showToast(t('toast_conexion'),'error');console.error(e);}
-}
-function deleteGoal(id,btn){
-  return borrarConDeshacer(id,{quitar:()=>{const c=btn&&btn.closest('.goal-card');if(c)c.remove();},msg:'Meta eliminada',recargar:loadGoals});
-}
-function openGoalAdd(id,nombre){
-  editingGoalId=id;
-  document.getElementById('goalAddName').textContent=nombre;
-  document.getElementById('goalAddAmt').value='';
-  document.getElementById('goalAddOverlay').classList.add('show');
-}
-function closeGoalAdd(){document.getElementById('goalAddOverlay').classList.remove('show');}
-async function confirmGoalAdd(){
-  const amt=parseAmt(document.getElementById('goalAddAmt').value);
-  if(!amt||amt<=0){showToast(t('toast_introduce_cantidad'),'error');return;}
-  const g=goalsCache.find(x=>x.id===editingGoalId);
-  if(!g)return;
-  closeGoalAdd();
-  const nuevoAhorrado=g.ahorrado+amt;
-  try{
-    const res=await fetch('/api/page?pageId='+editingGoalId,{
-      method:'PATCH',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({properties:{AhorradoActual:{number:nuevoAhorrado}}})
-    });
-    const data=await res.json();
-    if(data.id){showSuccessBurst();showToast('✓ '+fmt(amt)+' € '+t('toast_anadidos'),'success');loadGoals();}
-    else showToast(t('toast_error_guardar'),'error');
-  }catch(e){showToast(t('toast_conexion'),'error');}
-}
-
-/* ── LISTA DE DESEOS (viven en CUENTAS_DB, Tipo='Wish List') ── */
-let wishCache=[],wishSelectedType='Para mi';
-async function loadWishes(){
-  const pet=nuevaPeticion('deseos');
-  mostrarGuardado('wishList','deseos',skeletonCards(2));
-  try{
-    const data=await nFetch('/databases/'+CUENTAS_DB+'/query','POST',{filter:{property:'Tipo',select:{equals:'Wish List'}}});
-    if(!vigente('deseos',pet))return;
-    if(!data||!data.results)throw new Error('consulta fallida'); // un error de Notion no es «sin datos»: se conserva lo que se ve
-    wishCache=data.results.map(p=>({
-      id:p.id,
-      nombre:p.properties?.Nombre?.title?.[0]?.plain_text||'—',
-      precio:p.properties?.Objetivo?.number||0,
-      tipo:p.properties?.DeseoTipo?.select?.name||'Para mi',
-      estado:p.properties?.DeseoEstado?.select?.name||'Pendiente',
-      emoji:p.properties?.Emoji?.rich_text?.[0]?.plain_text||'🎁',
-    }));
-    if(!wishCache.length){
-      pintar('wishList','deseos',emptyState('🎁',t('empty_wishes_title'),t('empty_wishes_sub')));
-      return;
-    }
-    const pendientes=wishCache.filter(w=>w.estado==='Pendiente');
-    const comprados=wishCache.filter(w=>w.estado==='Comprado');
-    const renderItem=w=>`
-      <div class="wish-card${w.estado==='Comprado'?' bought':''}">
-        <div class="wish-emoji">${w.emoji}</div>
-        <div class="wish-body">
-          <div class="wish-top-row">
-            <div class="wish-name">${w.nombre}</div>
-            <button class="del-btn" onclick="deleteWish('${w.id}',this)">🗑️</button>
-          </div>
-          <div class="wish-meta-row">
-            <span class="wish-badge ${w.tipo==='Regalo'?'gift':''}">${w.tipo==='Regalo'?t('btn_regalo'):'👤 '+t('btn_para_mi')}</span>
-          </div>
-          <div class="wish-bottom-row">
-            <div class="wish-price">${fmt(w.precio)} €</div>
-            ${w.estado==='Pendiente'
-              ? `<button class="wish-buy-btn" onclick="markPurchased('${w.id}')">${t('btn_comprado')}</button>`
-              : `<span class="wish-bought-tag">${t('btn_comprado')}</span>`}
-          </div>
-        </div>
-      </div>`;
-    pintar('wishList','deseos',pendientes.map(renderItem).join('')+comprados.map(renderItem).join(''));
-  }catch(e){if(vigente('deseos',pet))pintarError('wishList','deseos',emptyState('⚠️',t('empty_error_cargar'),t('empty_error_sub')));}
-}
-function selWishType(tipo,el){
-  wishSelectedType=tipo;
-  document.querySelectorAll('#wishTypeMe,#wishTypeGift').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-}
-function openNewWish(){
-  wishSelectedType='Para mi';
-  document.getElementById('wishEmoji').value='🎁';
-  document.getElementById('wishName').value='';
-  document.getElementById('wishPrice').value='';
-  document.getElementById('wishTypeMe').classList.add('active');
-  document.getElementById('wishTypeGift').classList.remove('active');
-  document.getElementById('wishOverlay').classList.add('show');
-}
-function closeWishModal(){document.getElementById('wishOverlay').classList.remove('show');}
-async function saveWish(){
-  const emoji=document.getElementById('wishEmoji').value.trim()||'🎁';
-  const nombre=document.getElementById('wishName').value.trim();
-  const precio=parseAmt(document.getElementById('wishPrice').value)||0;
-  if(!nombre){showToast(t('toast_nombre'),'error');return;}
-  if(precio<=0){showToast(t('toast_introduce_precio'),'error');return;}
-  closeWishModal();
-  try{
-    const data=await nFetch('/pages','POST',{parent:{database_id:CUENTAS_DB},properties:{
-      Nombre:{title:[{text:{content:nombre}}]},
-      Tipo:{select:{name:'Wish List'}},
-      Objetivo:{number:precio},
-      DeseoTipo:{select:{name:wishSelectedType}},
-      DeseoEstado:{select:{name:'Pendiente'}},
-      Emoji:{rich_text:[{text:{content:emoji}}]},
-    }});
-    if(data.id){showSuccessBurst();showToast(t('toast_deseo_anadido'),'success');loadWishes();}
-    else{showToast('Error: '+(data.message||t('toast_no_pudo_crear')),'error');console.error('Wish create error:',data);}
-  }catch(e){showToast(t('toast_conexion'),'error');console.error(e);}
-}
-function deleteWish(id,btn){
-  return borrarConDeshacer(id,{quitar:()=>{const c=btn&&btn.closest('.wish-card');if(c)c.remove();},msg:'Deseo eliminado',recargar:loadWishes});
-}
-async function markPurchased(id){
-  const w=wishCache.find(x=>x.id===id);
-  if(!w)return;
-  if(!await hojaAccion({titulo:'¿Marcar como comprado?',texto:w.nombre,confirmar:'Marcar como comprado'}))return;
-  try{
-    const res=await fetch('/api/page?pageId='+id,{
-      method:'PATCH',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({properties:{DeseoEstado:{select:{name:'Comprado'}}}})
-    });
-    const data=await res.json();
-    if(data.id){showSuccessBurst();showToast(t('toast_marcado_comprado'),'success');loadWishes();}
-    else showToast(t('toast_error_guardar'),'error');
-  }catch(e){showToast(t('toast_conexion'),'error');}
-}
-
 async function deactivateAccount(pageId,name){
   if(!await hojaAccion({titulo:'¿Desactivar '+name+'?',texto:'Dejará de aparecer en tus cuentas. Podrás reactivarla desde «Ver cuentas inactivas».',confirmar:'Desactivar',peligro:true}))return;
   try{
@@ -4595,8 +4195,8 @@ function renderInvResumen(){
 function closeInvModal(){document.getElementById('invOverlay').classList.remove('show');}
 /* ── HOJAS MODALES: cerrar tocando fuera o arrastrando el asa hacia abajo ── */
 (function(){
-  const CIERRES={goalOverlay:'closeGoalModal',goalAddOverlay:'closeGoalAdd',wishOverlay:'closeWishModal',invOverlay:'closeInvModal',
-    transferOverlay:'closeTransfer',editOverlay:'closeEdit',trEditOverlay:'closeEditTransfer',budgetOverlay:'closeBudgetManager',
+  const CIERRES={invOverlay:'closeInvModal',
+    transferOverlay:'closeTransfer',editOverlay:'closeEdit',trEditOverlay:'closeEditTransfer',
     accionOverlay:'cerrarAccion'};
   function cerrar(ov){const fn=window[CIERRES[ov.id]];if(typeof fn==='function')fn();else ov.classList.remove('show');}
   document.querySelectorAll('.modal-overlay').forEach(ov=>{

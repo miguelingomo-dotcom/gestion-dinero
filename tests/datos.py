@@ -12,7 +12,7 @@ def _constante(nombre):
 
 
 BASES = {"movs": _constante("DB_ID"), "cuentas": _constante("CUENTAS_DB"),
-         "transfers": _constante("TRANSFER_DB"), "budget": _constante("BUDGET_DB")}
+         "transfers": _constante("TRANSFER_DB")}
 
 REVOLUT = "31621c54013f817f9f00fc6acc160c26"
 IBERCAJA = "31621c54013f811ebd49f65e2776d28e"

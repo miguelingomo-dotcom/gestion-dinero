@@ -78,7 +78,7 @@ class FakeNotion:
     """Estado de una prueba. `escrituras` guarda cada petición de escritura para poder comprobarla."""
 
     def __init__(self, ids):
-        self.ids = ids  # {"movs": id, "cuentas": id, "transfers": id, "budget": id}
+        self.ids = ids  # {"movs": id, "cuentas": id, "transfers": id}
         self.bases = {k: [] for k in ids.values()}
         self.escrituras = []  # {"metodo": "POST|PATCH|DELETE", "id": ..., "cuerpo": ...}
         self.fallos = {}  # id de página -> (status, code): fuerza un error al escribir en esa página

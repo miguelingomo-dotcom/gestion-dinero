@@ -140,3 +140,46 @@ def test_desde_movimientos_no_hace_falta_leer_ni_recarga_cuentas(app):
     p.locator("#editOverlay .modal-confirm").click()
     expect(app.toast()).to_contain_text("Movimiento actualizado")
     expect(p.locator("#sec-movimientos")).to_have_class(re.compile(r"\bactive\b"))
+
+
+def _metas_y_deseos(notion):
+    """Filas que siguen en Notion aunque la app ya no tenga metas ni deseos. El peor caso: con saldo y «Activo»."""
+    notion.anadir("cuentas", {"Nombre": datos.titulo("Viaje a Japón"), "Cuenta o Meta": {"select": {"name": "Meta"}},
+                              "Estado": {"select": {"name": "🟢 Activo"}}, "Balance Inicial": {"number": 700},
+                              "Objetivo": {"number": 3000}, "AhorradoActual": {"number": 1250}})
+    notion.anadir("cuentas", {"Nombre": datos.titulo("Bici"), "Tipo": {"select": {"name": "Wish List"}},
+                              "Estado": {"select": {"name": "🟢 Activo"}}, "Balance Inicial": {"number": 300},
+                              "Objetivo": {"number": 300}, "DeseoEstado": {"select": {"name": "Pendiente"}}})
+
+
+def test_metas_y_deseos_de_notion_nunca_salen_como_cuentas(abrir):
+    app = abrir(mas=_metas_y_deseos)
+    p = app.page
+    # Inicio: el patrimonio y el carrusel no cambian
+    expect(p.locator("#totalAmount")).to_have_text("5925,00 €")
+    expect(p.locator("#quickAccounts .qa-card")).to_have_count(5)
+    expect(p.locator("#quickAccounts")).not_to_contain_text("Japón")
+    expect(p.locator("#quickAccounts")).not_to_contain_text("Bici")
+    # Cuentas, también las inactivas
+    app.ir("cuentas")
+    expect(p.locator("#accountCards .account-card")).to_have_count(5)
+    p.locator("#btnInactivas").click()
+    expect(p.locator("#accountCardsInactive")).to_contain_text("Sabadell")
+    for sitio in ["#accountCards", "#accountCardsInactive"]:
+        expect(p.locator(sitio)).not_to_contain_text("Japón")
+        expect(p.locator(sitio)).not_to_contain_text("Bici")
+    # Registrar: los chips de cuenta
+    app.ir("registrar")
+    expect(p.locator("#accountChips")).not_to_contain_text("Japón")
+    expect(p.locator("#accountChips")).not_to_contain_text("Bici")
+
+
+def test_cuentas_ya_no_tiene_metas_ni_deseos(app):
+    app.ir("cuentas")
+    p = app.page
+    expect(p.locator("#sec-cuentas")).not_to_contain_text("Metas de ahorro")
+    expect(p.locator("#sec-cuentas")).not_to_contain_text("Lista de deseos")
+    for id in ["goalsList", "wishList", "goalOverlay", "goalAddOverlay", "wishOverlay", "budgetOverlay", "budgetList"]:
+        expect(p.locator("#" + id)).to_have_count(0)
+    # Sin botones Recargar en ninguna cabecera: se recarga tirando hacia abajo
+    expect(p.locator('[aria-label="Recargar"]')).to_have_count(0)

@@ -251,6 +251,8 @@ CONTADOR = """(()=>{window.__total=[];new MutationObserver(()=>{const e=document
 
 
 def valores_total(p):
+    # La app escribe la cifra final un instante (para ajustar su tamaño) antes de contar: se espera al final de la cuenta
+    p.wait_for_function("()=>document.getElementById('totalAmount').dataset.rawVal==='5925'", timeout=4000)
     return [float(x.replace(" €", "").replace(".", "").replace(",", ".")) for x in p.evaluate("()=>window.__total") if "€" in x]
 
 
