@@ -16,7 +16,7 @@ from notion_mock import APP_ORIGIN, FakeNotion  # noqa: E402
 
 expect.set_options(timeout=5000)
 # Las únicas peticiones externas que la app intenta son las fuentes de Google: se bloquean, y cualquier otra hace fallar la prueba
-EXTERNOS_ESPERADOS = ("https://fonts.googleapis.com/", "https://fonts.gstatic.com/")
+EXTERNOS_ESPERADOS = ()  # la app no pide nada fuera: ni fuentes ni logos (usa la letra del sistema)
 ESTATICOS = {"/icon.png": "image/png", "/icon-192.png": "image/png", "/kashy-vencimientos.js": "text/javascript",
              "/manifest.webmanifest": "application/manifest+json", "/sw.js": "text/javascript"}
 CLAVE = "clave-de-prueba"  # inventada: la real solo está en Vercel y en el dispositivo
@@ -202,7 +202,7 @@ def abrir(navegador, tema):
         for app in apps:
             assert not app.errores_js, "Errores de JavaScript: %s" % app.errores_js
             assert not app.rutas_desconocidas, "Rutas sin simular: %s" % app.rutas_desconocidas
-            raros = [u for u in app.externos if not u.startswith(EXTERNOS_ESPERADOS)]
+            raros = [u for u in app.externos if not (EXTERNOS_ESPERADOS and u.startswith(EXTERNOS_ESPERADOS))]
             assert not raros, "La app intentó salir a la red: %s" % raros
     finally:
         for ctx in contextos:

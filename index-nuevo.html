@@ -17,12 +17,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Ka$hy">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" id="themeColorMeta" content="#f5f4f0">
+<meta name="theme-color" id="themeColorMeta" content="#F4F4F7">
 <script>
   // theme-color sigue el tema elegido en la app (no el del sistema)
   function syncThemeColor(){
     var m=document.getElementById('themeColorMeta');
-    if(m)m.setAttribute('content',document.documentElement.getAttribute('data-theme')==='dark'?'#12131c':'#f5f4f0');
+    if(m)m.setAttribute('content',document.documentElement.getAttribute('data-theme')==='dark'?'#0B0B0E':'#F4F4F7');
   }
   syncThemeColor();
   // Sin zoom: Safari ignora user-scalable=no, así que se cancela el gesto de pellizco
@@ -34,22 +34,26 @@
 <link rel="apple-touch-icon" href="/icon.png">
 <script src="/kashy-vencimientos.js"></script>
 <link rel="icon" href="/icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
 /* ── TOKENS ── */
 :root{
   --dur-fast:.15s;--dur-base:.25s;--dur-slow:.4s;--ease:cubic-bezier(.22,.9,.35,1);
   --ease-out:cubic-bezier(0.23,1,0.32,1);--ease-in-out:cubic-bezier(0.77,0,0.175,1);
-  --ease-drawer:cubic-bezier(0.32,0.72,0,1);--bg:#12131c;--surface:rgba(255,255,255,.05);
-  --surface2:rgba(255,255,255,.07);--surface3:rgba(255,255,255,.09);--border:rgba(255,255,255,.08);--text:#ECECF2;
-  --muted:#8A8AA0;--muted2:#71718A;--accent:#a99bff;--green:#34d399;--red:#f87171;--orange:#fb923c;--blue:#60a5fa;
-  --yellow:#eab308;--accent-bg:linear-gradient(160deg,#b3a7ff,#8b7ef8);--accent-text:#12131c;--on-accent:#12131c;
-  --on-green:#052e1c;--on-red:#12131c;--warn-text:var(--yellow);--skeleton-base:rgba(255,255,255,.06);
-  --skeleton-shine:rgba(255,255,255,.12);--sh-sm:0 2px 10px rgba(0,0,0,.3);--sh-md:0 10px 26px rgba(0,0,0,.4);
-  --sh-lg:0 22px 44px rgba(0,0,0,.45);--r-sm:12px;--r-md:16px;--r-lg:20px;--r-xl:26px;--page:#12131c;--sheet:#1b1c27;
+  --ease-drawer:cubic-bezier(0.32,0.72,0,1);
+  /* Sistema de diseño (docs/sistema-de-diseno.md). Ingresos en verde, gastos en rojo, transferencias en morado (acento) */
+  --bg:#0B0B0E;--page:#0B0B0E;--surface:#17171C;--surface2:#202027;--surface3:#2A2A32;--sheet:#1C1C22;
+  --border:rgba(84,84,88,.42);--separator:rgba(84,84,88,.42);--fill:rgba(118,118,128,.24);
+  --text:#F4F4F6;--muted:#A1A1AC;--muted2:#73737E;
+  --accent:#A197FF;--accent-soft:rgba(161,151,255,.14);--accent-bg:#A197FF;--accent-text:#0B0B0E;--on-accent:#0B0B0E;
+  --green:#3DD68C;--positive:#3DD68C;--positive-soft:rgba(61,214,140,.14);--on-green:#06281A;
+  --red:#FF7A70;--negative:#FF7A70;--negative-soft:rgba(255,122,112,.14);--on-red:#0B0B0E;
+  --orange:#FF9F5A;--blue:#6FA8FF;--yellow:#FFC247;--warn-text:#FFC247;--warning-soft:rgba(255,194,71,.14);
+  --skeleton-base:rgba(255,255,255,.06);--skeleton-shine:rgba(255,255,255,.12);
+  --sh-sm:none;--sh-md:0 10px 26px rgba(0,0,0,.45);--sh-lg:0 22px 44px rgba(0,0,0,.5);
+  --r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px;--r-pill:999px;
   --c1:#06b6d4;--c2:#f97316;--c3:#22c55e;--c4:#3b82f6;--c5:#a8a29e;--c6:#eab308;--c7:#67e8f9;--c8:#78716c;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",system-ui,"Segoe UI",Roboto,sans-serif;
+  --font-round:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;
 }
 /* ── RESET ── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -487,7 +491,7 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 .splash-screen{
   position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;
   transition:opacity .3s var(--ease-out),visibility .3s var(--ease-out);
-  background:radial-gradient(90% 70% at 50% 32%,#2a2470,#0e0f18 72%);gap:16px;
+  background:var(--bg);gap:14px;
 }
 .splash-screen.hide{opacity:0;visibility:hidden;pointer-events:none;}
 .splash-logo{position:relative;filter:drop-shadow(0 4px 24px rgba(107,94,240,.35));}
@@ -507,7 +511,7 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
 }
 .splash-name{
   opacity:0;animation:splashNameIn .5s ease .95s forwards;font-family:inherit;font-weight:600;font-size:12.5px;
-  letter-spacing:2.4px;color:var(--muted);animation-delay:.5s;
+  letter-spacing:.16em;color:var(--muted2);animation-delay:.5s;
 }
 @keyframes splashNameIn{
   0%{opacity:0;transform:translateY(8px);}
@@ -537,23 +541,28 @@ svg.trend-svg{width:100%;height:100%;overflow:visible;}
   font-size:20px;opacity:0;
 }
 .anim-emo{display:inline-block;line-height:1;}
-[data-theme="light"]{
-  --bg:#f5f4f0;--surface:#ffffff;--surface2:#f2efea;--surface3:#e9e5df;--border:#ddd9d0;--text:#1a1a24;--muted:#66667a;
-  --muted2:#a8a4a0;--accent:#5d50e6;--green:#137333;--red:#c42121;--orange:#ea580c;--blue:#2563eb;--yellow:#ca8a04;
-  --accent-bg:linear-gradient(160deg,#6e61f0,#5244d6);--accent-text:#ffffff;--on-accent:#ffffff;--on-green:#ffffff;
-  --on-red:#ffffff;--warn-text:#8a5a00;--skeleton-base:#eeece7;--skeleton-shine:rgba(255,255,255,.8);
-  --sh-sm:0 2px 8px rgba(20,20,30,.06);--sh-md:0 8px 22px rgba(20,20,30,.09);--sh-lg:0 18px 38px rgba(20,20,30,.12);
-  --page:#f5f4f0;--sheet:#ffffff;
+:root[data-theme="light"],[data-theme="light"]{
+  --bg:#F4F4F7;--page:#F4F4F7;--surface:#FFFFFF;--surface2:#F0F0F4;--surface3:#E6E6EC;--sheet:#FFFFFF;
+  --border:rgba(60,60,67,.14);--separator:rgba(60,60,67,.16);--fill:rgba(118,118,128,.12);
+  --text:#0B0B0F;--muted:#62626E;--muted2:#8E8E99;
+  --accent:#5B4CEB;--accent-soft:rgba(91,76,235,.10);--accent-bg:#5B4CEB;--accent-text:#FFFFFF;--on-accent:#FFFFFF;
+  --green:#0A8A4A;--positive:#0A8A4A;--positive-soft:rgba(10,138,74,.10);--on-green:#FFFFFF;
+  --red:#D0342C;--negative:#D0342C;--negative-soft:rgba(208,52,44,.10);--on-red:#FFFFFF;
+  --orange:#C25A12;--blue:#2F6FD6;--yellow:#B26B00;--warn-text:#8A5300;--warning-soft:rgba(255,170,0,.14);
+  --skeleton-base:#ECECF1;--skeleton-shine:rgba(255,255,255,.8);
+  --sh-sm:0 1px 2px rgba(16,16,24,.05),0 2px 8px rgba(16,16,24,.04);--sh-md:0 8px 22px rgba(16,16,24,.08);
+  --sh-lg:0 18px 38px rgba(16,16,24,.12);
 }
-body,input,select,button,textarea{font-family:'Inter',-apple-system,'SF Pro Display',system-ui,sans-serif;}
-/* Tipografía: fuera Bebas, números grandes en Inter */
-.header-left h1{font-family:inherit;font-size:33px;font-weight:700;letter-spacing:-.9px;line-height:1.05;}
-.hero-amount,.stat-hero .hero-amount{font-family:inherit;font-size:52px;font-weight:700;letter-spacing:-2.4px;}
-.account-balance{font-family:inherit;font-size:32px;font-weight:700;letter-spacing:-1.2px;color:#fff;}
-.rate-number{font-family:inherit;font-size:42px;font-weight:700;letter-spacing:-1.6px;}
-.amount-in{font-family:inherit;font-size:50px;font-weight:700;letter-spacing:-2.2px;}.modal-title{font-family:inherit;font-size:19px;font-weight:700;letter-spacing:-.3px;}
-.modal-amount{font-family:inherit;font-size:44px;font-weight:700;letter-spacing:-2px;}
-.modal-input{font-family:inherit;font-size:26px;font-weight:700;letter-spacing:-1px;}
+body,input,select,button,textarea{font-family:var(--font);}
+body{-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;}
+/* Tipografía: SF Pro del sistema; los números grandes, con tracking negativo en em y cifras tabulares */
+.header-left h1{font-family:inherit;font-size:34px;font-weight:700;letter-spacing:-.022em;line-height:1.05;}
+.hero-amount,.stat-hero .hero-amount{font-family:inherit;font-size:52px;font-weight:700;letter-spacing:-.035em;}
+.account-balance{font-family:inherit;font-size:32px;font-weight:700;letter-spacing:-.03em;color:#fff;}
+.rate-number{font-family:inherit;font-size:42px;font-weight:700;letter-spacing:-.032em;}
+.amount-in{font-family:var(--font-round);font-size:50px;font-weight:700;letter-spacing:-.035em;}.modal-title{font-family:inherit;font-size:19px;font-weight:700;letter-spacing:-.3px;}
+.modal-amount{font-family:inherit;font-size:44px;font-weight:700;letter-spacing:-.034em;}
+.modal-input{font-family:inherit;font-size:26px;font-weight:700;letter-spacing:-.025em;}
 .sec-header h2{font-family:inherit;font-size:17px;font-weight:700;letter-spacing:-.3px;}
 .top-rank{font-family:inherit;font-size:15px;font-weight:700;}
 /* Cabecera fija con desenfoque */
@@ -755,15 +764,11 @@ body.kashy-privado .hero-amount,body.kashy-privado .hero-mini-val,body.kashy-pri
   display:block;margin:10px auto 0;padding:8px 12px;background:none;border:0;color:var(--accent);font:inherit;
   font-size:13px;font-weight:600;cursor:pointer;
 }
-[data-theme="light"] .splash-screen{background:radial-gradient(90% 70% at 50% 32%,#ded8ff,#f5f4f0 72%);}
 .splash-word{
-  font-size:56px;font-weight:600;letter-spacing:-2px;color:#ECECF2;background:none;isolation:isolate;
-  text-shadow:0 8px 34px rgba(139,126,248,.45);opacity:0;
+  font-family:var(--font);font-size:58px;font-weight:800;letter-spacing:-.045em;color:var(--text);background:none;opacity:0;
   animation:splashWordIn .55s cubic-bezier(.34,1.56,.64,1) .1s forwards;
 }
-.splash-word span{color:#c8bfff;}
-[data-theme="light"] .splash-word{color:#1a1a24;}
-[data-theme="light"] .splash-word span{color:#6b5ef0;}
+.splash-word span{color:var(--accent);}
 @keyframes splashWordIn{0%{opacity:0;transform:scale(.9)}100%{opacity:1;transform:scale(1)}}
 /* Tarjetas de cuenta como en el diseño */
 .account-card .account-card-head{gap:10px;align-items:center;}
