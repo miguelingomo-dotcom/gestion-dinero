@@ -1147,7 +1147,8 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
 #sec-registrar .susc-progress{margin:0;padding:0 16px 12px 68px;border:0;border-radius:0;background:none;}
 #sec-registrar .susc-progress-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);}
 #sec-registrar .susc-progress .res-bar{height:6px;margin:6px 0;border-radius:3px;background:var(--fill);}
-#sec-registrar .susc-progress .res-bar-fill{background:var(--accent);border-radius:3px;}
+/* Cada barra, del color de su categoría (el mismo que su icono y las barras de Inicio) */
+#sec-registrar .susc-progress .res-bar-fill{background:var(--prog,var(--accent));border-radius:3px;}
 #sec-registrar .susc-progress-sub{font-size:12px;color:var(--muted2);}
 /* Éxito: la insignia lleva la ficha del comercio o la categoría */
 #successBadgeEmo .kficha{width:30px;height:30px;border-radius:50%;}
@@ -3760,7 +3761,7 @@ async function refreshSuscProgress(i,animar){
       <span>Pagado ${fmt(p.pagado)} € de ${fmt(p.total)} €</span>
       <span>${p.cuotasPagadas}/${s.cuotasTotales} cuotas</span>
     </div>
-    <div class="res-bar"><div class="res-bar-fill" style="transform:${antes||barScale(p.pct)}"></div></div>
+    <div class="res-bar"><div class="res-bar-fill" style="transform:${antes||barScale(p.pct)};--prog:${(CAT_META[s.catId]||{}).c||'var(--accent)'}"></div></div>
     <div class="susc-progress-sub">${pagoPorEmpezar(s)?t('proximo_pago')+' '+new Date(s.fechaInicio+'T00:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'})+' · ':''}Vence ${p.finStr}</div>`;
   if(animar){
     const fill=el.querySelector('.res-bar-fill');

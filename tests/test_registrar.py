@@ -166,3 +166,16 @@ def test_el_importe_grande_nunca_se_corta(app, ancho):
           const a=i.getBoundingClientRect(),b=e.getBoundingClientRect();
           return {cabe:i.scrollWidth<=i.clientWidth+1,dentro:a.left>=0&&b.right<=innerWidth}}""")
         assert r["cabe"] and r["dentro"], (valor, r)
+
+
+def test_cada_barra_de_cuotas_va_del_color_de_su_categoria(app):
+    p = app.page
+    app.ir("registrar")
+    def color(nombre):
+        barra = p.locator(".sus-card-wrap", has=p.locator(".sus-name", has_text=nombre)).locator(".res-bar-fill")
+        barra.wait_for(state="attached")  # al 0 % no tiene ancho visible
+        return barra.evaluate("e=>getComputedStyle(e).backgroundColor")
+    coche, ikea, vinilos = color("Letra Coche"), color("Mueble Ikea"), color("Vinilos")
+    assert coche == "rgb(59, 123, 217)"   # Coche #3B7BD9
+    assert ikea == "rgb(46, 140, 140)"    # Hogar #2E8C8C
+    assert vinilos == "rgb(123, 92, 224)"  # Ocio #7B5CE0
