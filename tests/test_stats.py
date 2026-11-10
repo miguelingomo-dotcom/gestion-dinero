@@ -80,3 +80,27 @@ def test_historico_y_extracto(app):
     texto = open(d.value.path(), encoding="utf-8-sig").read()
     assert "Cena con amigos" in texto and "-45,50" in texto, texto
     expect(app.toast()).to_contain_text("Extracto descargado")
+
+
+
+def _octubre(n):
+    datos.gasto(n, "Libros", "2026-10-05", 30, cat=datos.CAT_OCIO)
+
+
+def test_evolucion_del_mes_acumulada_y_comparada_con_el_anterior(abrir):
+    app = abrir(mas=_octubre)
+    p = app.page
+    app.ir("stats")
+    svg = p.locator("#trendSvg")
+    # Noviembre hasta el 15: 84,50 (día 10) + 60 (día 14). Octubre hasta el 15: solo los 30 del día 5 (la cena del 20 no)
+    expect(svg).to_have_attribute("data-actual", "144.5")
+    expect(svg).to_have_attribute("data-anterior", "30")
+    expect(svg.locator(".trend-actual")).to_have_count(1)
+    expect(svg.locator(".trend-anterior")).to_have_count(1)
+    ley = p.locator("#trendLeyenda")
+    expect(ley).to_contain_text("Este mes · 144,50 €")
+    expect(ley).to_contain_text("hasta el día 15 · 30,00 €")
+    # Otros periodos: la curva por meses de siempre, sin leyenda
+    p.locator('#sec-stats .period-btn[onclick*="-3"]').click()
+    expect(ley).to_be_hidden()
+    expect(svg.locator(".trend-anterior")).to_have_count(0)

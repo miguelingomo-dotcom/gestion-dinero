@@ -1368,6 +1368,12 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
 /* Evolución */
 #sec-stats .trend-area{color:var(--accent);}
 #sec-stats .trend-lbl{font-size:12px;color:var(--muted);}
+#sec-stats .trend-leyenda{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:10px;font-size:13px;color:var(--muted);}
+#sec-stats .trend-leyenda[hidden]{display:none;}
+#sec-stats .trend-leyenda span{display:inline-flex;align-items:center;gap:6px;}
+#sec-stats .trend-leyenda b{color:var(--text);font-weight:600;}
+#sec-stats .trend-leyenda i{width:14px;height:0;border-top:2px dashed var(--muted2);}
+#sec-stats .trend-leyenda i.actual{border-top:2.5px solid var(--accent);}
 /* Gráfico circular con los colores de cada categoría */
 #sec-stats .pie-layout{gap:20px;}
 #sec-stats .leg-item{gap:8px;}
@@ -1588,6 +1594,7 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
       <div class="card-title" data-i18n="evolucion_gastos">Evolución de gastos</div>
       <div class="trend-area"><svg class="trend-svg" viewBox="0 0 350 110" preserveAspectRatio="none" id="trendSvg"></svg></div>
       <div class="trend-labels" id="trendLabels"></div>
+      <div class="trend-leyenda" id="trendLeyenda" hidden></div>
     </div>
     <div class="pie-card">
       <div class="card-title" data-i18n="gastos_por_categoria">Gastos por categoría</div>
@@ -4162,7 +4169,7 @@ async function loadStats(){
     document.getElementById('rateFill').style.background=tasa>50?'var(--green)':tasa>20?'var(--yellow)':'var(--red)';
     document.getElementById('rateDesc').textContent=tasa>50?t('tasa_excelente',{t:String(Math.round(tasa))}):tasa>20?t('tasa_moderada'):t('tasa_negativa');
     requestAnimationFrame(()=>ajustarCifras(document.getElementById('sec-stats')));
-    renderTrend(data.results||[],start,months);
+    if(statPeriod!==0)renderTrend(data.results||[],start,months);
     const sorted=Object.entries(catMap).sort((a,b)=>b[1].total-a[1].total);
     renderPie(sorted);
     renderTop(sorted);
@@ -4179,12 +4186,13 @@ async function loadStats(){
       const prevEnd=new Date(now.getFullYear(),now.getMonth(),0);
       const prevStartStr=`${prevStart.getFullYear()}-${pad(prevStart.getMonth()+1)}-${pad(prevStart.getDate())}`;
       const prevEndStr=`${prevEnd.getFullYear()}-${pad(prevEnd.getMonth()+1)}-${pad(prevEnd.getDate())}`;
-      let prevG=0;const prevCatMap={};
+      let prevG=0;const prevCatMap={};let prevPages=[];
       try{
         const prevData=await nQueryAll(DB_ID,{
           filter:{and:[{property:'Fecha',date:{on_or_after:prevStartStr}},{property:'Fecha',date:{on_or_before:prevEndStr}}]},
           page_size:100
         });
+        prevPages=prevData.results||[];
         (prevData.results||[]).forEach(p=>{
           const g=p.properties?.Gasto?.number||0;
           prevG+=g;
@@ -4198,6 +4206,7 @@ async function loadStats(){
       }catch(e){}
       renderProjection(totalG,prevG);
       renderComparativa(catMap,prevCatMap);
+      renderTrendMes(data.results||[],prevPages);
     }else{
       projCard.style.display='none';
       document.getElementById('comparCard').style.display='none';
@@ -4378,7 +4387,33 @@ function downloadExtract(){
   URL.revokeObjectURL(url);
   showToast(t('toast_extracto_descargado'),'success');
 }
+/* «Este mes»: gasto acumulado día a día hasta hoy y, en gris, el del mes anterior hasta el mismo día */
+function renderTrendMes(pages,prevPages){
+  const hoy=new Date(),dia=hoy.getDate(),dias=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate();
+  const diasAnt=new Date(hoy.getFullYear(),hoy.getMonth(),0).getDate(),hastaAnt=Math.min(dia,diasAnt);
+  const acumulado=(lista,hasta)=>{
+    const porDia=Array(hasta+1).fill(0);
+    lista.forEach(p=>{const g=p.properties?.Gasto?.number||0,f=p.properties?.Fecha?.date?.start||'';const d=+f.slice(8,10);if(g>0&&d>=1&&d<=hasta)porDia[d]+=g;});
+    const out=[];let suma=0;for(let d=1;d<=hasta;d++){suma+=porDia[d];out.push(suma);}return out;
+  };
+  const act=acumulado(pages,dia),ant=acumulado(prevPages||[],hastaAnt);
+  const w=350,h=110,maxV=Math.max(act[act.length-1]||0,ant[ant.length-1]||0,1)*1.15;
+  const x=d=>dias>1?(d-1)/(dias-1)*w:0,y=v=>h-(v/maxV)*h;
+  const linea=vals=>vals.map((v,i)=>(i?'L':'M')+x(i+1).toFixed(1)+','+y(v).toFixed(1)).join(' ');
+  const svg=document.getElementById('trendSvg');
+  svg.dataset.actual=act[act.length-1]||0;svg.dataset.anterior=ant[ant.length-1]||0;
+  svg.innerHTML=`<defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="currentColor" stop-opacity="0.22"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
+    ${ant.length?`<path class="trend-anterior" d="${linea(ant)}" fill="none" stroke="var(--muted2)" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`:''}
+    <path d="${linea(act)} L ${x(dia).toFixed(1)},${h} L 0,${h} Z" fill="url(#tg)"/>
+    <path class="trend-actual" d="${linea(act)}" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${x(dia).toFixed(1)}" cy="${y(act[act.length-1]||0).toFixed(1)}" r="4" fill="currentColor" stroke="var(--surface)" stroke-width="2"/>`;
+  const mes=d=>d.toLocaleDateString('es-ES',{month:'short'}).replace('.','');
+  document.getElementById('trendLabels').innerHTML=`<span class="trend-lbl">1 ${mes(hoy)}</span><span class="trend-lbl">${dias} ${mes(hoy)}</span>`;
+  const ley=document.getElementById('trendLeyenda');ley.hidden=false;
+  ley.innerHTML=`<span><i class="actual"></i>Este mes · <b>${fmt(act[act.length-1]||0)} €</b></span><span><i></i>${(m=>m[0].toUpperCase()+m.slice(1))(new Date(hoy.getFullYear(),hoy.getMonth()-1,1).toLocaleDateString('es-ES',{month:'long'}))} hasta el día ${hastaAnt} · <b>${fmt(ant[ant.length-1]||0)} €</b></span>`;
+}
 function renderTrend(pages,startDate,months){
+  document.getElementById('trendLeyenda').hidden=true;
   const buckets={};
   const s=new Date(startDate);
   for(let m=0;m<months;m++){
