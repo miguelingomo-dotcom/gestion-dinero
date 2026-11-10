@@ -76,3 +76,18 @@ def test_ojo_oculta_los_saldos(app):
     expect(p.locator("body")).to_have_class(re.compile(r"kashy-privado"))
     p.locator("#kashyEyeBtn").click()
     expect(p.locator("body")).not_to_have_class(re.compile(r"kashy-privado"))
+
+
+def test_tocar_el_resumen_no_abre_el_desglose(app):
+    p = app.page
+    tarjeta = p.locator("#patHeroCard")
+    for sitio in ["#resBalance", "#resGasto", "#resIngreso", "#resPeriodoLbl"]:
+        p.locator(sitio).click()
+        expect(tarjeta).not_to_have_class(re.compile(r"\bpat-open\b"))
+    # Se abre desde la cifra o «Desglose», y tocar dentro de la lista no la cierra
+    p.locator("#totalAmount").click()
+    expect(tarjeta).to_have_class(re.compile(r"\bpat-open\b"))
+    p.locator("#patBreakdown .pat-item").first.click()
+    expect(tarjeta).to_have_class(re.compile(r"\bpat-open\b"))
+    p.locator("#patHeroCard .hero-hint").click()
+    expect(tarjeta).not_to_have_class(re.compile(r"\bpat-open\b"))

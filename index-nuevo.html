@@ -1024,7 +1024,7 @@ svg.ki{width:20px;height:20px;display:block;flex:none;overflow:visible;}
     </div>
     <div class="alert-banner compact" id="alertBanner"><span class="alerta-ico"><svg class="ki" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0" /> <path d="M22 8c0-2.3-.8-4.3-2-6" /> <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" /> <path d="M4 2C2.8 3.7 2 5.7 2 8" /></svg></span><div class="alerta-txt"><div class="alert-title" data-i18n="cobros_hoy">Cobros hoy</div><div id="alertItems" class="compact-body"></div></div></div>
     <div class="alert-banner compact aviso-inv" id="invReminderBannerInicio" onclick="openInvModal('Valor Cartera')" style="cursor:pointer;"><span class="alerta-ico"><svg class="ki" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6" /> <path d="m22 7-8.5 8.5-5-5L2 17" /></svg></span><div class="alerta-txt"><div class="alert-title">MyInvestor</div><div id="invReminderTextInicio" class="compact-body"></div></div></div>
-    <div class="hero-card" id="patHeroCard" onclick="togglePatBreakdown()">
+    <div class="hero-card" id="patHeroCard" onclick="togglePatBreakdown(event)">
       <div class="hero-label"><span data-i18n="patrimonio_total">Patrimonio total</span> <span class="hero-hint"><span data-i18n="patrimonio_hint">Desglose</span><svg class="ki" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></span></div>
       <div class="hero-amount" id="totalAmount" data-raw-val="0" data-partes="1">0,00 €</div>
       <div class="hero-badges"><div id="patVariation"></div><div class="hero-sub" id="totalSub" data-i18n="patrimonio_sub">Cuentas + inversión</div></div>
@@ -2630,7 +2630,9 @@ async function loadPatrimonio(){
 }
 let patrimonioBreakdown={items:[],total:0};
 let patHeroCardOpen=false;
-function togglePatBreakdown(){
+function togglePatBreakdown(ev){
+  // Solo la cabecera del patrimonio (título, cifra, variación) abre y cierra el desglose; el resumen y la lista no
+  if(ev&&ev.target.closest&&ev.target.closest('.hero-row,.res-periodo,.pat-breakdown'))return;
   patHeroCardOpen=!patHeroCardOpen;
   const card=document.getElementById('patHeroCard');
   card.classList.toggle('pat-open',patHeroCardOpen);
